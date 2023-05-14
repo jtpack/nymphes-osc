@@ -1,22 +1,56 @@
+from pythonosc.udp_client import SimpleUDPClient
+from pythonosc.dispatcher import Dispatcher
+from pythonosc.osc_server import BlockingOSCUDPServer
+import threading
 
+class NymphesOscController:
+    """
+    A class used for OSC control of all of the control parameters of the Dreadbox Nymphes synthesizer.
+    We communicate with a Pure Data patch via OSC. The patch communicates with the Nymphes via MIDI.    
+    """
 
-class NymphesMidiControlParameters:
-    """A class used for tracking all of the midi-controllable parameters of the Dreadbox Nymphes synthesizer"""
+    def __init__(self, incoming_host, incoming_port, outgoing_host, outgoing_port):
+        # Prepare OSC objects
+        self.incoming_host = incoming_host
+        self.incoming_port = incoming_port
+        self.outgoing_host = outgoing_host
+        self.outgoing_port = outgoing_port
 
-    def __init__(self):
-        self._oscillator = NymphesOscillatorParams()
+        self.server = None
+        self.server_thread = None
+
+        self.dispatcher = Dispatcher()
+        
+        # Create the control parameter objects
+        self._oscillator_params = NymphesOscOscillatorParams(self.dispatcher)
+        self._pitch_params = NymphesOscPitchParams(self.dispatcher)
+
+        # Finally, start the OSC server in another thread
+        self.server_thread = threading.Thread(target=self.start_osc_server)
+        self.server_thread.start()
+
+    def start_osc_server(self):
+        self.server = BlockingOSCUDPServer((self.incoming_host, self.incoming_port), self.dispatcher)
+        self.server.serve_forever()        
 
     @property
     def oscillator(self):
-        return self._oscillator
+        return self._oscillator_params
+    
+    @property
+    def pitch(self):
+        return self._pitch_params
+    
 
 
-class NymphesOscillatorParams:
+
+
+class NymphesOscOscillatorParams:
     """A class for tracking all of the control parameters for the oscillator"""
 
-    def __init__(self):
-        self._wave = NymphesModulatedControlParameter()
-        self._pulsewidth = NymphesModulatedControlParameter()
+    def __init__(self, dispatcher):
+        self._wave = NymphesOscModulatedControlParameter(dispatcher, '/osc/wave')
+        self._pulsewidth = NymphesOscModulatedControlParameter(dispatcher,'/osc/pulsewidth')
 
     @property
     def wave(self):
@@ -27,24 +61,35 @@ class NymphesOscillatorParams:
         return self._pulsewidth
 
 
-class NymphesPitchParams:
+class NymphesOscPitchParams:
     """A class for tracking all of pitch-related control parameters"""
 
-    def __init__(self):
-        self._detune = NymphesModulatedControlParameter()
-        self._chord = NymphesModulatedControlParameter()
+    def __init__(self, dispatcher):
+        self._detune = NymphesOscModulatedControlParameter(dispatcher, '/pitch/detune')
+        self._chord = NymphesOscModulatedControlParameter(dispatcher, '/pitch/chord')
+        self._env_depth = NymphesOscModulatedControlParameter(dispatcher, '/pitch/env_depth')
+        self._lfo1 = NymphesOscModulatedControlParameter(dispatcher, '/pitch/lfo1')
+        self._glide = NymphesOscModulatedControlParameter(dispatcher, '/pitch/glide')
+
         
-
-
-class NymphesControlParameter:
+class NymphesOscControlParameter:
     """
     A control parameter in the Nymphes synthesizer that cannot be modulated by the modulation matrix.
     It has only one property: value.
     Its range is 0 to 127.
     """
 
-    def __init__(self):
+    def __init__(self, dispatcher, osc_address):
+        """
+        dispatcher is an OSC dispatcher object.
+        osc_address is a string.
+        """
         self._value = 0
+        
+        self._osc_address = osc_address
+
+        # Register for OSC messages at our OSC address
+        dispatcher.map(self._osc_address, self.on_osc_message)
 
     @property
     def value(self):
@@ -64,10 +109,15 @@ class NymphesControlParameter:
             self._value = new_val
             
         except ValueError:
-            raise ValueError(f'value could not be converted to an int: {value}') from None
+            raise ValueError(f'value could not be converted to an int: {val}') from None
+
+    def on_osc_message(self, address, *args):
+        val = args[0]
+        self.value = val
+        print(f'{address}: {val}')
 
 
-class NymphesModulatedControlParameter:
+class NymphesOscModulatedControlParameter:
     """
     A control parameter in the Nymphes synthesizer that can be modulated with the modulation matrix.
     For each of these control parameters, there are the following properties:
@@ -168,9 +218,21 @@ class NymphesModulatedControlParameter:
                 raise ValueError(f'value could not be converted to an int: {value}') from None
 
         
-    def __init__(self):
+    def __init__(self, dispatcher, base_osc_address):
+        """
+        dispatcher is an OSC dispatcher that we use to map incoming OSC messages with our OSC addresses.
+        base_osc_address is a string.
+        """
+        self.base_osc_address = base_osc_address
         self._value = 0
         self.modulation = self.ModulationAmounts()
+
+        # Map OSC messages
+        dispatcher.map(self.base_osc_address + '/value', self.on_osc_value_message)
+        dispatcher.map(self.base_osc_address + '/mod/lfo2', self.on_osc_lfo2_message)
+        dispatcher.map(self.base_osc_address + '/mod/wheel', self.on_osc_wheel_message)
+        dispatcher.map(self.base_osc_address + '/mod/velocity', self.on_osc_velocity_message)
+        dispatcher.map(self.base_osc_address + '/mod/aftertouch', self.on_osc_aftertouch_message)
 
     @property
     def value(self):
@@ -190,10 +252,34 @@ class NymphesModulatedControlParameter:
             self._value = new_val
             
         except ValueError:
-            raise ValueError(f'value could not be converted to an int: {value}') from None
+            raise ValueError(f'value could not be converted to an int: {val}') from None
 
+    def on_osc_value_message(self, address, *args):
+        val = args[0]
+        self.value = val
+        print(f'{address}: {val}')
 
-class NymphesLfoTypeParameter:
+    def on_osc_lfo2_message(self, address, *args):
+        val = args[0]
+        self.modulation.lfo2 = val
+        print(f'{address}: {val}')
+
+    def on_osc_wheel_message(self, address, *args):
+        val = args[0]
+        self.modulation.wheel = val
+        print(f'{address}: {val}')
+
+    def on_osc_velocity_message(self, address, *args):
+        val = args[0]
+        self.modulation.velocity = val
+        print(f'{address}: {val}')
+
+    def on_osc_aftertouch_message(self, address, *args):
+        val = args[0]
+        self.modulation.aftertouch = val
+        print(f'{address}: {val}')
+
+class NymphesOscLfoTypeParameter:
     """
     Control parameter for LFO type, which has four possible settings. These can be set using either their int values or string names.
     0 = 'bpm'
@@ -223,7 +309,7 @@ class NymphesLfoTypeParameter:
             self._value = new_val
             
         except ValueError:
-            raise ValueError(f'value could not be converted to an int: {value}') from None
+            raise ValueError(f'value could not be converted to an int: {val}') from None
         
     @property
     def string_value(self):
@@ -253,7 +339,7 @@ class NymphesLfoTypeParameter:
             raise Exception(f'Invalid string_value: {string_val}')
 
 
-class NymphesPlayModeParameter:
+class NymphesOscPlayModeParameter:
     """
     Control parameter for Play Mode, which has six possible values. These can be set using either their int values or string names.
     0 = 'polyphonic'
@@ -285,7 +371,7 @@ class NymphesPlayModeParameter:
             self._value = new_val
             
         except ValueError:
-            raise ValueError(f'value could not be converted to an int: {value}') from None
+            raise ValueError(f'value could not be converted to an int: {val}') from None
         
     @property
     def string_value(self):
@@ -323,7 +409,7 @@ class NymphesPlayModeParameter:
             raise Exception(f'Invalid string_value: {string_val}')
         
 
-class NymphesLfoKeySyncParameter:
+class NymphesOscLfoKeySyncParameter:
     """
     Control parameter for LFO key sync, which has two possible settings. These can be set using either their int values or string names.
     0 = 'off'
@@ -351,7 +437,7 @@ class NymphesLfoKeySyncParameter:
             self._value = new_val
             
         except ValueError:
-            raise ValueError(f'value could not be converted to an int: {value}') from None
+            raise ValueError(f'value could not be converted to an int: {val}') from None
         
     @property
     def string_value(self):
@@ -372,7 +458,7 @@ class NymphesLfoKeySyncParameter:
         else:
             raise Exception(f'Invalid string_value: {string_val}')
 
-class NymphesLegatoParameter:
+class NymphesOscLegatoParameter:
     """
     Control parameter for Legato, which has two possible settings. These can be set using their int values, string names, or True and False.
     0 = 'off'
@@ -400,7 +486,7 @@ class NymphesLegatoParameter:
             self._value = new_val
             
         except ValueError:
-            raise ValueError(f'value could not be converted to an int: {value}') from None
+            raise ValueError(f'value could not be converted to an int: {val}') from None
         
     @property
     def string_value(self):
@@ -422,7 +508,7 @@ class NymphesLegatoParameter:
             raise Exception(f'Invalid string_value: {string_val}')
 
 
-class NymphesModSourceParameter:
+class NymphesOscModSourceParameter:
     """
     Control parameter for Mod Source Selector, which has four possible settings. These can be set using either their int values or string names.
     0 = 'lfo2'
@@ -452,7 +538,7 @@ class NymphesModSourceParameter:
             self._value = new_val
             
         except ValueError:
-            raise ValueError(f'value could not be converted to an int: {value}') from None
+            raise ValueError(f'value could not be converted to an int: {val}') from None
         
     @property
     def string_value(self):
