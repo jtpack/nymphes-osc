@@ -25,13 +25,20 @@ class NymphesOscController:
         self._oscillator_params = NymphesOscOscillatorParams(self.dispatcher)
         self._pitch_params = NymphesOscPitchParams(self.dispatcher)
 
-        # Finally, start the OSC server in another thread
-        self.server_thread = threading.Thread(target=self.start_osc_server)
-        self.server_thread.start()
+        # Start the OSC server in another thread
 
-    def start_osc_server(self):
+    def start_server(self):
         self.server = BlockingOSCUDPServer((self.incoming_host, self.incoming_port), self.dispatcher)
-        self.server.serve_forever()        
+        self.server_thread = threading.Thread(target=self.server.serve_forever)
+        self.server_thread.start()        
+
+    def stop_server(self):
+        if self.server is not None:
+            self.server.shutdown()
+            self.server.server_close()
+            self.server = None
+            self.server_thread.join()
+            self.server_thread = None
 
     @property
     def oscillator(self):
