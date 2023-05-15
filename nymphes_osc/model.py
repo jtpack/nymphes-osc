@@ -24,6 +24,13 @@ class NymphesOscController:
         # Create the control parameter objects
         self._oscillator_params = NymphesOscOscillatorParams(self.dispatcher)
         self._pitch_params = NymphesOscPitchParams(self.dispatcher)
+        self._amp_params = NymphesOscAmpParams(self.dispatcher)
+        self._mix_params = NymphesOscMixParams(self.dispatcher)
+        self._lpf_params = NymphesOscLpfParams(self.dispatcher)
+        self._hpf_params = NymphesOscHpfParams(self.dispatcher)
+        self._pitch_filter_env_params = NymphesOscPitchFilterEnvParams(self.dispatcher)
+        self._pitch_filter_lfo_params = NymphesOscPitchFilterLfoParams(self.dispatcher)
+        self._lfo2_params = NymphesOscLfo2Params(self.dispatcher)
 
         # Start the OSC server in another thread
 
@@ -48,24 +55,52 @@ class NymphesOscController:
     def pitch(self):
         return self._pitch_params
     
+    @property
+    def amp(self):
+        return self._amp_params
+    
+    @property
+    def mix(self):
+        return self._mix_params
+    
+    @property
+    def lpf(self):
+        return self._lpf_params
+    
+    @property
+    def hpf(self):
+        return self._hpf_params
 
+    @property
+    def pitch_filter_env(self):
+        return self._pitch_filter_env_params
+    
+    @property
+    def pitch_filter_lfo(self):
+        return self._pitch_filter_lfo_params
+    
+    @property
+    def lfo2(self):
+        return self._lfo2_params
+    
 
-
+# Classes for specific sections of the Nymphes Synthesizer
+#
 
 class NymphesOscOscillatorParams:
     """A class for tracking all of the control parameters for the oscillator"""
 
     def __init__(self, dispatcher):
         self._wave = NymphesOscModulatedControlParameter(dispatcher, '/osc/wave')
-        self._pulsewidth = NymphesOscModulatedControlParameter(dispatcher,'/osc/pulsewidth')
+        self._level = NymphesOscModulatedControlParameter(dispatcher,'/osc/level')
 
     @property
     def wave(self):
         return self._wave
     
     @property
-    def pulsewidth(self):
-        return self._pulsewidth
+    def level(self):
+        return self._level
 
 
 class NymphesOscPitchParams:
@@ -78,6 +113,218 @@ class NymphesOscPitchParams:
         self._lfo1 = NymphesOscModulatedControlParameter(dispatcher, '/pitch/lfo1')
         self._glide = NymphesOscModulatedControlParameter(dispatcher, '/pitch/glide')
 
+    @property
+    def detune(self):
+        return self._detune
+
+    @property
+    def chord(self):
+        return self._chord
+
+    @property
+    def env_depth(self):
+        return self._env_depth
+
+    @property
+    def lfo1(self):
+        return self._lfo1
+    
+    @property
+    def glide(self):
+        return self._glide
+
+
+class NymphesOscAmpParams:
+    """A class for tracking all of amplitude-related control parameters"""
+
+    def __init__(self, dispatcher):
+        self._attack = NymphesOscModulatedControlParameter(dispatcher, '/amp/attack')
+        self._decay = NymphesOscModulatedControlParameter(dispatcher, '/amp/decay')
+        self._sustain = NymphesOscModulatedControlParameter(dispatcher, '/amp/sustain')
+        self._release = NymphesOscModulatedControlParameter(dispatcher, '/amp/release')
+        self._level = NymphesOscControlParameter(dispatcher, '/amp/level/value')
+
+    @property
+    def attack(self):
+        return self._attack
+
+    @property
+    def decay(self):
+        return self._decay
+
+    @property
+    def sustain(self):
+        return self._sustain
+    
+    @property
+    def release(self):
+        return self._release
+    
+    @property
+    def level(self):
+        return self._level
+
+
+class NymphesOscMixParams:
+    """A class for tracking all of mix-related control parameters"""
+
+    def __init__(self, dispatcher):
+        self._osc = NymphesOscModulatedControlParameter(dispatcher, '/mix/osc')
+        self._sub = NymphesOscModulatedControlParameter(dispatcher, '/mix/sub')
+        self._noise = NymphesOscModulatedControlParameter(dispatcher, '/mix/noise')
+
+    @property
+    def osc(self):
+        return self._osc
+
+    @property
+    def sub(self):
+        return self._sub
+
+    @property
+    def noise(self):
+        return self._noise
+
+
+class NymphesOscLpfParams:
+    """A class for tracking all of LPF-related control parameters"""
+
+    def __init__(self, dispatcher):
+        self._cutoff = NymphesOscModulatedControlParameter(dispatcher, '/lpf/cutoff')
+        self._resonance = NymphesOscModulatedControlParameter(dispatcher, '/lpf/resonance')
+        self._tracking = NymphesOscModulatedControlParameter(dispatcher, '/lpf/tracking')
+        self._env_depth = NymphesOscModulatedControlParameter(dispatcher, '/lpf/env_depth')
+        self._lfo1 = NymphesOscModulatedControlParameter(dispatcher, '/lpf/lfo1')
+
+    @property
+    def cutoff(self):
+        return self._cutoff
+
+    @property
+    def resonance(self):
+        return self._resonance
+
+    @property
+    def tracking(self):
+        return self._tracking
+
+    @property
+    def env_depth(self):
+        return self._env_depth
+
+    @property
+    def lfo1(self):
+        return self._lfo1
+
+
+class NymphesOscHpfParams:
+    """A class for tracking all of HPF-related control parameters"""
+
+    def __init__(self, dispatcher):
+        self._cutoff = NymphesOscModulatedControlParameter(dispatcher, '/hpf/cutoff')
+
+    @property
+    def cutoff(self):
+        return self._cutoff
+    
+
+class NymphesOscPitchFilterEnvParams:
+    """A class for tracking all control parameters related to the pitch/filter envelope generator"""
+
+    def __init__(self, dispatcher):
+        self._attack = NymphesOscModulatedControlParameter(dispatcher, '/pitch_filter_env/attack')
+        self._decay = NymphesOscModulatedControlParameter(dispatcher, '/pitch_filter_env/decay')
+        self._sustain = NymphesOscModulatedControlParameter(dispatcher, '/pitch_filter_env/sustain')
+        self._release = NymphesOscModulatedControlParameter(dispatcher, '/pitch_filter_env/release')
+
+    @property
+    def attack(self):
+        return self._attack
+    
+    @property
+    def decay(self):
+        return self._decay
+
+    @property
+    def sustain(self):
+        return self._sustain
+
+    @property
+    def release(self):
+        return self._release
+
+
+class NymphesOscPitchFilterLfoParams:
+    """A class for tracking all control parameters related to the pitch/filter LFO (lfo1)"""
+
+    def __init__(self, dispatcher):
+        self._rate = NymphesOscModulatedControlParameter(dispatcher, '/lfo1/rate')
+        self._wave = NymphesOscModulatedControlParameter(dispatcher, '/lfo1/wave')
+        self._delay = NymphesOscModulatedControlParameter(dispatcher, '/lfo1/delay')
+        self._fade = NymphesOscModulatedControlParameter(dispatcher, '/lfo1/fade')
+        self._type = NymphesOscLfoTypeParameter(dispatcher, '/lfo1/type/value')
+        self._key_sync = NymphesOscLfoKeySyncParameter(dispatcher, '/lfo1/key_sync/value')
+
+    @property
+    def rate(self):
+        return self._rate
+    
+    @property
+    def wave(self):
+        return self._wave
+    
+    @property
+    def delay(self):
+        return self._delay
+
+    @property
+    def fade(self):
+        return self._fade
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def key_sync(self):
+        return self._key_sync
+    
+
+class NymphesOscLfo2Params:
+    """A class for tracking all control parameters related to LFO2"""
+
+    def __init__(self, dispatcher):
+        self._rate = NymphesOscModulatedControlParameter(dispatcher, '/lfo2/rate')
+        self._wave = NymphesOscModulatedControlParameter(dispatcher, '/lfo2/wave')
+        self._delay = NymphesOscModulatedControlParameter(dispatcher, '/lfo2/delay')
+        self._fade = NymphesOscModulatedControlParameter(dispatcher, '/lfo2/fade')
+        self._type = NymphesOscLfoTypeParameter(dispatcher, '/lfo2/type/value')
+        self._key_sync = NymphesOscLfoKeySyncParameter(dispatcher, '/lfo2/key_sync/value')
+
+    @property
+    def rate(self):
+        return self._rate
+    
+    @property
+    def wave(self):
+        return self._wave
+    
+    @property
+    def delay(self):
+        return self._delay
+
+    @property
+    def fade(self):
+        return self._fade
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def key_sync(self):
+        return self._key_sync
+    
         
 class NymphesOscControlParameter:
     """
