@@ -11,41 +11,52 @@ class NymphesOscController:
 
     def __init__(self, incoming_host, incoming_port, outgoing_host, outgoing_port):
         # Prepare OSC objects
+        #
+
         self.incoming_host = incoming_host
         self.incoming_port = incoming_port
         self.outgoing_host = outgoing_host
         self.outgoing_port = outgoing_port
 
-        self.server = None
-        self.server_thread = None
+        # The OSC Server, which receives incoming OSC messages on a background thread
+        #
+
+        self.osc_server = None
+        self.osc_server_thread = None
 
         self.dispatcher = Dispatcher()
+
+        # The OSC Client, which sends outgoing OSC messages
+        self.osc_client = SimpleUDPClient(outgoing_host, outgoing_port)
         
         # Create the control parameter objects
         self._oscillator_params = NymphesOscOscillatorParams(self.dispatcher)
         self._pitch_params = NymphesOscPitchParams(self.dispatcher)
-        self._amp_params = NymphesOscAmpParams(self.dispatcher)
+        self._amp_params = NymphesOscAmpParams(self.dispatcher, self.osc_client)
         self._mix_params = NymphesOscMixParams(self.dispatcher)
         self._lpf_params = NymphesOscLpfParams(self.dispatcher)
         self._hpf_params = NymphesOscHpfParams(self.dispatcher)
         self._pitch_filter_env_params = NymphesOscPitchFilterEnvParams(self.dispatcher)
         self._pitch_filter_lfo_params = NymphesOscPitchFilterLfoParams(self.dispatcher)
         self._lfo2_params = NymphesOscLfo2Params(self.dispatcher)
+        self._reverb_params = NymphesOscReverbParams(self.dispatcher)
+        self._play_mode_parameter = NymphesOscPlayModeParameter(self.dispatcher)
+        self._mod_source_parameter = NymphesOscModSourceParameter(self.dispatcher)
 
         # Start the OSC server in another thread
 
-    def start_server(self):
-        self.server = BlockingOSCUDPServer((self.incoming_host, self.incoming_port), self.dispatcher)
-        self.server_thread = threading.Thread(target=self.server.serve_forever)
-        self.server_thread.start()        
+    def start_osc_server(self):
+        self.osc_server = BlockingOSCUDPServer((self.incoming_host, self.incoming_port), self.dispatcher)
+        self.osc_server_thread = threading.Thread(target=self.osc_server.serve_forever)
+        self.osc_server_thread.start()        
 
-    def stop_server(self):
-        if self.server is not None:
-            self.server.shutdown()
-            self.server.server_close()
-            self.server = None
-            self.server_thread.join()
-            self.server_thread = None
+    def stop_osc_server(self):
+        if self.osc_server is not None:
+            self.osc_server.shutdown()
+            self.osc_server.server_close()
+            self.osc_server = None
+            self.osc_server_thread.join()
+            self.osc_server_thread = None
 
     @property
     def oscillator(self):
@@ -83,6 +94,18 @@ class NymphesOscController:
     def lfo2(self):
         return self._lfo2_params
     
+    @property
+    def reverb(self):
+        return self._reverb_params
+    
+    @property
+    def play_mode(self):
+        return self._play_mode_parameter
+    
+    @property
+    def mod_source(self):
+        return self._mod_source_parameter
+    
 
 # Classes for specific sections of the Nymphes Synthesizer
 #
@@ -92,15 +115,15 @@ class NymphesOscOscillatorParams:
 
     def __init__(self, dispatcher):
         self._wave = NymphesOscModulatedControlParameter(dispatcher, '/osc/wave')
-        self._level = NymphesOscModulatedControlParameter(dispatcher,'/osc/level')
+        self._pulsewidth = NymphesOscModulatedControlParameter(dispatcher,'/osc/pulsewidth')
 
     @property
     def wave(self):
         return self._wave
     
     @property
-    def level(self):
-        return self._level
+    def pulsewidth(self):
+        return self._pulsewidth
 
 
 class NymphesOscPitchParams:
@@ -137,12 +160,12 @@ class NymphesOscPitchParams:
 class NymphesOscAmpParams:
     """A class for tracking all of amplitude-related control parameters"""
 
-    def __init__(self, dispatcher):
+    def __init__(self, dispatcher, osc_client):
         self._attack = NymphesOscModulatedControlParameter(dispatcher, '/amp/attack')
         self._decay = NymphesOscModulatedControlParameter(dispatcher, '/amp/decay')
         self._sustain = NymphesOscModulatedControlParameter(dispatcher, '/amp/sustain')
         self._release = NymphesOscModulatedControlParameter(dispatcher, '/amp/release')
-        self._level = NymphesOscControlParameter(dispatcher, '/amp/level/value')
+        self._level = NymphesOscControlParameter(dispatcher, osc_client, '/amp/level/value')
 
     @property
     def attack(self):
@@ -325,6 +348,30 @@ class NymphesOscLfo2Params:
     def key_sync(self):
         return self._key_sync
     
+class NymphesOscReverbParams:
+    """A class for tracking all control parameters related to reverb"""
+
+    def __init__(self, dispatcher):
+        self._size = NymphesOscModulatedControlParameter(dispatcher, '/reverb/size')
+        self._decay = NymphesOscModulatedControlParameter(dispatcher, '/reverb/decay')
+        self._filter = NymphesOscModulatedControlParameter(dispatcher, '/reverb/filter')
+        self._mix = NymphesOscModulatedControlParameter(dispatcher, '/reverb/mix')
+
+    @property
+    def size(self):
+        return self._size
+    
+    @property
+    def decay(self):
+        return self._decay
+
+    @property
+    def filter(self):
+        return self._filter
+
+    @property
+    def mix(self):
+        return self._mix
         
 class NymphesOscControlParameter:
     """
@@ -333,17 +380,21 @@ class NymphesOscControlParameter:
     Its range is 0 to 127.
     """
 
-    def __init__(self, dispatcher, osc_address):
+    def __init__(self, dispatcher, osc_client, osc_address):
         """
         dispatcher is an OSC dispatcher object.
         osc_address is a string.
         """
+
         self._value = 0
         
         self._osc_address = osc_address
 
         # Register for OSC messages at our OSC address
         dispatcher.map(self._osc_address, self.on_osc_message)
+
+        # Store the OSC client for when we need to send out OSC messages
+        self._osc_client = osc_client
 
     @property
     def value(self):
@@ -361,13 +412,21 @@ class NymphesOscControlParameter:
 
             # Store the new value
             self._value = new_val
-            
+
+            # Send out an OSC message with the new value
+            self._osc_client.send_message(self._osc_address, self._value)
+
         except ValueError:
             raise ValueError(f'value could not be converted to an int: {val}') from None
 
     def on_osc_message(self, address, *args):
+        # Get the new value
         val = args[0]
-        self.value = val
+
+        # Set _value, our private variable, rather than using the setter,
+        # as we don't want to trigger an outgoing OSC message
+        self._value = val
+
         print(f'{address}: {val}')
 
 
@@ -542,8 +601,18 @@ class NymphesOscLfoTypeParameter:
     3 = 'track'
     """
 
-    def __init__(self):
+    def __init__(self, dispatcher, osc_address):
+        """
+        dispatcher is an OSC dispatcher object.
+        osc_address is a string.
+        """
+
         self._value = 0
+
+        self._osc_address = osc_address
+
+        # Register for OSC messages at our OSC address
+        dispatcher.map(self._osc_address, self.on_osc_message)
 
     @property
     def value(self):
@@ -591,6 +660,11 @@ class NymphesOscLfoTypeParameter:
             self._value = 3
         else:
             raise Exception(f'Invalid string_value: {string_val}')
+        
+    def on_osc_message(self, address, *args):
+        val = args[0]
+        self.value = val
+        print(f'{address}: {val}')
 
 
 class NymphesOscPlayModeParameter:
@@ -604,8 +678,15 @@ class NymphesOscPlayModeParameter:
     5 - 'monophonic'
     """
 
-    def __init__(self):
+    def __init__(self, dispatcher):
+        """
+        dispatcher is an OSC dispatcher object.
+        """
+
         self._value = 0
+
+        # Register for OSC messages
+        dispatcher.map('/play_mode', self.on_osc_message)
 
     @property
     def value(self):
@@ -662,6 +743,11 @@ class NymphesOscPlayModeParameter:
         else:
             raise Exception(f'Invalid string_value: {string_val}')
         
+    def on_osc_message(self, address, *args):
+        val = args[0]
+        self.value = val
+        print(f'{address}: {val}')
+        
 
 class NymphesOscLfoKeySyncParameter:
     """
@@ -670,8 +756,18 @@ class NymphesOscLfoKeySyncParameter:
     1 = 'on'
     """
 
-    def __init__(self):
+    def __init__(self, dispatcher, osc_address):
+        """
+        dispatcher is an OSC dispatcher object.
+        osc_address is a string.
+        """
+
         self._value = 0
+
+        self._osc_address = osc_address
+
+        # Register for OSC messages at our OSC address
+        dispatcher.map(self._osc_address, self.on_osc_message)
 
     @property
     def value(self):
@@ -711,6 +807,12 @@ class NymphesOscLfoKeySyncParameter:
             self._value = 1
         else:
             raise Exception(f'Invalid string_value: {string_val}')
+
+    def on_osc_message(self, address, *args):
+        val = args[0]
+        self.value = val
+        print(f'{address}: {val}')
+
 
 class NymphesOscLegatoParameter:
     """
@@ -719,8 +821,15 @@ class NymphesOscLegatoParameter:
     1 = 'on'
     """
 
-    def __init__(self):
+    def __init__(self, dispatcher):
+        """
+        dispatcher is an OSC dispatcher object.
+        """
+
         self._value = 0
+
+        # Register for OSC messages
+        dispatcher.map('/legato', self.on_osc_message)
 
     @property
     def value(self):
@@ -760,6 +869,11 @@ class NymphesOscLegatoParameter:
             self._value = 1
         else:
             raise Exception(f'Invalid string_value: {string_val}')
+        
+    def on_osc_message(self, address, *args):
+        val = args[0]
+        self.value = val
+        print(f'{address}: {val}')
 
 
 class NymphesOscModSourceParameter:
@@ -771,8 +885,15 @@ class NymphesOscModSourceParameter:
     3 = 'aftertouch'
     """
 
-    def __init__(self):
+    def __init__(self, dispatcher):
+        """
+        dispatcher is an OSC dispatcher object.
+        """
+
         self._value = 0
+
+        # Register for OSC messages
+        dispatcher.map('/mod_source', self.on_osc_message)
 
     @property
     def value(self):
@@ -820,3 +941,9 @@ class NymphesOscModSourceParameter:
             self._value = 3
         else:
             raise Exception(f'Invalid string_value: {string_val}')
+        
+    def on_osc_message(self, address, *args):
+        val = args[0]
+        self.value = val
+        print(f'{address}: {val}')
+
