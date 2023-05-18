@@ -402,6 +402,12 @@ class NymphesOscControlParameter:
         # Store the OSC client for when we need to send out OSC messages
         self._osc_client = osc_client
 
+        # Callback that we call when an incoming OSC message change the value.
+        # It will be called on a background thread, so the receiver needs to be sure
+        # to prevent any thread handling issues.
+        # The callback will be called with one argument: the new value of the parameter.
+        self.osc_callback = None    
+
     @property
     def value(self):
         return self._value
@@ -435,6 +441,10 @@ class NymphesOscControlParameter:
 
         print(f'{address}: {val}')
 
+        # Call the callback if it has been set
+        if self.osc_callback is not None:
+            self.osc_callback(self.value)
+
 
 class NymphesOscModulatedControlParameter:
     """
@@ -465,6 +475,15 @@ class NymphesOscModulatedControlParameter:
 
             # Store the OSC client for when we need to send out OSC messages
             self._osc_client = osc_client
+
+            # Callbacks that we call when an incoming OSC message changes one of the values.
+            # They will be called on a background thread, so the receiver needs to be sure
+            # to prevent any thread handling issues.
+            # The callback will be called with one argument: the new value of the parameter.
+            self.lfo2_osc_callback = None
+            self.wheel_osc_callback = None
+            self.velocity_osc_callback = None
+            self.aftertouch_osc_callback = None
         
         @property
         def lfo2(self):
@@ -563,20 +582,36 @@ class NymphesOscModulatedControlParameter:
             self._lfo2 = val
             print(f'{address}: {val}')
 
+            # Call the callback if it has been set
+            if self.lfo2_osc_callback is not None:
+                self.lfo2_osc_callback(self.lfo2)
+
         def on_osc_wheel_message(self, address, *args):
             val = args[0]
             self._wheel = val
             print(f'{address}: {val}')
+
+            # Call the callback if it has been set
+            if self.wheel_osc_callback is not None:
+                self.wheel_osc_callback(self.wheel)
 
         def on_osc_velocity_message(self, address, *args):
             val = args[0]
             self._velocity = val
             print(f'{address}: {val}')
 
+            # Call the callback if it has been set
+            if self.velocity_osc_callback is not None:
+                self.velocity_osc_callback(self.velocity)
+
         def on_osc_aftertouch_message(self, address, *args):
             val = args[0]
             self._aftertouch = val
             print(f'{address}: {val}')
+
+            # Call the callback if it has been set
+            if self.aftertouch_osc_callback is not None:
+                self.aftertouch_osc_callback(self.aftertouch)
 
         
     def __init__(self, dispatcher, osc_client, base_osc_address):
@@ -586,13 +621,19 @@ class NymphesOscModulatedControlParameter:
         """
         self.base_osc_address = base_osc_address
         self._value = 0
-        self.modulation = self.ModulationAmounts(dispatcher, osc_client, base_osc_address)
+        self.mod = self.ModulationAmounts(dispatcher, osc_client, base_osc_address)
 
         # Map OSC messages
         dispatcher.map(self.base_osc_address + '/value', self.on_osc_value_message)
 
         # Store the OSC client for when we need to send out OSC messages
-        self._osc_client = osc_client        
+        self._osc_client = osc_client   
+
+        # Callback that we call when an incoming OSC message change the value.
+        # It will be called on a background thread, so the receiver needs to be sure
+        # to prevent any thread handling issues.
+        # The callback will be called with one argument: the new value of the parameter.
+        self.osc_callback = None     
 
     @property
     def value(self):
@@ -621,6 +662,10 @@ class NymphesOscModulatedControlParameter:
         val = args[0]
         self.value = val
         print(f'{address}: {val}')
+
+        # Call the callback if it has been set
+        if self.osc_callback is not None:
+            self.osc_callback(self.value)
 
 
 class NymphesOscLfoTypeParameter(NymphesOscControlParameter):
