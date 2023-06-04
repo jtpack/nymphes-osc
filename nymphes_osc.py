@@ -7,8 +7,10 @@ if __name__ == '__main__':
     outgoing_host = 'localhost'
     outgoing_port = 1236
 
+    nymphes_midi_channel = 0
+
     # Create the Nymphes OSC Controller
-    noc = NymphesOscController(incoming_host, incoming_port, outgoing_host, outgoing_port)
+    noc = NymphesOscController(incoming_host, incoming_port, outgoing_host, outgoing_port, nymphes_midi_channel)
 
     # Start the OSC server
     noc.start_osc_server()
