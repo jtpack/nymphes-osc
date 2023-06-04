@@ -2,6 +2,7 @@ from pythonosc.udp_client import SimpleUDPClient
 from pythonosc.dispatcher import Dispatcher
 from pythonosc.osc_server import BlockingOSCUDPServer
 import threading
+import mido
 
 class NymphesOscController:
     """
@@ -47,7 +48,7 @@ class NymphesOscController:
     def start_osc_server(self):
         self.osc_server = BlockingOSCUDPServer((self.incoming_host, self.incoming_port), self.dispatcher)
         self.osc_server_thread = threading.Thread(target=self.osc_server.serve_forever)
-        self.osc_server_thread.start()        
+        self.osc_server_thread.start()
 
     def stop_osc_server(self):
         if self.osc_server is not None:
@@ -116,7 +117,7 @@ class NymphesOscController:
 class NymphesOscOscillatorParams:
     """A class for tracking all of the control parameters for the oscillator"""
 
-    def __init__(self, dispatcher, osc_client):
+    def __init__(self, dispatcher, osc_client, midi_output_port):
         self._wave = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/osc/wave')
         self._pulsewidth = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/osc/pulsewidth')
 
@@ -383,11 +384,12 @@ class NymphesOscControlParameter:
     Its range is 0 to 127.
     """
 
-    def __init__(self, dispatcher, osc_client, osc_address, min_val, max_val):
+    def __init__(self, dispatcher, osc_client, osc_address, min_val, max_val, midi_cc, osc_callback=None):
         """
         dispatcher is an OSC dispatcher object.
         osc_client is an OSC client object that we use for sending OSC messages.
         osc_address is a string.
+        midi_out_port is a mido midi output port.
         """
 
         self._value = 0
@@ -406,7 +408,10 @@ class NymphesOscControlParameter:
         # It will be called on a background thread, so the receiver needs to be sure
         # to prevent any thread handling issues.
         # The callback will be called with one argument: the new value of the parameter.
-        self.osc_callback = None    
+        self._osc_callback = osc_callback
+
+        # Store the MIDI CC number for this parameter
+        self._midi_cc = midi_cc
 
     @property
     def value(self):
@@ -442,8 +447,8 @@ class NymphesOscControlParameter:
         print(f'{address}: {val}')
 
         # Call the callback if it has been set
-        if self.osc_callback is not None:
-            self.osc_callback(self.value)
+        if self._osc_callback is not None:
+            self._osc_callback(self.value)
 
 
 class NymphesOscModulatedControlParameter:
@@ -460,12 +465,17 @@ class NymphesOscModulatedControlParameter:
     """
 
     class ModulationAmounts:
-        def __init__(self, dispatcher, osc_client, base_osc_address):
+        def __init__(self, dispatcher, osc_client, base_osc_address, lfo2_cc, wheel_cc, velocity_cc, aftertouch_cc):
             self.base_osc_address = base_osc_address
             self._lfo2 = 0
             self._wheel = 0
             self._velocity = 0
             self._aftertouch = 0
+
+            self._lfo2_cc = lfo2_cc
+            self._wheel_cc = wheel_cc
+            self._velocity_cc = velocity_cc
+            self._aftertouch_cc = aftertouch_cc
 
             # Map OSC messages
             dispatcher.map(self.base_osc_address + '/mod/lfo2', self.on_osc_lfo2_message)
@@ -480,10 +490,10 @@ class NymphesOscModulatedControlParameter:
             # They will be called on a background thread, so the receiver needs to be sure
             # to prevent any thread handling issues.
             # The callback will be called with one argument: the new value of the parameter.
-            self.lfo2_osc_callback = None
-            self.wheel_osc_callback = None
-            self.velocity_osc_callback = None
-            self.aftertouch_osc_callback = None
+            self._lfo2_osc_callback = None
+            self._wheel_osc_callback = None
+            self._velocity_osc_callback = None
+            self._aftertouch_osc_callback = None
         
         @property
         def lfo2(self):
@@ -583,8 +593,8 @@ class NymphesOscModulatedControlParameter:
             print(f'{address}: {val}')
 
             # Call the callback if it has been set
-            if self.lfo2_osc_callback is not None:
-                self.lfo2_osc_callback(self.lfo2)
+            if self._lfo2_osc_callback is not None:
+                self._lfo2_osc_callback(self.lfo2)
 
         def on_osc_wheel_message(self, address, *args):
             val = args[0]
@@ -592,8 +602,8 @@ class NymphesOscModulatedControlParameter:
             print(f'{address}: {val}')
 
             # Call the callback if it has been set
-            if self.wheel_osc_callback is not None:
-                self.wheel_osc_callback(self.wheel)
+            if self._wheel_osc_callback is not None:
+                self._wheel_osc_callback(self.wheel)
 
         def on_osc_velocity_message(self, address, *args):
             val = args[0]
@@ -601,8 +611,8 @@ class NymphesOscModulatedControlParameter:
             print(f'{address}: {val}')
 
             # Call the callback if it has been set
-            if self.velocity_osc_callback is not None:
-                self.velocity_osc_callback(self.velocity)
+            if self._velocity_osc_callback is not None:
+                self._velocity_osc_callback(self.velocity)
 
         def on_osc_aftertouch_message(self, address, *args):
             val = args[0]
@@ -610,8 +620,8 @@ class NymphesOscModulatedControlParameter:
             print(f'{address}: {val}')
 
             # Call the callback if it has been set
-            if self.aftertouch_osc_callback is not None:
-                self.aftertouch_osc_callback(self.aftertouch)
+            if self._aftertouch_osc_callback is not None:
+                self._aftertouch_osc_callback(self.aftertouch)
 
         
     def __init__(self, dispatcher, osc_client, base_osc_address):
