@@ -13,7 +13,7 @@ if __name__ == '__main__':
     noc = NymphesOscController(incoming_host, incoming_port, outgoing_host, outgoing_port, nymphes_midi_channel)
 
     # Start the OSC server
-    noc.start_osc_server()
+    noc._start_osc_server()
 
     while True:
         pass

@@ -4,6 +4,311 @@ from pythonosc.osc_server import BlockingOSCUDPServer
 import threading
 import mido
 
+
+class NymphesOscControlParameter:
+    """
+    A control parameter in the Nymphes synthesizer that cannot be modulated by the modulation matrix.
+    It has only one property: value.
+    Its range is 0 to 127.
+    """
+
+    def __init__(self, dispatcher, osc_send_function, midi_send_function, osc_address, min_val, max_val, midi_cc):
+        """
+        dispatcher is an OSC dispatcher object.
+        osc_client is an OSC client object that we use for sending OSC messages.
+        osc_address is a string.
+        midi_out_port is a mido midi output port.
+        """
+
+        self._value = 0
+        self.min_val = min_val
+        self.max_val = max_val
+
+        self._osc_address = osc_address
+
+        # Register for OSC messages at our OSC address
+        dispatcher.map(self._osc_address, self.on_osc_message)
+
+        # Store the OSC client for when we need to send out OSC messages
+        self._osc_client = osc_client
+
+        # Callback that we call when an incoming OSC message change the value.
+        # It will be called on a background thread, so the receiver needs to be sure
+        # to prevent any thread handling issues.
+        # The callback will be called with one argument: the new value of the parameter.
+        self._osc_callback = osc_callback
+
+        # Store the MIDI CC number for this parameter
+        self._midi_cc = midi_cc
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, val):
+        try:
+            # Convert value to an integer
+            new_val = int(val)
+
+            # Validate the value
+            if new_val < self.min_val or new_val > self.max_val:
+                raise Exception(f'Value {new_val} must be within {self.min_val} and {self.max_val}')
+
+            # Store the new value
+            self._value = new_val
+
+            # Send out an OSC message with the new value
+            self._osc_client.send_message(self._osc_address, self._value)
+
+        except ValueError:
+            raise ValueError(f'value could not be converted to an int: {val}') from None
+
+    def on_osc_message(self, address, *args):
+        # Get the new value
+        val = args[0]
+
+        # Set _value, our private variable, rather than using the setter,
+        # as we don't want to trigger an outgoing OSC message
+        self._value = val
+
+        print(f'{address}: {val}')
+
+        # Call the callback if it has been set
+        if self._osc_callback is not None:
+            self._osc_callback(self.value)
+
+
+class NymphesOscModulatedControlParameter:
+    """
+    A control parameter in the Nymphes synthesizer that can be modulated with the modulation matrix.
+    For each of these control parameters, there are the following properties:
+    - Value
+    - LFO2 Modulation Amount
+    - Mod Wheel Modulation Amount
+    - Velocity Modulation Amount
+    - Aftertouch Modulation Amount
+
+    All properties are MIDI-controlled on the Nymphes, so they have a range of 0 to 127
+    """
+
+    def __init__(self, dispatcher, osc_send_function, midi_send_function, base_osc_address, value_cc, lfo2_cc, wheel_cc, velocity_cc,
+                 aftertouch_cc):
+        """
+        dispatcher is an OSC dispatcher that we use to map incoming OSC messages with our OSC addresses.
+        osc_client is used for sending outgoing OSC messages
+        base_osc_address is a string.
+        midi_out_port is a mido MIDI output port used when sending MIDI messages
+        lfo2_cc, wheel_cc, velocity_cc and aftertouch_cc are the MIDI CC numbers used for each modulation type.
+        """
+        self._base_osc_address = base_osc_address
+        self._value = 0
+
+        # Store the MIDI CC numbers
+        self._value_cc = value_cc
+        self._lfo2_cc = lfo2_cc
+        self._wheel_cc = wheel_cc
+        self._velocity_cc = velocity_cc
+        self._aftertouch_cc = aftertouch_cc
+
+        # Create the modulation amounts object
+        self.mod = self.ModulationAmounts(dispatcher, osc_send_function, midi_send_function, self._base_osc_address, self._lfo2_cc, self._wheel_cc, self._velocity_cc, self._aftertouch_cc)
+
+        # Map OSC messages
+        dispatcher.map(self._base_osc_address + '/value', self.on_osc_value_message)
+
+        # Store the OSC client for when we need to send out OSC messages
+        self._osc_send_function = osc_send_function
+
+        # Store MIDI out port for when we need to send out MIDI messages
+        self._midi_send_function = midi_send_function
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, val):
+        try:
+            # Convert value to an integer
+            new_val = int(val)
+
+            # Validate the value
+            if new_val < 0 or new_val > 127:
+                raise Exception(f'Invalid value: {new_val}')
+
+            # Store the new value
+            self._value = new_val
+
+            # Send out an OSC message with the new value
+            self._osc_send_function.send_message(self._base_osc_address + '/value', self._value)
+
+        except ValueError:
+            raise ValueError(f'value could not be converted to an int: {val}') from None
+
+    def on_osc_value_message(self, address, *args):
+        # Get the new value and store it
+        val = args[0]
+        self.value = val
+        print(f'{address}: {val}')
+
+        # Send out a MIDI message
+        if not self._midi_out_port.closed:
+            msg = None
+            self._midi_out_port.send(msg)
+
+    class ModulationAmounts:
+        def __init__(self, dispatcher, osc_send_function, midi_send_function, base_osc_address, lfo2_cc, wheel_cc, velocity_cc, aftertouch_cc):
+
+            self._lfo2_value = 0
+            self._wheel_value = 0
+            self._velocity_value = 0
+            self._aftertouch_value = 0
+
+            self.base_osc_address = base_osc_address
+
+            # Register for incoming OSC messages
+            dispatcher.map(self.base_osc_address + '/mod/lfo2', self.on_osc_lfo2_message)
+            dispatcher.map(self.base_osc_address + '/mod/wheel', self.on_osc_wheel_message)
+            dispatcher.map(self.base_osc_address + '/mod/velocity', self.on_osc_velocity_message)
+            dispatcher.map(self.base_osc_address + '/mod/aftertouch', self.on_osc_aftertouch_message)
+
+            # Store the OSC send function for when we need to send out OSC messages
+            self._osc_send_function = osc_send_function
+
+            # Store MIDI send function for when we need to send out MIDI messages
+            self._midi_send_function = midi_send_function
+
+            # Store the MIDI CC numbers for each modulation type
+            self._lfo2_cc = lfo2_cc
+            self._wheel_cc = wheel_cc
+            self._velocity_cc = velocity_cc
+            self._aftertouch_cc = aftertouch_cc
+
+        @property
+        def lfo2(self):
+            return self._lfo2_value
+
+        @lfo2.setter
+        def lfo2(self, value):
+            try:
+                # Convert value to an integer
+                new_val = int(value)
+
+                # Validate the value
+                if new_val < 0 or new_val > 127:
+                    raise Exception(f'Invalid value: {new_val}')
+
+                # Store the new value
+                self._lfo2_value = new_val
+
+                # Send out an OSC message with the new value
+                self._osc_send_function.send_message(self.base_osc_address + '/mod/lfo2', self._lfo2_value)
+
+            except ValueError:
+                raise ValueError(f'value could not be converted to an int: {value}') from None
+
+        @property
+        def wheel(self):
+            return self._wheel_value
+
+        @wheel.setter
+        def wheel(self, value):
+            try:
+                # Convert value to an integer
+                new_val = int(value)
+
+                # Validate the value
+                if new_val < 0 or new_val > 127:
+                    raise Exception(f'Invalid value: {new_val}')
+
+                # Store the new value
+                self._wheel_value = new_val
+
+                # Send out an OSC message with the new value
+                self._osc_send_function.send_message(self.base_osc_address + '/mod/wheel', self._wheel_value)
+
+            except ValueError:
+                raise ValueError(f'value could not be converted to an int: {value}') from None
+
+        @property
+        def velocity(self):
+            return self._velocity_value
+
+        @velocity.setter
+        def velocity(self, value):
+            try:
+                # Convert value to an integer
+                new_val = int(value)
+
+                # Validate the value
+                if new_val < 0 or new_val > 127:
+                    raise Exception(f'Invalid value: {new_val}')
+
+                # Store the new value
+                self._velocity_value = new_val
+
+                # Send out an OSC message with the new value
+                self._osc_send_function.send_message(self.base_osc_address + '/mod/velocity', self._velocity_value)
+
+            except ValueError:
+                raise ValueError(f'value could not be converted to an int: {value}') from None
+
+        @property
+        def aftertouch(self):
+            return self._aftertouch_value
+
+        @aftertouch.setter
+        def aftertouch(self, value):
+            try:
+                # Convert value to an integer
+                new_val = int(value)
+
+                # Validate the value
+                if new_val < 0 or new_val > 127:
+                    raise Exception(f'Invalid value: {new_val}')
+
+                # Store the new value
+                self._aftertouch_value = new_val
+
+                # Send out an OSC message with the new value
+                self._osc_send_function.send_message(self.base_osc_address + '/mod/aftertouch', self._aftertouch_value)
+
+            except ValueError:
+                raise ValueError(f'value could not be converted to an int: {value}') from None
+
+        def on_osc_lfo2_message(self, address, *args):
+            val = args[0]
+            self._lfo2_value = val
+            print(f'{address}: {val}')
+
+            # Send a MIDI message to the Nymphes
+            self._midi_send_function(midi_cc=self._lfo2_cc, value=self._lfo2_value)
+
+        def on_osc_wheel_message(self, address, *args):
+            val = args[0]
+            self._wheel_value = val
+            print(f'{address}: {val}')
+
+            # Send a MIDI message to the Nymphes
+            self._midi_send_function(midi_cc=self._wheel_cc, value=self._wheel_value)
+
+        def on_osc_velocity_message(self, address, *args):
+            val = args[0]
+            self._velocity_value = val
+            print(f'{address}: {val}')
+
+            # Send a MIDI message to the Nymphes
+            self._midi_send_function(midi_cc=self._velocity_cc, value=self._velocity_value)
+
+        def on_osc_aftertouch_message(self, address, *args):
+            val = args[0]
+            self._aftertouch_value = val
+            print(f'{address}: {val}')
+
+            # Send a MIDI message to the Nymphes
+            self._midi_send_function(midi_cc=self._aftertouch_cc, value=self._aftertouch_value)
+
 class NymphesOscController:
     """
     A class used for OSC control of all of the control parameters of the Dreadbox Nymphes synthesizer.
@@ -22,61 +327,91 @@ class NymphesOscController:
         # The OSC Server, which receives incoming OSC messages on a background thread
         #
 
-        self.osc_server = None
-        self.osc_server_thread = None
+        self._osc_server = None
+        self._osc_server_thread = None
 
-        self.dispatcher = Dispatcher()
+        self._dispatcher = Dispatcher()
+
+        # Start the server
+        self._start_osc_server()
 
         # The OSC Client, which sends outgoing OSC messages
-        self.osc_client = SimpleUDPClient(outgoing_host, outgoing_port)
+        self._osc_client = SimpleUDPClient(outgoing_host, outgoing_port)
 
         # The MIDI channel for the connected Nymphes synthesizer
         self.nymphes_midi_channel = nymphes_midi_channel
 
         # MIDI IO port for messages to and from Nymphes
-        self.nymphes_midi_port = None
+        self._nymphes_midi_port = None
+
+        # Connect the MIDI port
+        self._open_nymphes_midi_port()
         
         # Create the control parameter objects
-        self._oscillator_params = NymphesOscOscillatorParams(self.dispatcher, self.osc_client)
-        self._pitch_params = NymphesOscPitchParams(self.dispatcher, self.osc_client)
-        self._amp_params = NymphesOscAmpParams(self.dispatcher, self.osc_client)
-        self._mix_params = NymphesOscMixParams(self.dispatcher, self.osc_client)
-        self._lpf_params = NymphesOscLpfParams(self.dispatcher, self.osc_client)
-        self._hpf_params = NymphesOscHpfParams(self.dispatcher, self.osc_client)
-        self._pitch_filter_env_params = NymphesOscPitchFilterEnvParams(self.dispatcher, self.osc_client)
-        self._pitch_filter_lfo_params = NymphesOscPitchFilterLfoParams(self.dispatcher, self.osc_client)
-        self._lfo2_params = NymphesOscLfo2Params(self.dispatcher, self.osc_client)
-        self._reverb_params = NymphesOscReverbParams(self.dispatcher, self.osc_client)
-        self._play_mode_parameter = NymphesOscPlayModeParameter(self.dispatcher, self.osc_client)
-        self._mod_source_parameter = NymphesOscModSourceParameter(self.dispatcher, self.osc_client)
-        self._legato_parameter = NymphesOscLegatoParameter(self.dispatcher, self.osc_client)
+        self._oscillator_params = NymphesOscOscillatorParams(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._pitch_params = NymphesOscPitchParams(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._amp_params = NymphesOscAmpParams(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._mix_params = NymphesOscMixParams(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._lpf_params = NymphesOscLpfParams(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._hpf_params = NymphesOscHpfParams(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._pitch_filter_env_params = NymphesOscPitchFilterEnvParams(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._pitch_filter_lfo_params = NymphesOscPitchFilterLfoParams(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._lfo2_params = NymphesOscLfo2Params(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._reverb_params = NymphesOscReverbParams(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._play_mode_parameter = NymphesOscPlayModeParameter(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._mod_source_parameter = NymphesOscModSourceParameter(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._legato_parameter = NymphesOscLegatoParameter(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
 
-    def start_osc_server(self):
-        self.osc_server = BlockingOSCUDPServer((self.incoming_host, self.incoming_port), self.dispatcher)
-        self.osc_server_thread = threading.Thread(target=self.osc_server.serve_forever)
-        self.osc_server_thread.start()
+    def _start_osc_server(self):
+        self._osc_server = BlockingOSCUDPServer((self.incoming_host, self.incoming_port), self._dispatcher)
+        self._osc_server_thread = threading.Thread(target=self._osc_server.serve_forever)
+        self._osc_server_thread.start()
 
-    def stop_osc_server(self):
-        if self.osc_server is not None:
-            self.osc_server.shutdown()
-            self.osc_server.server_close()
-            self.osc_server = None
-            self.osc_server_thread.join()
-            self.osc_server_thread = None
+    def _stop_osc_server(self):
+        if self._osc_server is not None:
+            self._osc_server.shutdown()
+            self._osc_server.server_close()
+            self._osc_server = None
+            self._osc_server_thread.join()
+            self._osc_server_thread = None
 
-    def open_nymphes_midi_port(self):
+    def _open_nymphes_midi_port(self):
         """
         Opens MIDI IO port for Nymphes synthesizer
         """
         port_name = 'Nymphes Bootloader'
-        self.nymphes_midi_port = mido.open_ioport(port_name)
+        self._nymphes_midi_port = mido.open_ioport(port_name)
 
-    def close_nymphes_midi_port(self):
+    def _close_nymphes_midi_port(self):
         """
         Closes the MIDI IO port for the Nymphes synthesizer
         """
-        if self.nymphes_midi_port is not None:
-            self.nymphes_midi_port.close()
+        if self._nymphes_midi_port is not None:
+            self._nymphes_midi_port.close()
+
+    def _nymphes_midi_send_function(self, midi_cc, value):
+        """
+        A function used to send a MIDI message to the Nymphes synthesizer.
+        Every member object in NymphesOscController is given a reference
+        to this function so it can send MIDI messages.
+        """
+        if self._nymphes_midi_port is not None:
+            if not self._nymphes_midi_port.closed:
+
+                # Construct the MIDI message
+                msg = mido.Message('control_change', channel=self.nymphes_midi_channel, control=midi_cc, value=value)
+
+                # Send the message
+                self._nymphes_midi_port.send(msg)
+
+    def _osc_send_function(self, osc_message):
+        """
+        A function used to send an OSC message.
+        Every member object in NymphesOscController is given a reference
+        to this function so it can send OSC messages.
+        """
+        self._osc_client.send(osc_message)
+
 
     @property
     def oscillator(self):
@@ -137,9 +472,9 @@ class NymphesOscController:
 class NymphesOscOscillatorParams:
     """A class for tracking all of the control parameters for the oscillator"""
 
-    def __init__(self, dispatcher, osc_client, midi_output_port):
-        self._wave = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/osc/wave')
-        self._pulsewidth = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/osc/pulsewidth')
+    def __init__(self, dispatcher, osc_send_function, midi_send_function):
+        self._wave = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/osc/wave')
+        self._pulsewidth = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/osc/pulsewidth')
 
     @property
     def wave(self):
@@ -154,11 +489,11 @@ class NymphesOscPitchParams:
     """A class for tracking all of pitch-related control parameters"""
 
     def __init__(self, dispatcher, osc_client):
-        self._detune = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/pitch/detune')
-        self._chord = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/pitch/chord')
-        self._env_depth = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/pitch/env_depth')
-        self._lfo1 = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/pitch/lfo1')
-        self._glide = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/pitch/glide')
+        self._detune = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/pitch/detune')
+        self._chord = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/pitch/chord')
+        self._env_depth = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/pitch/env_depth')
+        self._lfo1 = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/pitch/lfo1')
+        self._glide = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/pitch/glide')
 
     @property
     def detune(self):
@@ -185,10 +520,10 @@ class NymphesOscAmpParams:
     """A class for tracking all of amplitude-related control parameters"""
 
     def __init__(self, dispatcher, osc_client):
-        self._attack = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/amp/attack')
-        self._decay = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/amp/decay')
-        self._sustain = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/amp/sustain')
-        self._release = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/amp/release')
+        self._attack = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/amp/attack')
+        self._decay = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/amp/decay')
+        self._sustain = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/amp/sustain')
+        self._release = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/amp/release')
         self._level = NymphesOscControlParameter(dispatcher, osc_client, '/amp/level/value', min_val=0, max_val=127)
 
     @property
@@ -216,9 +551,9 @@ class NymphesOscMixParams:
     """A class for tracking all of mix-related control parameters"""
 
     def __init__(self, dispatcher, osc_client):
-        self._osc = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/mix/osc')
-        self._sub = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/mix/sub')
-        self._noise = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/mix/noise')
+        self._osc = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/mix/osc')
+        self._sub = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/mix/sub')
+        self._noise = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/mix/noise')
 
     @property
     def osc(self):
@@ -237,11 +572,11 @@ class NymphesOscLpfParams:
     """A class for tracking all of LPF-related control parameters"""
 
     def __init__(self, dispatcher, osc_client):
-        self._cutoff = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/lpf/cutoff')
-        self._resonance = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/lpf/resonance')
-        self._tracking = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/lpf/tracking')
-        self._env_depth = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/lpf/env_depth')
-        self._lfo1 = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/lpf/lfo1')
+        self._cutoff = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lpf/cutoff')
+        self._resonance = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lpf/resonance')
+        self._tracking = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lpf/tracking')
+        self._env_depth = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lpf/env_depth')
+        self._lfo1 = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lpf/lfo1')
 
     @property
     def cutoff(self):
@@ -268,7 +603,7 @@ class NymphesOscHpfParams:
     """A class for tracking all of HPF-related control parameters"""
 
     def __init__(self, dispatcher, osc_client):
-        self._cutoff = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/hpf/cutoff')
+        self._cutoff = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/hpf/cutoff')
 
     @property
     def cutoff(self):
@@ -279,10 +614,10 @@ class NymphesOscPitchFilterEnvParams:
     """A class for tracking all control parameters related to the pitch/filter envelope generator"""
 
     def __init__(self, dispatcher, osc_client):
-        self._attack = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/pitch_filter_env/attack')
-        self._decay = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/pitch_filter_env/decay')
-        self._sustain = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/pitch_filter_env/sustain')
-        self._release = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/pitch_filter_env/release')
+        self._attack = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/pitch_filter_env/attack')
+        self._decay = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/pitch_filter_env/decay')
+        self._sustain = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/pitch_filter_env/sustain')
+        self._release = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/pitch_filter_env/release')
 
     @property
     def attack(self):
@@ -305,10 +640,10 @@ class NymphesOscPitchFilterLfoParams:
     """A class for tracking all control parameters related to the pitch/filter LFO (lfo1)"""
 
     def __init__(self, dispatcher, osc_client):
-        self._rate = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/lfo1/rate')
-        self._wave = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/lfo1/wave')
-        self._delay = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/lfo1/delay')
-        self._fade = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/lfo1/fade')
+        self._rate = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lfo1/rate')
+        self._wave = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lfo1/wave')
+        self._delay = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lfo1/delay')
+        self._fade = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lfo1/fade')
         self._type = NymphesOscLfoTypeParameter(dispatcher, osc_client, '/lfo1/type/value')
         self._key_sync = NymphesOscLfoKeySyncParameter(dispatcher, osc_client, '/lfo1/key_sync/value')
 
@@ -341,10 +676,10 @@ class NymphesOscLfo2Params:
     """A class for tracking all control parameters related to LFO2"""
 
     def __init__(self, dispatcher, osc_client):
-        self._rate = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/lfo2/rate')
-        self._wave = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/lfo2/wave')
-        self._delay = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/lfo2/delay')
-        self._fade = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/lfo2/fade')
+        self._rate = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lfo2/rate')
+        self._wave = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lfo2/wave')
+        self._delay = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lfo2/delay')
+        self._fade = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lfo2/fade')
         self._type = NymphesOscLfoTypeParameter(dispatcher, osc_client, '/lfo2/type/value')
         self._key_sync = NymphesOscLfoKeySyncParameter(dispatcher, osc_client, '/lfo2/key_sync/value')
 
@@ -376,10 +711,10 @@ class NymphesOscReverbParams:
     """A class for tracking all control parameters related to reverb"""
 
     def __init__(self, dispatcher, osc_client):
-        self._size = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/reverb/size')
-        self._decay = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/reverb/decay')
-        self._filter = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/reverb/filter')
-        self._mix = NymphesOscModulatedControlParameter(dispatcher, osc_client, '/reverb/mix')
+        self._size = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/reverb/size')
+        self._decay = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/reverb/decay')
+        self._filter = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/reverb/filter')
+        self._mix = NymphesOscModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/reverb/mix')
 
     @property
     def size(self):
@@ -397,310 +732,6 @@ class NymphesOscReverbParams:
     def mix(self):
         return self._mix
         
-class NymphesOscControlParameter:
-    """
-    A control parameter in the Nymphes synthesizer that cannot be modulated by the modulation matrix.
-    It has only one property: value.
-    Its range is 0 to 127.
-    """
-
-    def __init__(self, dispatcher, osc_client, osc_address, min_val, max_val, midi_cc, osc_callback=None):
-        """
-        dispatcher is an OSC dispatcher object.
-        osc_client is an OSC client object that we use for sending OSC messages.
-        osc_address is a string.
-        midi_out_port is a mido midi output port.
-        """
-
-        self._value = 0
-        self.min_val = min_val
-        self.max_val = max_val
-        
-        self._osc_address = osc_address
-
-        # Register for OSC messages at our OSC address
-        dispatcher.map(self._osc_address, self.on_osc_message)
-
-        # Store the OSC client for when we need to send out OSC messages
-        self._osc_client = osc_client
-
-        # Callback that we call when an incoming OSC message change the value.
-        # It will be called on a background thread, so the receiver needs to be sure
-        # to prevent any thread handling issues.
-        # The callback will be called with one argument: the new value of the parameter.
-        self._osc_callback = osc_callback
-
-        # Store the MIDI CC number for this parameter
-        self._midi_cc = midi_cc
-
-    @property
-    def value(self):
-        return self._value
-    
-    @value.setter
-    def value(self, val):
-        try:
-            # Convert value to an integer
-            new_val = int(val)
-
-            # Validate the value
-            if new_val < self.min_val or new_val > self.max_val:
-                raise Exception(f'Value {new_val} must be within {self.min_val} and {self.max_val}')
-
-            # Store the new value
-            self._value = new_val
-
-            # Send out an OSC message with the new value
-            self._osc_client.send_message(self._osc_address, self._value)
-
-        except ValueError:
-            raise ValueError(f'value could not be converted to an int: {val}') from None
-
-    def on_osc_message(self, address, *args):
-        # Get the new value
-        val = args[0]
-
-        # Set _value, our private variable, rather than using the setter,
-        # as we don't want to trigger an outgoing OSC message
-        self._value = val
-
-        print(f'{address}: {val}')
-
-        # Call the callback if it has been set
-        if self._osc_callback is not None:
-            self._osc_callback(self.value)
-
-
-class NymphesOscModulatedControlParameter:
-    """
-    A control parameter in the Nymphes synthesizer that can be modulated with the modulation matrix.
-    For each of these control parameters, there are the following properties:
-    - Value
-    - LFO2 Modulation Amount
-    - Mod Wheel Modulation Amount
-    - Velocity Modulation Amount
-    - Aftertouch Modulation Amount
-
-    All properties are MIDI-controlled on the Nymphes, so they have a range of 0 to 127
-    """
-
-    class ModulationAmounts:
-        def __init__(self, dispatcher, osc_client, base_osc_address, midi_out_port, lfo2_cc, wheel_cc, velocity_cc, aftertouch_cc):
-            self.base_osc_address = base_osc_address
-            self._lfo2 = 0
-            self._wheel = 0
-            self._velocity = 0
-            self._aftertouch = 0
-
-            # Map OSC messages
-            dispatcher.map(self.base_osc_address + '/mod/lfo2', self.on_osc_lfo2_message)
-            dispatcher.map(self.base_osc_address + '/mod/wheel', self.on_osc_wheel_message)
-            dispatcher.map(self.base_osc_address + '/mod/velocity', self.on_osc_velocity_message)
-            dispatcher.map(self.base_osc_address + '/mod/aftertouch', self.on_osc_aftertouch_message)
-
-            # Store the OSC client for when we need to send out OSC messages
-            self._osc_client = osc_client
-
-            # Store MIDI out port for when we need to send out MIDI messages
-            self._midi_out_port = midi_out_port
-
-            # Store the MIDI CC numbers for each modulation type
-            self._lfo2_cc = lfo2_cc
-            self._wheel_cc = wheel_cc
-            self._velocity_cc = velocity_cc
-            self._aftertouch_cc = aftertouch_cc
-        
-        @property
-        def lfo2(self):
-            return self._lfo2
-        
-        @lfo2.setter
-        def lfo2(self, value):
-            try:
-                # Convert value to an integer
-                new_val = int(value)
-
-                # Validate the value
-                if new_val < 0 or new_val > 127:
-                    raise Exception(f'Invalid value: {new_val}')
-
-                # Store the new value
-                self._lfo2 = new_val
-
-                # Send out an OSC message with the new value
-                self._osc_client.send_message(self.base_osc_address + '/mod/lfo2', self._lfo2)
-                
-            except ValueError:
-                raise ValueError(f'value could not be converted to an int: {value}') from None
-            
-        @property
-        def wheel(self):
-            return self._wheel
-        
-        @wheel.setter
-        def wheel(self, value):
-            try:
-                # Convert value to an integer
-                new_val = int(value)
-
-                # Validate the value
-                if new_val < 0 or new_val > 127:
-                    raise Exception(f'Invalid value: {new_val}')
-
-                # Store the new value
-                self._wheel = new_val
-
-                # Send out an OSC message with the new value
-                self._osc_client.send_message(self.base_osc_address + '/mod/wheel', self._wheel)
-                
-            except ValueError:
-                raise ValueError(f'value could not be converted to an int: {value}') from None
-        
-        @property
-        def velocity(self):
-            return self._velocity
-        
-        @velocity.setter
-        def velocity(self, value):
-            try:
-                # Convert value to an integer
-                new_val = int(value)
-
-                # Validate the value
-                if new_val < 0 or new_val > 127:
-                    raise Exception(f'Invalid value: {new_val}')
-
-                # Store the new value
-                self._velocity = new_val
-
-                # Send out an OSC message with the new value
-                self._osc_client.send_message(self.base_osc_address + '/mod/velocity', self._velocity)
-                
-            except ValueError:
-                raise ValueError(f'value could not be converted to an int: {value}') from None
-            
-        @property
-        def aftertouch(self):
-            return self._aftertouch
-        
-        @aftertouch.setter
-        def aftertouch(self, value):
-            try:
-                # Convert value to an integer
-                new_val = int(value)
-
-                # Validate the value
-                if new_val < 0 or new_val > 127:
-                    raise Exception(f'Invalid value: {new_val}')
-
-                # Store the new value
-                self._aftertouch = new_val
-
-                # Send out an OSC message with the new value
-                self._osc_client.send_message(self.base_osc_address + '/mod/aftertouch', self._aftertouch)
-                
-            except ValueError:
-                raise ValueError(f'value could not be converted to an int: {value}') from None
-            
-        def on_osc_lfo2_message(self, address, *args):
-            val = args[0]
-            self._lfo2 = val
-            print(f'{address}: {val}')
-
-            # Call the callback if it has been set
-            if self._lfo2_osc_callback is not None:
-                self._lfo2_osc_callback(self.lfo2)
-
-        def on_osc_wheel_message(self, address, *args):
-            val = args[0]
-            self._wheel = val
-            print(f'{address}: {val}')
-
-            # Call the callback if it has been set
-            if self._wheel_osc_callback is not None:
-                self._wheel_osc_callback(self.wheel)
-
-        def on_osc_velocity_message(self, address, *args):
-            val = args[0]
-            self._velocity = val
-            print(f'{address}: {val}')
-
-            # Call the callback if it has been set
-            if self._velocity_osc_callback is not None:
-                self._velocity_osc_callback(self.velocity)
-
-        def on_osc_aftertouch_message(self, address, *args):
-            val = args[0]
-            self._aftertouch = val
-            print(f'{address}: {val}')
-
-            # Call the callback if it has been set
-            if self._aftertouch_osc_callback is not None:
-                self._aftertouch_osc_callback(self.aftertouch)
-
-        
-    def __init__(self, dispatcher, osc_client, base_osc_address, midi_out_port, lfo2_cc, wheel_cc, velocity_cc, aftertouch_cc):
-        """
-        dispatcher is an OSC dispatcher that we use to map incoming OSC messages with our OSC addresses.
-        osc_client is used for sending outgoing OSC messages
-        base_osc_address is a string.
-        midi_out_port is a mido MIDI output port used when sending MIDI messages
-        lfo2_cc, wheel_cc, velocity_cc and aftertouch_cc are the MIDI CC numbers used for each modulation type.
-        """
-        self.base_osc_address = base_osc_address
-        self._value = 0
-        self.mod = self.ModulationAmounts(dispatcher, osc_client, base_osc_address, midi_out_port, value_cc)
-
-        # Map OSC messages
-        dispatcher.map(self.base_osc_address + '/value', self.on_osc_value_message)
-
-        # Store the OSC client for when we need to send out OSC messages
-        self._osc_client = osc_client
-
-        # Store MIDI out port for when we need to send out MIDI messages
-        self._midi_out_port = midi_out_port
-
-        # Store the MIDI CC numbers for each modulation type
-        self._lfo2_cc = lfo2_cc
-        self._wheel_cc = wheel_cc
-        self._velocity_cc = velocity_cc
-        self._aftertouch_cc = aftertouch_cc
-
-    @property
-    def value(self):
-        return self._value
-    
-    @value.setter
-    def value(self, val):
-        try:
-            # Convert value to an integer
-            new_val = int(val)
-
-            # Validate the value
-            if new_val < 0 or new_val > 127:
-                raise Exception(f'Invalid value: {new_val}')
-
-            # Store the new value
-            self._value = new_val
-
-            # Send out an OSC message with the new value
-            self._osc_client.send_message(self.base_osc_address + '/value', self._value)
-            
-        except ValueError:
-            raise ValueError(f'value could not be converted to an int: {val}') from None
-
-    def on_osc_value_message(self, address, *args):
-        # Get the new value and store it
-        val = args[0]
-        self.value = val
-        print(f'{address}: {val}')
-
-        # Send out a MIDI message
-        if not self._midi_out_port.closed:
-            msg = None
-            self._midi_out_port.send(msg)
-
-
 
 
 class NymphesOscLfoTypeParameter(NymphesOscControlParameter):
