@@ -1,4 +1,4 @@
-from nymphes_osc.model import NymphesOscController
+from nymphes_osc.ModSourceControlParameter import NymphesOscController
 
 
 if __name__ == '__main__':

@@ -1,1 +1,1 @@
-n = model.NymphesOscController(incoming_host='192.168.4.30', incoming_port=1237, outgoing_host='juno.local', outgoing_port=1236)
+n = model.NymphesMidiOscBridge(incoming_host='192.168.4.30', incoming_port=1237, outgoing_host='juno.local', outgoing_port=1236)
