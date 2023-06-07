@@ -3,7 +3,7 @@ from pythonosc.dispatcher import Dispatcher
 from pythonosc.osc_server import BlockingOSCUDPServer
 import threading
 import mido
-from OscillatorParams import OscillatorParams
+from nymphes_osc.OscillatorParams import OscillatorParams
 
 
 class NymphesMidiOscBridge:
@@ -45,7 +45,7 @@ class NymphesMidiOscBridge:
         self._open_nymphes_midi_port()
 
         # # Create the control parameter objects
-        self._oscillator_params = OscillatorParams(self.dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._oscillator_params = OscillatorParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
         # self._pitch_params = NymphesOscPitchParams(self.dispatcher, self._osc_send_function,
         #                                            self._nymphes_midi_send_function)
         # self._amp_params = NymphesOscAmpParams(self.dispatcher, self._osc_send_function,
@@ -89,7 +89,7 @@ class NymphesMidiOscBridge:
         Opens MIDI IO port for Nymphes synthesizer
         """
         port_name = 'Nymphes Bootloader'
-        self._nymphes_midi_port = mido.open_ioport(port_name)
+        self._nymphes_midi_port = mido.open_ioport(port_name, callback=self._nymphes_midi_receive_callback)
 
     def _close_nymphes_midi_port(self):
         """
@@ -97,6 +97,15 @@ class NymphesMidiOscBridge:
         """
         if self._nymphes_midi_port is not None:
             self._nymphes_midi_port.close()
+
+    def _nymphes_midi_receive_callback(self, midi_message):
+        """
+        To be called by the nymphes midi port when new midi messages are received
+        """
+        print(midi_message)
+
+        self._oscillator_params.on_midi_message(midi_message)
+
 
     def _nymphes_midi_send_function(self, midi_cc, value):
         """

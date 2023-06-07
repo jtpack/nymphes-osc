@@ -1,6 +1,7 @@
 from pythonosc.udp_client import SimpleUDPClient
 from pythonosc.dispatcher import Dispatcher
 from pythonosc.osc_server import BlockingOSCUDPServer
+from pythonosc.osc_message_builder import OscMessageBuilder
 import threading
 import mido
 
@@ -76,9 +77,6 @@ class BasicControlParameter:
             # Store the new value
             self._value = new_val
 
-            # Send out an OSC message with the new value
-            self._osc_client.send_message(self._osc_address, self._value)
-
         except ValueError:
             raise ValueError(f'value could not be converted to an int: {val}') from None
 
@@ -99,14 +97,35 @@ class BasicControlParameter:
         return self._osc_address
 
     def on_osc_message(self, address, *args):
+        print(f'{address}: {args[0]}')
+
         # Get the new value
-        val = args[0]
+        value = args[0]
 
-        # Set _value, our private variable, rather than using the setter,
-        # as we don't want to trigger an outgoing OSC message
-        self._value = val
-
-        print(f'{address}: {val}')
+        # Store the new value
+        self.value = value
 
         # Send a MIDI message
         self._midi_send_function(midi_cc=self.midi_cc, value=self.value)
+
+    def on_midi_message(self, midi_message):
+        # Determine whether this midi message matches our MIDI CC
+        #
+
+        if midi_message.is_cc():
+            if midi_message.control == self.midi_cc:
+                # This is a MIDI Control Change message that matches our CC number.
+                print(f'test val: {midi_message.value}')
+
+                # Update our value
+                self.value = midi_message.value
+
+                # Build an OSC message
+                msg = OscMessageBuilder(address=self.osc_address)
+                msg.add_arg(self.value)
+                msg = msg.build()
+
+                # Send it
+                self._osc_send_function(msg)
+
+
