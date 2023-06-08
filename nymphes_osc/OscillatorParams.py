@@ -11,11 +11,19 @@ class OscillatorParams:
     """A class for tracking all of the control parameters for the oscillator"""
 
     def __init__(self, dispatcher, osc_send_function, midi_send_function):
-        self.test_param = BasicControlParameter(dispatcher, osc_send_function, midi_send_function,
-                                                osc_address='/osc/wave/value', midi_cc=70)
-        # self._wave = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/osc/wave')
-        # self._pulsewidth = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function,
-        #                                                        '/osc/pulsewidth')
+        self._wave = ModulatedControlParameter(dispatcher=dispatcher,
+                                               osc_send_function=osc_send_function,
+                                               midi_send_function=midi_send_function,
+                                               base_osc_address='/osc/wave',
+                                               value_cc=70,
+                                               mod_cc=31)
+
+        self._pulsewidth = self._wave = ModulatedControlParameter(dispatcher=dispatcher,
+                                               osc_send_function=osc_send_function,
+                                               midi_send_function=midi_send_function,
+                                               base_osc_address='/osc/pulsewidth',
+                                               value_cc=12,
+                                               mod_cc=36)
 
     @property
     def wave(self):

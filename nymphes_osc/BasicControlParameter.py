@@ -1,9 +1,5 @@
-from pythonosc.udp_client import SimpleUDPClient
-from pythonosc.dispatcher import Dispatcher
-from pythonosc.osc_server import BlockingOSCUDPServer
 from pythonosc.osc_message_builder import OscMessageBuilder
-import threading
-import mido
+
 
 class BasicControlParameter:
     """
@@ -14,9 +10,9 @@ class BasicControlParameter:
 
     def __init__(self, dispatcher, osc_send_function, midi_send_function, osc_address, midi_cc, min_val=0, max_val=127):
         """
-        dispatcher is an OSC dispatcher object.
-        osc_send_function is a function that we can call to send an outgoing OSC message (signature: f(osc_message))
-        midi_send_function is a function that we can call to send an outgoing MIDI message (signature: f(midi_cc, value))
+        - dispatcher is an OSC dispatcher that we use to map incoming OSC messages with our OSC addresses.
+        - osc_send_function is a function that we can call to send an outgoing OSC message (signature: f(osc_message))
+        - midi_send_function is a function that we can call to send an outgoing MIDI message (signature: f(midi_cc, value))
         """
         
         # Validate osc_send_function
@@ -115,7 +111,6 @@ class BasicControlParameter:
         if midi_message.is_cc():
             if midi_message.control == self.midi_cc:
                 # This is a MIDI Control Change message that matches our CC number.
-                print(f'test val: {midi_message.value}')
 
                 # Update our value
                 self.value = midi_message.value
