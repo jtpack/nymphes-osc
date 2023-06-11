@@ -1,10 +1,4 @@
-from pythonosc.udp_client import SimpleUDPClient
-from pythonosc.dispatcher import Dispatcher
-from pythonosc.osc_server import BlockingOSCUDPServer
-import threading
-import mido
 from ModulatedControlParameter import ModulatedControlParameter
-from BasicControlParameter import BasicControlParameter
 
 
 class AmpParams:
