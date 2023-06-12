@@ -1,21 +1,44 @@
-from pythonosc.udp_client import SimpleUDPClient
-from pythonosc.dispatcher import Dispatcher
-from pythonosc.osc_server import BlockingOSCUDPServer
-import threading
-import mido
-from ModulatedControlParameter import ModulatedControlParameter
-from BasicControlParameter import BasicControlParameter
+from nymphes_osc.ControlParameter_Modulated import ControlParameter_Modulated
 
 
 class LpfParams:
     """A class for tracking all of LPF-related control parameters"""
 
-    def __init__(self, dispatcher, osc_client):
-        self._cutoff = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lpf/cutoff')
-        self._resonance = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lpf/resonance')
-        self._tracking = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lpf/tracking')
-        self._env_depth = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lpf/env_depth')
-        self._lfo1 = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lpf/lfo1')
+    def __init__(self, dispatcher, osc_send_function, midi_send_function):
+        self._cutoff = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                  osc_send_function=osc_send_function,
+                                                  midi_send_function=midi_send_function,
+                                                  base_osc_address='/lpf/cutoff',
+                                                  value_cc=74,
+                                                  mod_cc=42)
+
+        self._resonance = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                     osc_send_function=osc_send_function,
+                                                     midi_send_function=midi_send_function,
+                                                     base_osc_address='/lpf/resonance',
+                                                     value_cc=71,
+                                                     mod_cc=43)
+
+        self._tracking = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                    osc_send_function=osc_send_function,
+                                                    midi_send_function=midi_send_function,
+                                                    base_osc_address='/lpf/tracking',
+                                                    value_cc=4,
+                                                    mod_cc=46)
+
+        self._env_depth = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                     osc_send_function=osc_send_function,
+                                                     midi_send_function=midi_send_function,
+                                                     base_osc_address='/lpf/env_depth',
+                                                     value_cc=3,
+                                                     mod_cc=44)
+
+        self._lfo1 = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                osc_send_function=osc_send_function,
+                                                midi_send_function=midi_send_function,
+                                                base_osc_address='/lpf/lfo1',
+                                                value_cc=8,
+                                                mod_cc=47)
 
     @property
     def cutoff(self):
@@ -36,3 +59,10 @@ class LpfParams:
     @property
     def lfo1(self):
         return self._lfo1
+
+    def on_midi_message(self, midi_message):
+        self.cutoff.on_midi_message(midi_message)
+        self.resonance.on_midi_message(midi_message)
+        self.tracking.on_midi_message(midi_message)
+        self.env_depth.on_midi_message(midi_message)
+        self.lfo1.on_midi_message(midi_message)

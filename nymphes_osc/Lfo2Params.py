@@ -1,22 +1,51 @@
-from pythonosc.udp_client import SimpleUDPClient
-from pythonosc.dispatcher import Dispatcher
-from pythonosc.osc_server import BlockingOSCUDPServer
-import threading
-import mido
-from ModulatedControlParameter import ModulatedControlParameter
-from BasicControlParameter import BasicControlParameter
+from nymphes_osc.ControlParameter_Modulated import ControlParameter_Modulated
+from nymphes_osc.ControlParameter_LfoType import ControlParameter_LfoType
+from nymphes_osc.ControlParameter_LfoKeySync import ControlParameter_LfoKeySync
 
 
 class Lfo2Params:
     """A class for tracking all control parameters related to LFO2"""
 
-    def __init__(self, dispatcher, osc_client):
-        self._rate = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lfo2/rate')
-        self._wave = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lfo2/wave')
-        self._delay = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lfo2/delay')
-        self._fade = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/lfo2/fade')
-        self._type = NymphesOscLfoTypeParameter(dispatcher, osc_client, '/lfo2/type/value')
-        self._key_sync = NymphesOscLfoKeySyncParameter(dispatcher, osc_client, '/lfo2/key_sync/value')
+    def __init__(self, dispatcher, osc_send_function, midi_send_function):
+        self._rate = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                  osc_send_function=osc_send_function,
+                                                  midi_send_function=midi_send_function,
+                                                  base_osc_address='/lfo2/rate',
+                                                  value_cc=24,
+                                                  mod_cc=60)
+
+        self._wave = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                  osc_send_function=osc_send_function,
+                                                  midi_send_function=midi_send_function,
+                                                  base_osc_address='/lfo2/wave',
+                                                  value_cc=25,
+                                                  mod_cc=61)
+
+        self._delay = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                  osc_send_function=osc_send_function,
+                                                  midi_send_function=midi_send_function,
+                                                  base_osc_address='/lfo2/delay',
+                                                  value_cc=26,
+                                                  mod_cc=62)
+
+        self._fade = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                  osc_send_function=osc_send_function,
+                                                  midi_send_function=midi_send_function,
+                                                  base_osc_address='/lfo2/fade',
+                                                  value_cc=27,
+                                                  mod_cc=63)
+
+        self._type = ControlParameter_LfoType(dispatcher=dispatcher,
+                                              osc_send_function=osc_send_function,
+                                              midi_send_function=midi_send_function,
+                                              osc_address='/lfo2/type',
+                                              midi_cc=28)
+
+        self._key_sync = ControlParameter_LfoKeySync(dispatcher=dispatcher,
+                                                     osc_send_function=osc_send_function,
+                                                     midi_send_function=midi_send_function,
+                                                     osc_address='lfo2/key_sync',
+                                                     midi_cc=29)
 
     @property
     def rate(self):
@@ -41,4 +70,11 @@ class Lfo2Params:
     @property
     def key_sync(self):
         return self._key_sync
-    
+
+    def on_midi_message(self, midi_message):
+        self.rate.on_midi_message(midi_message)
+        self.wave.on_midi_message(midi_message)
+        self.delay.on_midi_message(midi_message)
+        self.fade.on_midi_message(midi_message)
+        self.type.on_midi_message(midi_message)
+        self.key_sync.on_midi_message(midi_message)

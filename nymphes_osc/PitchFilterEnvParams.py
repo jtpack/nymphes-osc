@@ -1,24 +1,37 @@
-from pythonosc.udp_client import SimpleUDPClient
-from pythonosc.dispatcher import Dispatcher
-from pythonosc.osc_server import BlockingOSCUDPServer
-import threading
-import mido
-from ModulatedControlParameter import ModulatedControlParameter
-from BasicControlParameter import BasicControlParameter
+from nymphes_osc.ControlParameter_Modulated import ControlParameter_Modulated
 
 
 class PitchFilterEnvParams:
     """A class for tracking all control parameters related to the pitch/filter envelope generator"""
 
-    def __init__(self, dispatcher, osc_client):
-        self._attack = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function,
-                                                 '/pitch_filter_env/attack')
-        self._decay = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function,
-                                                '/pitch_filter_env/decay')
-        self._sustain = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function,
-                                                  '/pitch_filter_env/sustain')
-        self._release = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function,
-                                                  '/pitch_filter_env/release')
+    def __init__(self, dispatcher, osc_send_function, midi_send_function):
+        self._attack = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                  osc_send_function=osc_send_function,
+                                                  midi_send_function=midi_send_function,
+                                                  base_osc_address='/pitch_filter_env/attack',
+                                                  value_cc=79,
+                                                  mod_cc=48)
+
+        self._decay = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                 osc_send_function=osc_send_function,
+                                                 midi_send_function=midi_send_function,
+                                                 base_osc_address='/pitch_filter_env/decay',
+                                                 value_cc=80,
+                                                 mod_cc=49)
+
+        self._sustain = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                   osc_send_function=osc_send_function,
+                                                   midi_send_function=midi_send_function,
+                                                   base_osc_address='/pitch_filter_env/sustain',
+                                                   value_cc=82,
+                                                   mod_cc=50)
+
+        self._release = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                   osc_send_function=osc_send_function,
+                                                   midi_send_function=midi_send_function,
+                                                   base_osc_address='/pitch_filter_env/release',
+                                                   value_cc=83,
+                                                   mod_cc=51)
 
     @property
     def attack(self):
@@ -35,3 +48,9 @@ class PitchFilterEnvParams:
     @property
     def release(self):
         return self._release
+
+    def on_midi_message(self, midi_message):
+        self.attack.on_midi_message(midi_message)
+        self.decay.on_midi_message(midi_message)
+        self.sustain.on_midi_message(midi_message)
+        self.release.on_midi_message(midi_message)

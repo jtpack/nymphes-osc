@@ -1,20 +1,37 @@
-from pythonosc.udp_client import SimpleUDPClient
-from pythonosc.dispatcher import Dispatcher
-from pythonosc.osc_server import BlockingOSCUDPServer
-import threading
-import mido
-from ModulatedControlParameter import ModulatedControlParameter
-from BasicControlParameter import BasicControlParameter
+from nymphes_osc.ControlParameter_Modulated import ControlParameter_Modulated
 
 
 class ReverbParams:
     """A class for tracking all control parameters related to reverb"""
 
-    def __init__(self, dispatcher, osc_client):
-        self._size = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/reverb/size')
-        self._decay = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/reverb/decay')
-        self._filter = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/reverb/filter')
-        self._mix = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/reverb/mix')
+    def __init__(self, dispatcher, osc_send_function, midi_send_function):
+        self._size = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                osc_send_function=osc_send_function,
+                                                midi_send_function=midi_send_function,
+                                                base_osc_address='/reverb/size',
+                                                value_cc=75,
+                                                mod_cc=86)
+
+        self._decay = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                 osc_send_function=osc_send_function,
+                                                 midi_send_function=midi_send_function,
+                                                 base_osc_address='/reverb/decay',
+                                                 value_cc=76,
+                                                 mod_cc=87)
+
+        self._filter = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                  osc_send_function=osc_send_function,
+                                                  midi_send_function=midi_send_function,
+                                                  base_osc_address='/reverb/filter',
+                                                  value_cc=77,
+                                                  mod_cc=88)
+
+        self._mix = ControlParameter_Modulated(dispatcher=dispatcher,
+                                               osc_send_function=osc_send_function,
+                                               midi_send_function=midi_send_function,
+                                               base_osc_address='/reverb/mix',
+                                               value_cc=78,
+                                               mod_cc=89)
 
     @property
     def size(self):
@@ -32,3 +49,8 @@ class ReverbParams:
     def mix(self):
         return self._mix
 
+    def on_midi_message(self, midi_message):
+        self.size.on_midi_message(midi_message)
+        self.decay.on_midi_message(midi_message)
+        self.filter.on_midi_message(midi_message)
+        self.mix.on_midi_message(midi_message)

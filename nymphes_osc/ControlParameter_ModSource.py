@@ -1,23 +1,24 @@
-from pythonosc.udp_client import SimpleUDPClient
-from pythonosc.dispatcher import Dispatcher
-from pythonosc.osc_server import BlockingOSCUDPServer
-import threading
-import mido
-from ModulatedControlParameter import ModulatedControlParameter
-from BasicControlParameter import BasicControlParameter
+from nymphes_osc.ControlParameter_Basic import ControlParameter_Basic
 
 
-class ModSourceControlParameter(BasicControlParameter):
+class ControlParameter_ModSource(ControlParameter_Basic):
     """
-    Control parameter for Mod Source Selector, which has four possible settings. These can be set using either their int values or string names.
+    Control parameter for Mod Source Selector, which has four possible settings.
+    These can be set using either their int values or string names.
     0 = 'lfo2'
     1 = 'wheel'
     2 = 'velocity'
     3 = 'aftertouch'
     """
 
-    def __init__(self, dispatcher, osc_client):
-        super().__init__(dispatcher, osc_client, osc_address='/mod_source', min_val=0, max_val=3)
+    def __init__(self, dispatcher, osc_send_function, midi_send_function):
+        super().__init__(dispatcher,
+                         osc_send_function=osc_send_function,
+                         midi_send_function=midi_send_function,
+                         osc_address='/mod_source',
+                         midi_cc=30,
+                         min_val=0,
+                         max_val=3)
         
     @property
     def string_value(self):

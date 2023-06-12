@@ -1,7 +1,7 @@
 from pythonosc.osc_message_builder import OscMessageBuilder
 
 
-class ModulatedControlParameter:
+class ControlParameter_Modulated:
     """
     A control parameter in the Nymphes synthesizer that can be modulated with the modulation matrix.
     There are the following values:
@@ -46,7 +46,7 @@ class ModulatedControlParameter:
         if (value_cc < 0) or (value_cc > 127):
             raise Exception(f'Invalid value_cc: {value_cc}')
         else:
-            self._midi_cc = value_cc
+            self._value_cc = value_cc
 
         # Validate mod_cc
         if (mod_cc < 0) or (mod_cc > 127):
@@ -81,6 +81,10 @@ class ModulatedControlParameter:
         except ValueError:
             raise ValueError(f'value could not be converted to an int: {val}') from None
 
+    @property
+    def value_cc(self):
+        return self._value_cc
+
     def on_osc_message(self, address, *args):
         # Get the new value and store it
         val = args[0]
@@ -89,14 +93,14 @@ class ModulatedControlParameter:
         print(f'{address}: {val}')
 
         # Send a MIDI message
-        self._midi_send_function(midi_cc=self.midi_cc, value=self.value)
+        self._midi_send_function(midi_cc=self.value_cc, value=self.value)
 
     def on_midi_message(self, midi_message):
         # Determine whether this midi message matches our MIDI CC
         #
 
         if midi_message.is_cc():
-            if midi_message.control == self.midi_cc:
+            if midi_message.control == self.value_cc:
                 # This is a MIDI Control Change message that matches our CC number.
 
                 # Update our value

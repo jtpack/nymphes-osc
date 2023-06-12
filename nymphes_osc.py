@@ -1,19 +1,20 @@
-from nymphes_osc.ModSourceControlParameter import NymphesOscController
+from nymphes_osc.NymphesMidiOscBridge import NymphesMidiOscBridge
 
 
 if __name__ == '__main__':
-    incoming_host = '192.168.4.30'
-    incoming_port = 1237
-    outgoing_host = 'localhost'
-    outgoing_port = 1236
-
-    nymphes_midi_channel = 0
 
     # Create the Nymphes OSC Controller
-    noc = NymphesOscController(incoming_host, incoming_port, outgoing_host, outgoing_port, nymphes_midi_channel)
+    nymphes = NymphesMidiOscBridge(incoming_host='192.168.4.30',
+                               incoming_port=1237,
+                               outgoing_host='localhost',
+                               outgoing_port=1236,
+                               nymphes_midi_channel=0)
 
     # Start the OSC server
-    noc._start_osc_server()
+    #nymphes.start_osc_server()
+
+    # Open the MIDI port
+    #nymphes.open_nymphes_midi_port()
 
     while True:
         pass

@@ -279,7 +279,7 @@
 
 - ### Type
     - CC# 22
-    - /lfo1/type/value
+    - /lfo1/type
     - Possible Values:
         - 0: BPM
         - 1: Low
@@ -288,7 +288,7 @@
 
 - ### Key Sync
     - CC# 23
-    - /lfo1/key_sync/value
+    - /lfo1/key_sync
     - Possible Values:
         - 0: Off
         - 1: On
@@ -333,7 +333,7 @@
 
 - ### Type
     - CC# 28
-    - /lfo2/type/value
+    - /lfo2/type
     - Possible Values:
         - 0: BPM
         - 1: Low
@@ -342,7 +342,7 @@
 
 - ### Key Sync
     - CC# 29
-    - /lfo2/key_sync/value
+    - /lfo2/key_sync
     - Possible Values:
         - 0: Off
         - 1: On

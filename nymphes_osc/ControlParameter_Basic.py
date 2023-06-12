@@ -1,7 +1,7 @@
 from pythonosc.osc_message_builder import OscMessageBuilder
 
 
-class BasicControlParameter:
+class ControlParameter_Basic:
     """
     A control parameter in the Nymphes synthesizer that cannot be modulated by the modulation matrix.
     It has only one property: value.

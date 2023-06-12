@@ -1,15 +1,10 @@
-from pythonosc.udp_client import SimpleUDPClient
-from pythonosc.dispatcher import Dispatcher
-from pythonosc.osc_server import BlockingOSCUDPServer
-import threading
-import mido
-from ModulatedControlParameter import ModulatedControlParameter
-from BasicControlParameter import BasicControlParameter
+from nymphes_osc.ControlParameter_Basic import ControlParameter_Basic
 
 
-class PlayModeControlParameter(BasicControlParameter):
+class ControlParameter_PlayMode(ControlParameter_Basic):
     """
-    Control parameter for Play Mode, which has six possible values. These can be set using either their int values or string names.
+    Control parameter for Play Mode, which has six possible values.
+    These can be set using either their int values or string names.
     0 = 'polyphonic'
     1 = 'unison-6'
     2 = 'unison-4'
@@ -18,8 +13,14 @@ class PlayModeControlParameter(BasicControlParameter):
     5 - 'monophonic'
     """
 
-    def __init__(self, dispatcher, osc_client):
-        super().__init__(dispatcher, osc_client, osc_address='/play_mode', min_val=0, max_val=5)
+    def __init__(self, dispatcher, osc_send_function, midi_send_function):
+        super().__init__(dispatcher,
+                         osc_send_function=osc_send_function,
+                         midi_send_function=midi_send_function,
+                         osc_address='/play_mode',
+                         midi_cc=17,
+                         min_val=0,
+                         max_val=5)
 
     @property
     def string_value(self):

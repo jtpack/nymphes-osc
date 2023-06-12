@@ -1,19 +1,30 @@
-from pythonosc.udp_client import SimpleUDPClient
-from pythonosc.dispatcher import Dispatcher
-from pythonosc.osc_server import BlockingOSCUDPServer
-import threading
-import mido
-from ModulatedControlParameter import ModulatedControlParameter
-from BasicControlParameter import BasicControlParameter
+from nymphes_osc.ControlParameter_Modulated import ControlParameter_Modulated
 
 
 class MixParams:
     """A class for tracking all of mix-related control parameters"""
 
-    def __init__(self, dispatcher, osc_client):
-        self._osc = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/mix/osc')
-        self._sub = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/mix/sub')
-        self._noise = ModulatedControlParameter(dispatcher, osc_send_function, midi_send_function, '/mix/noise')
+    def __init__(self, dispatcher, osc_send_function, midi_send_function):
+        self._osc = ControlParameter_Modulated(dispatcher=dispatcher,
+                                               osc_send_function=osc_send_function,
+                                               midi_send_function=midi_send_function,
+                                               base_osc_address='/mix/osc',
+                                               value_cc=9,
+                                               mod_cc=32)
+
+        self._sub = ControlParameter_Modulated(dispatcher=dispatcher,
+                                               osc_send_function=osc_send_function,
+                                               midi_send_function=midi_send_function,
+                                               base_osc_address='/mix/sub',
+                                               value_cc=10,
+                                               mod_cc=33)
+
+        self._noise = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                 osc_send_function=osc_send_function,
+                                                 midi_send_function=midi_send_function,
+                                                 base_osc_address='/mix/noise',
+                                                 value_cc=11,
+                                                 mod_cc=34)
 
     @property
     def osc(self):
@@ -26,3 +37,8 @@ class MixParams:
     @property
     def noise(self):
         return self._noise
+
+    def on_midi_message(self, midi_message):
+        self.osc.on_midi_message(midi_message)
+        self.sub.on_midi_message(midi_message)
+        self.noise.on_midi_message(midi_message)

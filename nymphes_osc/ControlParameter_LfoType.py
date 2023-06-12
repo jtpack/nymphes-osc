@@ -1,23 +1,24 @@
-from pythonosc.udp_client import SimpleUDPClient
-from pythonosc.dispatcher import Dispatcher
-from pythonosc.osc_server import BlockingOSCUDPServer
-import threading
-import mido
-from ModulatedControlParameter import ModulatedControlParameter
-from BasicControlParameter import BasicControlParameter
+from nymphes_osc.ControlParameter_Basic import ControlParameter_Basic
 
 
-class LfoTypeControlParameter(BasicControlParameter):
+class ControlParameter_LfoType(ControlParameter_Basic):
     """
-    Control parameter for LFO type, which has four possible settings. These can be set using either their int values or string names.
+    Control parameter for LFO type, which has four possible settings.
+    These can be set using either their int values or string names.
     0 = 'bpm'
     1 = 'low'
     2 = 'high'
     3 = 'track'
     """
 
-    def __init__(self, dispatcher, osc_client, osc_address):
-        super().__init__(dispatcher, osc_client, osc_address, min_val=0, max_val=3)
+    def __init__(self, dispatcher, osc_send_function, midi_send_function, osc_address, midi_cc):
+        super().__init__(dispatcher,
+                         osc_send_function=osc_send_function,
+                         midi_send_function=midi_send_function,
+                         osc_address=osc_address,
+                         midi_cc=midi_cc,
+                         min_val=0,
+                         max_val=3)
 
     @property
     def string_value(self):
@@ -45,4 +46,3 @@ class LfoTypeControlParameter(BasicControlParameter):
             self.value = 3
         else:
             raise Exception(f'Invalid string_value: {string_val}')
-

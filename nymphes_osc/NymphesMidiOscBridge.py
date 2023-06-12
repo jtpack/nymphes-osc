@@ -4,6 +4,18 @@ from pythonosc.osc_server import BlockingOSCUDPServer
 import threading
 import mido
 from nymphes_osc.OscillatorParams import OscillatorParams
+from nymphes_osc.PitchParams import PitchParams
+from nymphes_osc.AmpParams import AmpParams
+from nymphes_osc.HpfParams import HpfParams
+from nymphes_osc.Lfo1Params import Lfo1Params
+from nymphes_osc.Lfo2Params import Lfo2Params
+from nymphes_osc.LpfParams import LpfParams
+from nymphes_osc.MixParams import MixParams
+from nymphes_osc.PitchFilterEnvParams import PitchFilterEnvParams
+from nymphes_osc.ReverbParams import ReverbParams
+from nymphes_osc.ControlParameter_PlayMode import ControlParameter_PlayMode
+from nymphes_osc.ControlParameter_ModSource import ControlParameter_ModSource
+from nymphes_osc.ControlParameter_Legato import ControlParameter_Legato
 
 
 class NymphesMidiOscBridge:
@@ -30,7 +42,7 @@ class NymphesMidiOscBridge:
         self._dispatcher = Dispatcher()
 
         # Start the server
-        self._start_osc_server()
+        self.start_osc_server()
 
         # The OSC Client, which sends outgoing OSC messages
         self._osc_client = SimpleUDPClient(outgoing_host, outgoing_port)
@@ -42,41 +54,29 @@ class NymphesMidiOscBridge:
         self._nymphes_midi_port = None
 
         # Connect the MIDI port
-        self._open_nymphes_midi_port()
+        self.open_nymphes_midi_port()
 
-        # # Create the control parameter objects
+        # Create the control parameter objects
         self._oscillator_params = OscillatorParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-        # self._pitch_params = NymphesOscPitchParams(self.dispatcher, self._osc_send_function,
-        #                                            self._nymphes_midi_send_function)
-        # self._amp_params = NymphesOscAmpParams(self.dispatcher, self._osc_send_function,
-        #                                        self._nymphes_midi_send_function)
-        # self._mix_params = NymphesOscMixParams(self.dispatcher, self._osc_send_function,
-        #                                        self._nymphes_midi_send_function)
-        # self._lpf_params = NymphesOscLpfParams(self.dispatcher, self._osc_send_function,
-        #                                        self._nymphes_midi_send_function)
-        # self._hpf_params = NymphesOscHpfParams(self.dispatcher, self._osc_send_function,
-        #                                        self._nymphes_midi_send_function)
-        # self._pitch_filter_env_params = NymphesOscPitchFilterEnvParams(self.dispatcher, self._osc_send_function,
-        #                                                                self._nymphes_midi_send_function)
-        # self._pitch_filter_lfo_params = NymphesOscPitchFilterLfoParams(self.dispatcher, self._osc_send_function,
-        #                                                                self._nymphes_midi_send_function)
-        # self._lfo2_params = NymphesOscLfo2Params(self.dispatcher, self._osc_send_function,
-        #                                          self._nymphes_midi_send_function)
-        # self._reverb_params = NymphesOscReverbParams(self.dispatcher, self._osc_send_function,
-        #                                              self._nymphes_midi_send_function)
-        # self._play_mode_parameter = NymphesOscPlayModeParameter(self.dispatcher, self._osc_send_function,
-        #                                                         self._nymphes_midi_send_function)
-        # self._mod_source_parameter = NymphesOscModSourceParameter(self.dispatcher, self._osc_send_function,
-        #                                                           self._nymphes_midi_send_function)
-        # self._legato_parameter = NymphesOscLegatoParameter(self.dispatcher, self._osc_send_function,
-        #                                                    self._nymphes_midi_send_function)
+        self._pitch_params = PitchParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._amp_params = AmpParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._mix_params = MixParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._lpf_params = LpfParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._hpf_params = HpfParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._pitch_filter_env_params = PitchFilterEnvParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._lfo1_params = Lfo1Params(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._lfo2_params = Lfo2Params(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._reverb_params = ReverbParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._play_mode_parameter = ControlParameter_PlayMode(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._mod_source_parameter = ControlParameter_ModSource(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._legato_parameter = ControlParameter_Legato(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
 
-    def _start_osc_server(self):
+    def start_osc_server(self):
         self._osc_server = BlockingOSCUDPServer((self.incoming_host, self.incoming_port), self._dispatcher)
         self._osc_server_thread = threading.Thread(target=self._osc_server.serve_forever)
         self._osc_server_thread.start()
 
-    def _stop_osc_server(self):
+    def stop_osc_server(self):
         if self._osc_server is not None:
             self._osc_server.shutdown()
             self._osc_server.server_close()
@@ -84,27 +84,34 @@ class NymphesMidiOscBridge:
             self._osc_server_thread.join()
             self._osc_server_thread = None
 
-    def _open_nymphes_midi_port(self):
+    def open_nymphes_midi_port(self):
         """
         Opens MIDI IO port for Nymphes synthesizer
         """
         port_name = 'Nymphes Bootloader'
-        self._nymphes_midi_port = mido.open_ioport(port_name, callback=self._nymphes_midi_receive_callback)
+        self._nymphes_midi_port = mido.open_ioport(port_name, callback=self._on_nymphes_midi_message)
 
-    def _close_nymphes_midi_port(self):
+    def close_nymphes_midi_port(self):
         """
         Closes the MIDI IO port for the Nymphes synthesizer
         """
         if self._nymphes_midi_port is not None:
             self._nymphes_midi_port.close()
 
-    def _nymphes_midi_receive_callback(self, midi_message):
+    def _on_nymphes_midi_message(self, midi_message):
         """
         To be called by the nymphes midi port when new midi messages are received
         """
-        print(midi_message)
-
-        self._oscillator_params.on_midi_message(midi_message)
+        self.amp.on_midi_message(midi_message)
+        self.hpf.on_midi_message(midi_message)
+        self.lfo1.on_midi_message(midi_message)
+        self.lfo2.on_midi_message(midi_message)
+        self.lpf.on_midi_message(midi_message)
+        self.mix.on_midi_message(midi_message)
+        self.oscillator.on_midi_message(midi_message)
+        self.pitch_filter_env.on_midi_message(midi_message)
+        self.pitch.on_midi_message(midi_message)
+        self.reverb.on_midi_message(midi_message)
 
 
     def _nymphes_midi_send_function(self, midi_cc, value):
@@ -158,8 +165,8 @@ class NymphesMidiOscBridge:
         return self._pitch_filter_env_params
 
     @property
-    def pitch_filter_lfo(self):
-        return self._pitch_filter_lfo_params
+    def lfo1(self):
+        return self._lfo1_params
 
     @property
     def lfo2(self):
