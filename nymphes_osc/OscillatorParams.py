@@ -12,12 +12,12 @@ class OscillatorParams:
                                                 value_cc=70,
                                                 mod_cc=31)
 
-        self._pulsewidth = self._wave = ControlParameter_Modulated(dispatcher=dispatcher,
-                                                                   osc_send_function=osc_send_function,
-                                                                   midi_send_function=midi_send_function,
-                                                                   base_osc_address='/osc/pulsewidth',
-                                                                   value_cc=12,
-                                                                   mod_cc=36)
+        self._pulsewidth = ControlParameter_Modulated(dispatcher=dispatcher,
+                                                      osc_send_function=osc_send_function,
+                                                      midi_send_function=midi_send_function,
+                                                      base_osc_address='/osc/pulsewidth',
+                                                      value_cc=12,
+                                                      mod_cc=36)
 
     @property
     def wave(self):

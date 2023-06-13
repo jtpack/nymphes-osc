@@ -98,7 +98,6 @@ class ControlParameter_Modulated:
     def on_midi_message(self, midi_message):
         # Determine whether this midi message matches our MIDI CC
         #
-
         if midi_message.is_cc():
             if midi_message.control == self.value_cc:
                 # This is a MIDI Control Change message that matches our CC number.
@@ -107,7 +106,8 @@ class ControlParameter_Modulated:
                 self.value = midi_message.value
 
                 # Build an OSC message
-                msg = OscMessageBuilder(address=self._base_osc_address + "/value")
+                osc_address = self._base_osc_address + "/value"
+                msg = OscMessageBuilder(address=osc_address)
                 msg.add_arg(self.value)
                 msg = msg.build()
 

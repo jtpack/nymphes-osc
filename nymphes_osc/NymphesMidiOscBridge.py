@@ -41,8 +41,7 @@ class NymphesMidiOscBridge:
 
         self._dispatcher = Dispatcher()
 
-        # Start the server
-        self.start_osc_server()
+
 
         # The OSC Client, which sends outgoing OSC messages
         self._osc_client = SimpleUDPClient(outgoing_host, outgoing_port)
@@ -52,9 +51,6 @@ class NymphesMidiOscBridge:
 
         # MIDI IO port for messages to and from Nymphes
         self._nymphes_midi_port = None
-
-        # Connect the MIDI port
-        self.open_nymphes_midi_port()
 
         # Create the control parameter objects
         self._oscillator_params = OscillatorParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
@@ -70,6 +66,12 @@ class NymphesMidiOscBridge:
         self._play_mode_parameter = ControlParameter_PlayMode(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
         self._mod_source_parameter = ControlParameter_ModSource(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
         self._legato_parameter = ControlParameter_Legato(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+
+        # Start the server
+        self.start_osc_server()
+
+        # Connect the MIDI port
+        self.open_nymphes_midi_port()
 
     def start_osc_server(self):
         self._osc_server = BlockingOSCUDPServer((self.incoming_host, self.incoming_port), self._dispatcher)
@@ -102,17 +104,29 @@ class NymphesMidiOscBridge:
         """
         To be called by the nymphes midi port when new midi messages are received
         """
-        self.amp.on_midi_message(midi_message)
-        self.hpf.on_midi_message(midi_message)
-        self.lfo1.on_midi_message(midi_message)
-        self.lfo2.on_midi_message(midi_message)
-        self.lpf.on_midi_message(midi_message)
-        self.mix.on_midi_message(midi_message)
-        self.oscillator.on_midi_message(midi_message)
-        self.pitch_filter_env.on_midi_message(midi_message)
-        self.pitch.on_midi_message(midi_message)
-        self.reverb.on_midi_message(midi_message)
+        if midi_message.is_cc():
+            # Only pass on control change midi messages
 
+            if midi_message.channel == self.nymphes_midi_channel:
+                # Only pass on messages if the channel is correct
+
+                self.amp.on_midi_message(midi_message)
+                self.hpf.on_midi_message(midi_message)
+                self.lfo1.on_midi_message(midi_message)
+                self.lfo2.on_midi_message(midi_message)
+                self.lpf.on_midi_message(midi_message)
+                self.mix.on_midi_message(midi_message)
+                self.oscillator.on_midi_message(midi_message)
+                self.pitch_filter_env.on_midi_message(midi_message)
+                self.pitch.on_midi_message(midi_message)
+                self.reverb.on_midi_message(midi_message)
+                self.play_mode.on_midi_message(midi_message)
+                self.mod_source.on_midi_message(midi_message)
+                self.legato.on_midi_message(midi_message)
+
+        else:
+            # A non-control change message was received.
+            print(f'Non-Control Change Message Received: {midi_message}')
 
     def _nymphes_midi_send_function(self, midi_cc, value):
         """
