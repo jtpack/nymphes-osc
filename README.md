@@ -1,6 +1,6 @@
 # Nymphes OSC Bridge
 
-### A Software Object That Provides OSC Control of the Dreadbox Nymphes MIDI Synthesizer
+### A software object that provides OSC control of the Dreadbox Nymphes MIDI synthesizer
 
 
 # OSC and MIDI Message Reference
