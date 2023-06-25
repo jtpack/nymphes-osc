@@ -98,21 +98,20 @@ class ControlParameter_Modulated:
     def on_midi_message(self, midi_message):
         # Determine whether this midi message matches our MIDI CC
         #
-        if midi_message.is_cc():
-            if midi_message.control == self.value_cc:
-                # This is a MIDI Control Change message that matches our CC number.
+        if midi_message.control == self.value_cc:
+            # This is a MIDI Control Change message that matches our CC number.
 
-                # Update our value
-                self.value = midi_message.value
+            # Update our value
+            self.value = midi_message.value
 
-                # Build an OSC message
-                osc_address = self._base_osc_address + "/value"
-                msg = OscMessageBuilder(address=osc_address)
-                msg.add_arg(self.value)
-                msg = msg.build()
+            # Build an OSC message
+            osc_address = self._base_osc_address + "/value"
+            msg = OscMessageBuilder(address=osc_address)
+            msg.add_arg(self.value)
+            msg = msg.build()
 
-                # Send it
-                self._osc_send_function(msg)
+            # Send it
+            self._osc_send_function(msg)
 
         # Also pass the message to our modulation amounts object
         self.mod.on_midi_message(midi_message)
@@ -288,63 +287,61 @@ class ControlParameter_Modulated:
             
         def on_midi_message(self, midi_message):
             # Determine whether we should respond to the MIDI message
-    
-            if midi_message.is_cc():
-                
-                if midi_message.control == 30:
-                    # This is the modulation source control message.
-                    # Store the new source.
-                    self._curr_mod_source = midi_message.value
 
-                elif midi_message.control == self.mod_cc:
-                    # This is our modulation MIDI CC, so the message
-                    # sets a modulation amount
-                    
-                    # Set the correct amount based on the current modulation source
-                    if self._curr_mod_source == 0:
-                        # Update the modulation amount
-                        self._lfo2_value = midi_message.value
+            if midi_message.control == 30:
+                # This is the modulation source control message.
+                # Store the new source.
+                self._curr_mod_source = midi_message.value
 
-                        # Build an OSC message
-                        msg = OscMessageBuilder(address=self.base_osc_address + "/mod/lfo2")
-                        msg.add_arg(self._lfo2_value)
-                        msg = msg.build()
+            elif midi_message.control == self.mod_cc:
+                # This is our modulation MIDI CC, so the message
+                # sets a modulation amount
 
-                        # Send it
-                        self._osc_send_function(msg)
-                        
-                    elif self._curr_mod_source == 1:
-                        # Update the modulation amount
-                        self._wheel_value = midi_message.value
+                # Set the correct amount based on the current modulation source
+                if self._curr_mod_source == 0:
+                    # Update the modulation amount
+                    self._lfo2_value = midi_message.value
 
-                        # Build an OSC message
-                        msg = OscMessageBuilder(address=self.base_osc_address + "/mod/wheel")
-                        msg.add_arg(self._wheel_value)
-                        msg = msg.build()
+                    # Build an OSC message
+                    msg = OscMessageBuilder(address=self.base_osc_address + "/mod/lfo2")
+                    msg.add_arg(self._lfo2_value)
+                    msg = msg.build()
 
-                        # Send it
-                        self._osc_send_function(msg)
-                        
-                    elif self._curr_mod_source == 2:
-                        # Update the modulation amount
-                        self._velocity_value = midi_message.value
+                    # Send it
+                    self._osc_send_function(msg)
 
-                        # Build an OSC message
-                        msg = OscMessageBuilder(address=self.base_osc_address + "/mod/velocity")
-                        msg.add_arg(self._velocity_value)
-                        msg = msg.build()
+                elif self._curr_mod_source == 1:
+                    # Update the modulation amount
+                    self._wheel_value = midi_message.value
 
-                        # Send it
-                        self._osc_send_function(msg)
-                        
-                    elif self._curr_mod_source == 3:
-                        # Update the modulation amount
-                        self._aftertouch_value = midi_message.value
+                    # Build an OSC message
+                    msg = OscMessageBuilder(address=self.base_osc_address + "/mod/wheel")
+                    msg.add_arg(self._wheel_value)
+                    msg = msg.build()
 
-                        # Build an OSC message
-                        msg = OscMessageBuilder(address=self.base_osc_address + "/mod/aftertouch")
-                        msg.add_arg(self._aftertouch_value)
-                        msg = msg.build()
+                    # Send it
+                    self._osc_send_function(msg)
 
-                        # Send it
-                        self._osc_send_function(msg)
+                elif self._curr_mod_source == 2:
+                    # Update the modulation amount
+                    self._velocity_value = midi_message.value
+
+                    # Build an OSC message
+                    msg = OscMessageBuilder(address=self.base_osc_address + "/mod/velocity")
+                    msg.add_arg(self._velocity_value)
+                    msg = msg.build()
+
+                    # Send it
+                    self._osc_send_function(msg)
+
+                elif self._curr_mod_source == 3:
+                    # Update the modulation amount
+                    self._aftertouch_value = midi_message.value
+
+                    # Build an OSC message
+                    msg = OscMessageBuilder(address=self.base_osc_address + "/mod/aftertouch")
+                    msg.add_arg(self._aftertouch_value)
+                    msg = msg.build()
+
+                    # Send it
+                    self._osc_send_function(msg)

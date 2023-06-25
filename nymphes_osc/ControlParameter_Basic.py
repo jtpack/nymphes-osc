@@ -108,19 +108,16 @@ class ControlParameter_Basic:
         # Determine whether this midi message matches our MIDI CC
         #
 
-        if midi_message.is_cc():
-            if midi_message.control == self.midi_cc:
-                # This is a MIDI Control Change message that matches our CC number.
+        if midi_message.control == self.midi_cc:
+            # This is a MIDI Control Change message that matches our CC number.
 
-                # Update our value
-                self.value = midi_message.value
+            # Update our value
+            self.value = midi_message.value
 
-                # Build an OSC message
-                msg = OscMessageBuilder(address=self.osc_address)
-                msg.add_arg(self.value)
-                msg = msg.build()
+            # Build an OSC message
+            msg = OscMessageBuilder(address=self.osc_address)
+            msg.add_arg(self.value)
+            msg = msg.build()
 
-                # Send it
-                self._osc_send_function(msg)
-
-
+            # Send it
+            self._osc_send_function(msg)

@@ -3,6 +3,7 @@ from pythonosc.dispatcher import Dispatcher
 from pythonosc.osc_server import BlockingOSCUDPServer
 import threading
 import mido
+import time
 from nymphes_osc.OscillatorParams import OscillatorParams
 from nymphes_osc.PitchParams import PitchParams
 from nymphes_osc.AmpParams import AmpParams
@@ -41,8 +42,6 @@ class NymphesMidiOscBridge:
 
         self._dispatcher = Dispatcher()
 
-
-
         # The OSC Client, which sends outgoing OSC messages
         self._osc_client = SimpleUDPClient(outgoing_host, outgoing_port)
 
@@ -72,6 +71,10 @@ class NymphesMidiOscBridge:
 
         # Connect the MIDI port
         self.open_nymphes_midi_port()
+
+        self._last_midi_message_cc = None
+        self._last_midi_message_val = None
+        self._last_midi_message_time = None
 
     def start_osc_server(self):
         self._osc_server = BlockingOSCUDPServer((self.incoming_host, self.incoming_port), self._dispatcher)
@@ -110,6 +113,24 @@ class NymphesMidiOscBridge:
             if midi_message.channel == self.nymphes_midi_channel:
                 # Only pass on messages if the channel is correct
 
+                # Ignore duplicate messages - these are messages with the
+                # same channel, cc and value arriving within one second
+                if self._last_midi_message_time is not None:
+                    if time.perf_counter() - self._last_midi_message_time <= 1.0:
+                        if midi_message.control == self._last_midi_message_cc:
+                            if midi_message.value == self._last_midi_message_val:
+                                # This is a duplicate message
+                                return
+
+                # Store the cc and value of this midi message
+                # so we can ignore duplicate messages if they
+                # occur
+                self._last_midi_message_cc = midi_message.control
+                self._last_midi_message_val = midi_message.value
+                self._last_midi_message_time = time.perf_counter()
+
+                # This is not a duplicate message, so pass it on to be
+                # handled
                 self.amp.on_midi_message(midi_message)
                 self.hpf.on_midi_message(midi_message)
                 self.lfo1.on_midi_message(midi_message)
