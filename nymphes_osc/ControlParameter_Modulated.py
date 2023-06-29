@@ -1,4 +1,5 @@
 from pythonosc.osc_message_builder import OscMessageBuilder
+import time
 
 
 class ControlParameter_Modulated:
@@ -61,6 +62,10 @@ class ControlParameter_Modulated:
         # Map value OSC address
         dispatcher.map(self._base_osc_address + '/value', self.on_osc_message)
 
+        # For filtering out duplicate messages
+        self._last_midi_message_time = None
+        self._last_osc_message_time = None
+
     @property
     def value(self):
         return self._value
@@ -87,10 +92,30 @@ class ControlParameter_Modulated:
 
     def on_osc_message(self, address, *args):
         # Get the new value and store it
-        val = args[0]
-        self.value = val
+        value = args[0]
 
-        print(f'{address}: {val}')
+        # Ignore duplicate messages - these are messages with the
+        # value as our current value, arriving within one second
+        if value == self.value:
+            if self._last_osc_message_time is not None:
+                if time.perf_counter() - self._last_osc_message_time <= 1.0:
+                    # This is a duplicate message.
+
+                    # Update the time
+                    self._last_osc_message_time = time.perf_counter()
+
+                    # Do nothing else with this message
+                    return
+
+        # This is not a duplicate message, so handle it
+        #
+
+        self.value = value
+
+        # Store the time
+        self._last_osc_message_time = time.perf_counter()
+
+        # print(f'{address}: {value}')
 
         # Send a MIDI message
         self._midi_send_function(midi_cc=self.value_cc, value=self.value)
@@ -101,8 +126,27 @@ class ControlParameter_Modulated:
         if midi_message.control == self.value_cc:
             # This is a MIDI Control Change message that matches our CC number.
 
+            # Ignore duplicate messages - these are messages with the
+            # value as our current value, arriving within one second
+            if midi_message.value == self.value:
+                if self._last_midi_message_time is not None:
+                    if time.perf_counter() - self._last_midi_message_time <= 1.0:
+                        # This is a duplicate message.
+
+                        # Update the time
+                        self._last_midi_message_time = time.perf_counter()
+
+                        # Do nothing else with this message
+                        return
+
+            # This is not a duplicate message, so handle it
+            #
+
             # Update our value
             self.value = midi_message.value
+
+            # Store the time
+            self._last_midi_message_time = time.perf_counter()
 
             # Build an OSC message
             osc_address = self._base_osc_address + "/value"

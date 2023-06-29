@@ -72,10 +72,6 @@ class NymphesMidiOscBridge:
         # Connect the MIDI port
         self.open_nymphes_midi_port()
 
-        self._last_midi_message_cc = None
-        self._last_midi_message_val = None
-        self._last_midi_message_time = None
-
     def start_osc_server(self):
         self._osc_server = BlockingOSCUDPServer((self.incoming_host, self.incoming_port), self._dispatcher)
         self._osc_server_thread = threading.Thread(target=self._osc_server.serve_forever)
@@ -107,30 +103,11 @@ class NymphesMidiOscBridge:
         """
         To be called by the nymphes midi port when new midi messages are received
         """
+        # Only pass on control change midi messages
         if midi_message.is_cc():
-            # Only pass on control change midi messages
 
+            # Only pass on messages if the channel is correct
             if midi_message.channel == self.nymphes_midi_channel:
-                # Only pass on messages if the channel is correct
-
-                # Ignore duplicate messages - these are messages with the
-                # same channel, cc and value arriving within one second
-                if self._last_midi_message_time is not None:
-                    if time.perf_counter() - self._last_midi_message_time <= 1.0:
-                        if midi_message.control == self._last_midi_message_cc:
-                            if midi_message.value == self._last_midi_message_val:
-                                # This is a duplicate message
-                                return
-
-                # Store the cc and value of this midi message
-                # so we can ignore duplicate messages if they
-                # occur
-                self._last_midi_message_cc = midi_message.control
-                self._last_midi_message_val = midi_message.value
-                self._last_midi_message_time = time.perf_counter()
-
-                # This is not a duplicate message, so pass it on to be
-                # handled
                 self.amp.on_midi_message(midi_message)
                 self.hpf.on_midi_message(midi_message)
                 self.lfo1.on_midi_message(midi_message)
