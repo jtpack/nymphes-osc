@@ -1,4 +1,4 @@
-from nymphes_osc.ControlParameter_Basic import ControlParameter_Basic
+from .ControlParameter_Basic import ControlParameter_Basic
 
 
 class ControlParameter_LfoKeySync(ControlParameter_Basic):

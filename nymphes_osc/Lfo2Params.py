@@ -1,6 +1,6 @@
-from nymphes_osc.ControlParameter_Modulated import ControlParameter_Modulated
-from nymphes_osc.ControlParameter_LfoType import ControlParameter_LfoType
-from nymphes_osc.ControlParameter_LfoKeySync import ControlParameter_LfoKeySync
+from .ControlParameter_Modulated import ControlParameter_Modulated
+from .ControlParameter_LfoType import ControlParameter_LfoType
+from .ControlParameter_LfoKeySync import ControlParameter_LfoKeySync
 
 
 class Lfo2Params:

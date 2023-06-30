@@ -1,5 +1,5 @@
-from nymphes_osc.NymphesMidiOscBridge import NymphesMidiOscBridge
-from nymphes_osc.ControlParameter_Basic import ControlParameter_Basic
+from NymphesMidiOscBridge import NymphesMidiOscBridge
+from .ControlParameter_Basic import ControlParameter_Basic
 
 
 nymphes_bridge = NymphesMidiOscBridge(incoming_host='192.168.4.30',

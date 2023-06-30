@@ -1,4 +1,4 @@
-from nymphes_osc.ControlParameter_Modulated import ControlParameter_Modulated
+from .ControlParameter_Modulated import ControlParameter_Modulated
 
 
 class HpfParams:

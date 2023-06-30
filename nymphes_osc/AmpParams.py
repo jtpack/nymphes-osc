@@ -1,5 +1,5 @@
-from nymphes_osc.ControlParameter_Modulated import ControlParameter_Modulated
-from nymphes_osc.ControlParameter_Basic import ControlParameter_Basic
+from .ControlParameter_Modulated import ControlParameter_Modulated
+from .ControlParameter_Basic import ControlParameter_Basic
 
 
 class AmpParams:

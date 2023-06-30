@@ -4,19 +4,19 @@ from pythonosc.osc_server import BlockingOSCUDPServer
 import threading
 import mido
 import time
-from nymphes_osc.OscillatorParams import OscillatorParams
-from nymphes_osc.PitchParams import PitchParams
-from nymphes_osc.AmpParams import AmpParams
-from nymphes_osc.HpfParams import HpfParams
-from nymphes_osc.Lfo1Params import Lfo1Params
-from nymphes_osc.Lfo2Params import Lfo2Params
-from nymphes_osc.LpfParams import LpfParams
-from nymphes_osc.MixParams import MixParams
-from nymphes_osc.PitchFilterEnvParams import PitchFilterEnvParams
-from nymphes_osc.ReverbParams import ReverbParams
-from nymphes_osc.ControlParameter_PlayMode import ControlParameter_PlayMode
-from nymphes_osc.ControlParameter_ModSource import ControlParameter_ModSource
-from nymphes_osc.ControlParameter_Legato import ControlParameter_Legato
+from .OscillatorParams import OscillatorParams
+from .PitchParams import PitchParams
+from .AmpParams import AmpParams
+from .HpfParams import HpfParams
+from .Lfo1Params import Lfo1Params
+from .Lfo2Params import Lfo2Params
+from .LpfParams import LpfParams
+from .MixParams import MixParams
+from .PitchFilterEnvParams import PitchFilterEnvParams
+from .ReverbParams import ReverbParams
+from .ControlParameter_PlayMode import ControlParameter_PlayMode
+from .ControlParameter_ModSource import ControlParameter_ModSource
+from .ControlParameter_Legato import ControlParameter_Legato
 
 
 class NymphesMidiOscBridge:
@@ -73,12 +73,14 @@ class NymphesMidiOscBridge:
         self.open_nymphes_midi_port()
 
     def start_osc_server(self):
+        print('Starting OSC Server')
         self._osc_server = BlockingOSCUDPServer((self.incoming_host, self.incoming_port), self._dispatcher)
         self._osc_server_thread = threading.Thread(target=self._osc_server.serve_forever)
         self._osc_server_thread.start()
 
     def stop_osc_server(self):
         if self._osc_server is not None:
+            print('Stopping OSC Server')
             self._osc_server.shutdown()
             self._osc_server.server_close()
             self._osc_server = None
@@ -89,7 +91,9 @@ class NymphesMidiOscBridge:
         """
         Opens MIDI IO port for Nymphes synthesizer
         """
-        port_name = 'Nymphes Bootloader'
+        # port_name = 'Nymphes Bootloader' # this is the name on macOS
+        port_name = 'Nymphes MIDI 1' # this is the name on RPi
+        print(f'Opening MIDI Port {port_name}')
         self._nymphes_midi_port = mido.open_ioport(port_name, callback=self._on_nymphes_midi_message)
 
     def close_nymphes_midi_port(self):
@@ -103,6 +107,7 @@ class NymphesMidiOscBridge:
         """
         To be called by the nymphes midi port when new midi messages are received
         """
+        print(f'{midi_message}')
         # Only pass on control change midi messages
         if midi_message.is_cc():
 

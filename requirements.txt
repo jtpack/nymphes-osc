@@ -1,0 +1,3 @@
+mido==1.2.10
+python-osc==1.8.1
+python-rtmidi==1.5.4
