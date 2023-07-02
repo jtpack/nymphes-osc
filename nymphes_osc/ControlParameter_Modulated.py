@@ -288,7 +288,7 @@ class ControlParameter_Modulated:
         def on_osc_lfo2_message(self, address, *args):
             val = args[0]
             self._lfo2_value = val
-            print(f'{address}: {val}')
+            # print(f'{address}: {val}')
 
             # Send a MIDI message to the Nymphes to set the mod source to LFO2
             self._midi_send_function(midi_cc=30, value=0)
@@ -299,7 +299,7 @@ class ControlParameter_Modulated:
         def on_osc_wheel_message(self, address, *args):
             val = args[0]
             self._wheel_value = val
-            print(f'{address}: {val}')
+            # print(f'{address}: {val}')
 
             # Send a MIDI message to the Nymphes to set the mod source to Wheel
             self._midi_send_function(midi_cc=30, value=1)
@@ -310,7 +310,7 @@ class ControlParameter_Modulated:
         def on_osc_velocity_message(self, address, *args):
             val = args[0]
             self._velocity_value = val
-            print(f'{address}: {val}')
+            # print(f'{address}: {val}')
 
             # Send a MIDI message to the Nymphes to set the mod source to Velocity
             self._midi_send_function(midi_cc=30, value=2)
@@ -321,7 +321,7 @@ class ControlParameter_Modulated:
         def on_osc_aftertouch_message(self, address, *args):
             val = args[0]
             self._aftertouch_value = val
-            print(f'{address}: {val}')
+            # print(f'{address}: {val}')
 
             # Send a MIDI message to the Nymphes to set the mod source to Aftertouch
             self._midi_send_function(midi_cc=30, value=3)

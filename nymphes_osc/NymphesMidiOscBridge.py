@@ -92,7 +92,7 @@ class NymphesMidiOscBridge:
         Opens MIDI IO port for Nymphes synthesizer
         """
         # port_name = 'Nymphes Bootloader' # this is the name on macOS
-        port_name = 'Nymphes MIDI 1' # this is the name on RPi
+        port_name = 'Nymphes:Nymphes MIDI 1 20:0' # this is the name on RPi
         print(f'Opening MIDI Port {port_name}')
         self._nymphes_midi_port = mido.open_ioport(port_name, callback=self._on_nymphes_midi_message)
 
@@ -107,7 +107,7 @@ class NymphesMidiOscBridge:
         """
         To be called by the nymphes midi port when new midi messages are received
         """
-        print(f'{midi_message}')
+        # print(f'{midi_message}')
         # Only pass on control change midi messages
         if midi_message.is_cc():
 
@@ -127,9 +127,9 @@ class NymphesMidiOscBridge:
                 self.mod_source.on_midi_message(midi_message)
                 self.legato.on_midi_message(midi_message)
 
-        else:
-            # A non-control change message was received.
-            print(f'Non-Control Change Message Received: {midi_message}')
+        # else:
+        #     # A non-control change message was received.
+        #     print(f'Non-Control Change Message Received: {midi_message}')
 
     def _nymphes_midi_send_function(self, midi_cc, value):
         """
