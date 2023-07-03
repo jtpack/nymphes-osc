@@ -25,14 +25,16 @@ class NymphesMidiOscBridge:
     We communicate with a Pure Data patch via OSC. The patch communicates with the Nymphes via MIDI.
     """
 
-    def __init__(self, incoming_host, incoming_port, outgoing_host, outgoing_port, nymphes_midi_channel):
+    def __init__(self, midi_port_name, midi_channel, osc_in_host, osc_in_port, osc_out_host, osc_out_port):
         # Prepare OSC objects
         #
 
-        self.incoming_host = incoming_host
-        self.incoming_port = incoming_port
-        self.outgoing_host = outgoing_host
-        self.outgoing_port = outgoing_port
+        self.nymphes_midi_port_name = midi_port_name
+        self.nymphes_midi_channel = midi_channel-1 # mido library starts at channel 0
+        self.incoming_host = osc_in_host
+        self.incoming_port = osc_in_port
+        self.outgoing_host = osc_out_host
+        self.outgoing_port = osc_out_port
 
         # The OSC Server, which receives incoming OSC messages on a background thread
         #
@@ -43,10 +45,7 @@ class NymphesMidiOscBridge:
         self._dispatcher = Dispatcher()
 
         # The OSC Client, which sends outgoing OSC messages
-        self._osc_client = SimpleUDPClient(outgoing_host, outgoing_port)
-
-        # The MIDI channel for the connected Nymphes synthesizer
-        self.nymphes_midi_channel = nymphes_midi_channel
+        self._osc_client = SimpleUDPClient(osc_out_host, osc_out_port)
 
         # MIDI IO port for messages to and from Nymphes
         self._nymphes_midi_port = None
@@ -65,12 +64,6 @@ class NymphesMidiOscBridge:
         self._play_mode_parameter = ControlParameter_PlayMode(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
         self._mod_source_parameter = ControlParameter_ModSource(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
         self._legato_parameter = ControlParameter_Legato(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-
-        # Start the server
-        self.start_osc_server()
-
-        # Connect the MIDI port
-        self.open_nymphes_midi_port()
 
     def start_osc_server(self):
         print('Starting OSC Server')
@@ -91,10 +84,8 @@ class NymphesMidiOscBridge:
         """
         Opens MIDI IO port for Nymphes synthesizer
         """
-        # port_name = 'Nymphes Bootloader' # this is the name on macOS
-        port_name = 'Nymphes:Nymphes MIDI 1 20:0' # this is the name on RPi
-        print(f'Opening MIDI Port {port_name}')
-        self._nymphes_midi_port = mido.open_ioport(port_name, callback=self._on_nymphes_midi_message)
+        print(f'Opening MIDI Port {self.nymphes_midi_port_name}')
+        self._nymphes_midi_port = mido.open_ioport(self.nymphes_midi_port_name, callback=self._on_nymphes_midi_message)
 
     def close_nymphes_midi_port(self):
         """
