@@ -1,0 +1,10 @@
+[MIDI]
+port_name = Nymphes:Nymphes MIDI 1 20:0
+channel = 1
+
+[OSC]
+in_host = 192.168.4.73
+in_port = 1237
+out_host = 192.168.4.28
+out_port = 1236
+

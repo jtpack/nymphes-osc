@@ -3,6 +3,7 @@ from pythonosc.dispatcher import Dispatcher
 from pythonosc.osc_server import BlockingOSCUDPServer
 import threading
 import mido
+import mido.backends.rtmidi
 import time
 from .OscillatorParams import OscillatorParams
 from .PitchParams import PitchParams
@@ -29,14 +30,14 @@ class NymphesMidiOscBridge:
         # Prepare OSC objects
         #
 
-        self.nymphes_midi_port_name = midi_port_name
-        self.nymphes_midi_channel = midi_channel-1 # mido library starts at channel 0
-        self.incoming_host = osc_in_host
-        self.incoming_port = osc_in_port
-        self.outgoing_host = osc_out_host
-        self.outgoing_port = osc_out_port
+        self.midi_port_name = midi_port_name
+        self.midi_channel = midi_channel-1 # mido library starts at channel 0
+        self.in_host = osc_in_host
+        self.in_port = osc_in_port
+        self.out_host = osc_out_host
+        self.out_port = osc_out_port
 
-        # The OSC Server, which receives incoming OSC messages on a background thread
+        # The OSC Server, which receives in OSC messages on a background thread
         #
 
         self._osc_server = None
@@ -44,11 +45,11 @@ class NymphesMidiOscBridge:
 
         self._dispatcher = Dispatcher()
 
-        # The OSC Client, which sends outgoing OSC messages
+        # The OSC Client, which sends out OSC messages
         self._osc_client = SimpleUDPClient(osc_out_host, osc_out_port)
 
         # MIDI IO port for messages to and from Nymphes
-        self._nymphes_midi_port = None
+        self._midi_port = None
 
         # Create the control parameter objects
         self._oscillator_params = OscillatorParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
@@ -66,33 +67,40 @@ class NymphesMidiOscBridge:
         self._legato_parameter = ControlParameter_Legato(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
 
     def start_osc_server(self):
-        print('Starting OSC Server')
-        self._osc_server = BlockingOSCUDPServer((self.incoming_host, self.incoming_port), self._dispatcher)
+        self._osc_server = BlockingOSCUDPServer((self.in_host, self.in_port), self._dispatcher)
         self._osc_server_thread = threading.Thread(target=self._osc_server.serve_forever)
         self._osc_server_thread.start()
+        
+        print('Started OSC Server')
+        print(f'\tin_host: {self.in_host}')
+        print(f'\tin_port: {self.in_port}')
+        print(f'\tout_host: {self.out_host}')
+        print(f'\tout_port: {self.out_port}')
 
     def stop_osc_server(self):
         if self._osc_server is not None:
-            print('Stopping OSC Server')
             self._osc_server.shutdown()
             self._osc_server.server_close()
             self._osc_server = None
             self._osc_server_thread.join()
             self._osc_server_thread = None
+            print('Stopped OSC Server')
 
-    def open_nymphes_midi_port(self):
+    def open_midi_port(self):
         """
         Opens MIDI IO port for Nymphes synthesizer
         """
-        print(f'Opening MIDI Port {self.nymphes_midi_port_name}')
-        self._nymphes_midi_port = mido.open_ioport(self.nymphes_midi_port_name, callback=self._on_nymphes_midi_message)
+        self._midi_port = mido.open_ioport(self.midi_port_name, callback=self._on_nymphes_midi_message)
+        print(f'Opened MIDI Port {self.midi_port_name}')
+        print(f'Using MIDI channel {self.midi_channel + 1}')
 
-    def close_nymphes_midi_port(self):
+    def close_midi_port(self):
         """
         Closes the MIDI IO port for the Nymphes synthesizer
         """
-        if self._nymphes_midi_port is not None:
-            self._nymphes_midi_port.close()
+        if self._midi_port is not None:
+            self._midi_port.close()
+            print(f'Closed MIDI Port {self.midi_port_name}')
 
     def _on_nymphes_midi_message(self, midi_message):
         """
@@ -103,7 +111,7 @@ class NymphesMidiOscBridge:
         if midi_message.is_cc():
 
             # Only pass on messages if the channel is correct
-            if midi_message.channel == self.nymphes_midi_channel:
+            if midi_message.channel == self.midi_channel:
                 self.amp.on_midi_message(midi_message)
                 self.hpf.on_midi_message(midi_message)
                 self.lfo1.on_midi_message(midi_message)
@@ -128,13 +136,13 @@ class NymphesMidiOscBridge:
         Every member object in NymphesOscController is given a reference
         to this function so it can send MIDI messages.
         """
-        if self._nymphes_midi_port is not None:
-            if not self._nymphes_midi_port.closed:
+        if self._midi_port is not None:
+            if not self._midi_port.closed:
                 # Construct the MIDI message
-                msg = mido.Message('control_change', channel=self.nymphes_midi_channel, control=midi_cc, value=value)
+                msg = mido.Message('control_change', channel=self.midi_channel, control=midi_cc, value=value)
 
                 # Send the message
-                self._nymphes_midi_port.send(msg)
+                self._midi_port.send(msg)
 
     def _osc_send_function(self, osc_message):
         """

@@ -2,3 +2,5 @@ nymphes_osc/__pycache__/
 .idea/
 *.DS_Store
 venv/
+dist/
+build/
