@@ -15,7 +15,7 @@ def create_new_config_file(filepath):
         'channel': 1
     }
     config['OSC'] = {
-        'in_host': '192.168.4.73',
+        'in_host': 'localhost',
         'in_port': 1237,
         'out_host': '192.168.4.28',
         'out_port': 1236
