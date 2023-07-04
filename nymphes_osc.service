@@ -1,0 +1,12 @@
+[Unit]
+Description=Nymphes OSC Bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/nymphes_osc/nymphes_osc
+WorkingDirectory=/usr/local/nymphes_osc/
+
+[Install]
+WantedBy=multi-user.target
