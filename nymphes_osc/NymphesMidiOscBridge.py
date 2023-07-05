@@ -51,6 +51,8 @@ class NymphesMidiOscBridge:
         # MIDI IO port for messages to and from Nymphes
         self._midi_port = None
 
+        self.nymphes_connected = False
+
         # Create the control parameter objects
         self._oscillator_params = OscillatorParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
         self._pitch_params = PitchParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
@@ -90,7 +92,7 @@ class NymphesMidiOscBridge:
         """
         Opens MIDI IO port for Nymphes synthesizer
         """
-        self._midi_port = mido.open_ioport(self.midi_port_name, callback=self._on_nymphes_midi_message)
+        self._midi_port = mido.open_ioport(self.midi_port_name)
         print(f'nymphes_osc: nymphes_osc: Opened MIDI Port {self.midi_port_name}')
         print(f'nymphes_osc: nymphes_osc: Using MIDI channel {self.midi_channel + 1}')
 
@@ -102,7 +104,42 @@ class NymphesMidiOscBridge:
             self._midi_port.close()
             print(f'nymphes_osc: nymphes_osc: Closed MIDI Port {self.midi_port_name}')
 
-    def _on_nymphes_midi_message(self, midi_message):
+    def get_connected_nymphes_midi_port_name(self):
+        """
+        Checks whether there is a Dreadbox Nymphes synthesizer connected.
+        Returns the name of the midi port if it is connected.
+        Returns None if no Nymphes is connected.
+        """
+
+        # Return the first port name that contains the word nymphes
+        for port_name in mido.get_input_names():
+            if 'nymphes' in (port_name).lower():
+                return port_name
+            
+        # If we get here, then there was no matching port
+        return None
+            
+    def update(self):
+        """
+        Should be called regularly.
+        """
+        # Handle any incoming MIDI messages waiting for us
+        if self._midi_port is not None:
+            for midi_message in self._midi_port.iter_pending():
+                self.on_midi_message(midi_message)
+
+        # Check whether the Nymphes is connected
+        port_name = self.get_connected_nymphes_midi_port_name()
+        if port_name is not None and not self.nymphes_connected:
+            # A Nymphes has just been connected
+            self.nymphes_connected = True
+            print(f'nymphes_osc: A Nymphes has been connected ({port_name})')
+        elif port_name is None and self.nymphes_connected:
+            # The Nymphes has just been disconnected
+            self.nymphes_connected = False
+            print('nymphes_osc: The Nymphes has been disconnected')
+
+    def on_midi_message(self, midi_message):
         """
         To be called by the nymphes midi port when new midi messages are received
         """

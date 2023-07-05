@@ -22,11 +22,11 @@ def run_osc_midi_bridge(midi_port_name,
     nymphes.start_osc_server()
 
     # Connect to the Nymphes MIDI port
-    nymphes.open_midi_port()
+    # nymphes.open_midi_port()
 
     # Stay running until manually killed
     while True:
-        pass
+        nymphes.update()
 
 if __name__ == '__main__':
     # Get configuration
