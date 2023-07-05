@@ -71,11 +71,11 @@ class NymphesMidiOscBridge:
         self._osc_server_thread = threading.Thread(target=self._osc_server.serve_forever)
         self._osc_server_thread.start()
         
-        print('Started OSC Server')
-        print(f'\tin_host: {self.in_host}')
-        print(f'\tin_port: {self.in_port}')
-        print(f'\tout_host: {self.out_host}')
-        print(f'\tout_port: {self.out_port}')
+        print('nymphes_osc: Started OSC Server')
+        print(f'nymphes_osc: in_host: {self.in_host}')
+        print(f'nymphes_osc: in_port: {self.in_port}')
+        print(f'nymphes_osc: out_host: {self.out_host}')
+        print(f'nymphes_osc: out_port: {self.out_port}')
 
     def stop_osc_server(self):
         if self._osc_server is not None:
@@ -84,15 +84,15 @@ class NymphesMidiOscBridge:
             self._osc_server = None
             self._osc_server_thread.join()
             self._osc_server_thread = None
-            print('Stopped OSC Server')
+            print('nymphes_osc: Stopped OSC Server')
 
     def open_midi_port(self):
         """
         Opens MIDI IO port for Nymphes synthesizer
         """
         self._midi_port = mido.open_ioport(self.midi_port_name, callback=self._on_nymphes_midi_message)
-        print(f'Opened MIDI Port {self.midi_port_name}')
-        print(f'Using MIDI channel {self.midi_channel + 1}')
+        print(f'nymphes_osc: nymphes_osc: Opened MIDI Port {self.midi_port_name}')
+        print(f'nymphes_osc: nymphes_osc: Using MIDI channel {self.midi_channel + 1}')
 
     def close_midi_port(self):
         """
@@ -100,13 +100,13 @@ class NymphesMidiOscBridge:
         """
         if self._midi_port is not None:
             self._midi_port.close()
-            print(f'Closed MIDI Port {self.midi_port_name}')
+            print(f'nymphes_osc: nymphes_osc: Closed MIDI Port {self.midi_port_name}')
 
     def _on_nymphes_midi_message(self, midi_message):
         """
         To be called by the nymphes midi port when new midi messages are received
         """
-        # print(f'{midi_message}')
+        # print(f'nymphes_osc: nymphes_osc: {midi_message}')
         # Only pass on control change midi messages
         if midi_message.is_cc():
 
@@ -128,7 +128,7 @@ class NymphesMidiOscBridge:
 
         # else:
         #     # A non-control change message was received.
-        #     print(f'Non-Control Change Message Received: {midi_message}')
+        #     print(f'nymphes_osc: Non-Control Change Message Received: {midi_message}')
 
     def _nymphes_midi_send_function(self, midi_cc, value):
         """

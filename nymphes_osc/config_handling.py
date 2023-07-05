@@ -27,6 +27,6 @@ def create_new_config_file(filepath):
 
     # Check whether the configuration file actually exists now
     if Path(filepath).exists():
-        print(f'Created new configuration file with default values at {filepath}')
+        print(f'nymphes_osc: Created new configuration file with default values at {filepath}')
     else:
         raise Exception(f'Failed to create config file at {filepath}')
