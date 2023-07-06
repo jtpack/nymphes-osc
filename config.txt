@@ -1,5 +1,4 @@
 [MIDI]
-port_name = Nymphes:Nymphes MIDI 1 20:0
 channel = 1
 
 [OSC]

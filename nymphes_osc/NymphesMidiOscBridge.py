@@ -26,20 +26,17 @@ class NymphesMidiOscBridge:
     We communicate with a Pure Data patch via OSC. The patch communicates with the Nymphes via MIDI.
     """
 
-    def __init__(self, midi_port_name, midi_channel, osc_in_host, osc_in_port, osc_out_host, osc_out_port):
+    def __init__(self, midi_channel, osc_in_host, osc_in_port, osc_out_host, osc_out_port):
         # Prepare OSC objects
         #
-
-        self.midi_port_name = midi_port_name
-        self.midi_channel = midi_channel-1 # mido library starts at channel 0
+        self.midi_channel = midi_channel-1 # mido library is zero-referenced, so MIDI channel 1 is specified as 0
         self.in_host = osc_in_host
         self.in_port = osc_in_port
         self.out_host = osc_out_host
         self.out_port = osc_out_port
 
-        # The OSC Server, which receives in OSC messages on a background thread
+        # The OSC Server, which receives OSC messages on a background thread
         #
-
         self._osc_server = None
         self._osc_server_thread = None
 
@@ -49,8 +46,9 @@ class NymphesMidiOscBridge:
         self._osc_client = SimpleUDPClient(osc_out_host, osc_out_port)
 
         # MIDI IO port for messages to and from Nymphes
-        self._midi_port = None
+        self._nymphes_midi_port = None
 
+        # Flag indicating whether we are connected to a Nymphes synthesizer
         self.nymphes_connected = False
 
         # Create the control parameter objects
@@ -88,23 +86,38 @@ class NymphesMidiOscBridge:
             self._osc_server_thread = None
             print('nymphes_osc: Stopped OSC Server')
 
-    def open_midi_port(self):
+    def connect_nymphes_midi_port(self, port_name):
         """
         Opens MIDI IO port for Nymphes synthesizer
         """
-        self._midi_port = mido.open_ioport(self.midi_port_name)
-        print(f'nymphes_osc: nymphes_osc: Opened MIDI Port {self.midi_port_name}')
+        # Connect to the port
+        self._nymphes_midi_port = mido.open_ioport(port_name)
+
+        # Update connection flag
+        self.nymphes_connected = True
+
+        print(f'nymphes_osc: nymphes_osc: Opened MIDI Port {self._nymphes_midi_port.name}')
         print(f'nymphes_osc: nymphes_osc: Using MIDI channel {self.midi_channel + 1}')
 
-    def close_midi_port(self):
+    def disconnect_nymphes_midi_port(self):
         """
         Closes the MIDI IO port for the Nymphes synthesizer
         """
-        if self._midi_port is not None:
-            self._midi_port.close()
-            print(f'nymphes_osc: nymphes_osc: Closed MIDI Port {self.midi_port_name}')
+        if self.nymphes_connected:
+            # Close the port
+            self._nymphes_midi_port.close()
+            print(f'nymphes_osc: nymphes_osc: Closed MIDI Port {self._nymphes_midi_port.name}')
 
-    def get_connected_nymphes_midi_port_name(self):
+            # We no longer need this port
+            self._nymphes_midi_port = None
+
+            # Update connection flag
+            self.nymphes_connected = False
+
+        else:
+            raise Exception('No Nymphes MIDI port is connected')
+
+    def _get_connected_nymphes_midi_port_name(self):
         """
         Checks whether there is a Dreadbox Nymphes synthesizer connected.
         Returns the name of the midi port if it is connected.
@@ -118,26 +131,39 @@ class NymphesMidiOscBridge:
             
         # If we get here, then there was no matching port
         return None
+
+    def _detect_nymphes_connection(self):
+        """
+        Check whether a nymphes synthesizer is connected.
+        Open a midi port when a nymphes is connected, and close
+        when it disconnects.
+        """
+        # Check whether the Nymphes is connected
+        port_name = self._get_connected_nymphes_midi_port_name()
+        
+        if port_name is not None:
+            # A nymphes is connected
+            if not self.nymphes_connected:
+                # It has just been connected. Open the port.
+                self.connect_nymphes_midi_port(port_name)
+        
+        else:
+            # A nymphes is not connected
+            if self.nymphes_connected:
+                # It has just been disconnected. Close the port.
+                self.disconnect_nymphes_midi_port()
             
     def update(self):
         """
         Should be called regularly.
         """
         # Handle any incoming MIDI messages waiting for us
-        if self._midi_port is not None:
-            for midi_message in self._midi_port.iter_pending():
+        if self.nymphes_connected:
+            for midi_message in self._nymphes_midi_port.iter_pending():
                 self.on_midi_message(midi_message)
 
-        # Check whether the Nymphes is connected
-        port_name = self.get_connected_nymphes_midi_port_name()
-        if port_name is not None and not self.nymphes_connected:
-            # A Nymphes has just been connected
-            self.nymphes_connected = True
-            print(f'nymphes_osc: A Nymphes has been connected ({port_name})')
-        elif port_name is None and self.nymphes_connected:
-            # The Nymphes has just been disconnected
-            self.nymphes_connected = False
-            print('nymphes_osc: The Nymphes has been disconnected')
+        # Check for Nymphes
+        self._detect_nymphes_connection()
 
     def on_midi_message(self, midi_message):
         """
@@ -173,13 +199,13 @@ class NymphesMidiOscBridge:
         Every member object in NymphesOscController is given a reference
         to this function so it can send MIDI messages.
         """
-        if self._midi_port is not None:
-            if not self._midi_port.closed:
+        if self._nymphes_midi_port is not None:
+            if not self._nymphes_midi_port.closed:
                 # Construct the MIDI message
                 msg = mido.Message('control_change', channel=self.midi_channel, control=midi_cc, value=value)
 
                 # Send the message
-                self._midi_port.send(msg)
+                self._nymphes_midi_port.send(msg)
 
     def _osc_send_function(self, osc_message):
         """

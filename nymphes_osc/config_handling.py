@@ -11,7 +11,6 @@ def create_new_config_file(filepath):
 
     config = configparser.ConfigParser()
     config['MIDI'] = {
-        'port_name': 'Nymphes:Nymphes MIDI 1 20:0',
         'channel': 1
     }
     config['OSC'] = {
