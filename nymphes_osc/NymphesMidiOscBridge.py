@@ -4,6 +4,7 @@ from pythonosc.osc_server import BlockingOSCUDPServer
 import threading
 import mido
 import mido.backends.rtmidi
+from rtmidi import InvalidPortError
 import time
 from .OscillatorParams import OscillatorParams
 from .PitchParams import PitchParams
@@ -125,7 +126,7 @@ class NymphesMidiOscBridge:
         """
 
         # Return the first port name that contains the word nymphes
-        for port_name in mido.get_input_names():
+        for port_name in mido.get_output_names():
             if 'nymphes' in (port_name).lower():
                 return port_name
             
@@ -139,31 +140,36 @@ class NymphesMidiOscBridge:
         when it disconnects.
         """
         # Check whether the Nymphes is connected
-        port_name = self._get_connected_nymphes_midi_port_name()
-        
-        if port_name is not None:
-            # A nymphes is connected
-            if not self.nymphes_connected:
-                # It has just been connected. Open the port.
-                self.connect_nymphes_midi_port(port_name)
-        
-        else:
-            # A nymphes is not connected
-            if self.nymphes_connected:
-                # It has just been disconnected. Close the port.
-                self.disconnect_nymphes_midi_port()
+        try:
+            port_name = self._get_connected_nymphes_midi_port_name()
+            
+            if port_name is not None:
+                # A nymphes is connected
+                if not self.nymphes_connected:
+                    # It has just been connected. Open the port.
+                    self.connect_nymphes_midi_port(port_name)
+            
+            else:
+                # A nymphes is not connected
+                if self.nymphes_connected:
+                    # It has just been disconnected. Close the port.
+                    self.disconnect_nymphes_midi_port()
+            
+        except InvalidPortError:
+            print('nymphes_osc: ignoring error while attempting to get port names (rtmidi.InvalidPortError)')
+                    
             
     def update(self):
         """
         Should be called regularly.
         """
+        # Check for Nymphes
+        self._detect_nymphes_connection()
+
         # Handle any incoming MIDI messages waiting for us
         if self.nymphes_connected:
             for midi_message in self._nymphes_midi_port.iter_pending():
-                self.on_midi_message(midi_message)
-
-        # Check for Nymphes
-        self._detect_nymphes_connection()
+                self.on_midi_message(midi_message)        
 
     def on_midi_message(self, midi_message):
         """
