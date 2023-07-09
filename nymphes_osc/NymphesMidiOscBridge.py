@@ -19,7 +19,7 @@ from .ReverbParams import ReverbParams
 from .ControlParameter_PlayMode import ControlParameter_PlayMode
 from .ControlParameter_ModSource import ControlParameter_ModSource
 from .ControlParameter_Legato import ControlParameter_Legato
-import preset_pb2
+from .sysex_handling import preset_from_sysex_data
 
 
 class NymphesMidiOscBridge:
@@ -197,15 +197,8 @@ class NymphesMidiOscBridge:
                 self.legato.on_midi_message(midi_message)
         elif midi_message.type == 'sysex':
             print('nymphes_osc: sysex message received')
-
-            # Attempt to interpret the sysex message
-            # data_bytes = bytes(midi_message.data)
-            # preset = preset_pb2.preset()
-            # preset.ParseFromString(data_bytes)
-            # print(preset)
-
-            # get sysex data and print as hex
-            print([hex(val) for val in midi_message.data])
+            print(midi_message)
+            preset_from_sysex_data(list(midi_message.data))
 
 
         else:
