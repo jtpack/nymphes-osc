@@ -4,3 +4,4 @@ nymphes_osc/__pycache__/
 venv/
 dist/
 build/
+config.txt
