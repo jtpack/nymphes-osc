@@ -19,6 +19,7 @@ from .ReverbParams import ReverbParams
 from .ControlParameter_PlayMode import ControlParameter_PlayMode
 from .ControlParameter_ModSource import ControlParameter_ModSource
 from .ControlParameter_Legato import ControlParameter_Legato
+import preset_pb2
 
 
 class NymphesMidiOscBridge:
@@ -194,10 +195,22 @@ class NymphesMidiOscBridge:
                 self.play_mode.on_midi_message(midi_message)
                 self.mod_source.on_midi_message(midi_message)
                 self.legato.on_midi_message(midi_message)
+        elif midi_message.type == 'sysex':
+            print('nymphes_osc: sysex message received')
 
-        # else:
-        #     # A non-control change message was received.
-        #     print(f'nymphes_osc: Non-Control Change Message Received: {midi_message}')
+            # Attempt to interpret the sysex message
+            # data_bytes = bytes(midi_message.data)
+            # preset = preset_pb2.preset()
+            # preset.ParseFromString(data_bytes)
+            # print(preset)
+
+            # get sysex data and print as hex
+            print([hex(val) for val in midi_message.data])
+
+
+        else:
+            # A non-control change message was received.
+            print(f'nymphes_osc: Another Message Received: {midi_message}')
 
     def _nymphes_midi_send_function(self, midi_cc, value):
         """
