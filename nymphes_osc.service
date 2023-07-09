@@ -1,5 +1,5 @@
 [Unit]
-Description=Nymphes OSC Bridge
+Description=nymphes_osc
 After=network-online.target
 Wants=network-online.target
 
