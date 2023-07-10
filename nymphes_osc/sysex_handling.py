@@ -44,13 +44,13 @@ def preset_from_sysex_data(sysex_data):
     crc_msb_nibble = sysex_data[10]
 
     # Get "nibblized" protobuf sysex data
-    nibblized_protobuf_sysex_data = sysex_data[11:]
+    sysex_data = sysex_data[11:]
     
     # hex_data = [hex(val) for val in nibblized_protobuf_sysex_data]
     # print(hex_data)
 
     # Get just the protobuf data
-    protobuf_data = extract_nibblized_protobuf_message(nibblized_protobuf_sysex_data)
+    protobuf_data = extract_nibblized_protobuf_message(sysex_data)
 
     print(f'F8 index: {protobuf_data.index(0xF8)}')
 
