@@ -44,22 +44,25 @@ def preset_from_sysex_data(sysex_data):
     crc_msb_nibble = sysex_data[10]
 
     # Get "nibblized" protobuf sysex data
-    sysex_data = sysex_data[11:]
+    sysex_data = sysex_data[11:11+2096]
     
     # hex_data = [hex(val) for val in nibblized_protobuf_sysex_data]
     # print(hex_data)
 
+    print(f'sysex data length: {len(sysex_data)}')
+
     # Get just the protobuf data
     protobuf_data = extract_nibblized_protobuf_message(sysex_data)
 
-    print(f'F8 index: {protobuf_data.index(0xF8)}')
+    #print(f'F8 index: {protobuf_data.index(0xF8)}')
 
 
     # Attempt to interpret the sysex message
-    # data_bytes = bytes(protobuf_data)
-    # p = preset()
-    # p.ParseFromString(data_bytes)
-    # print(p)
+    data_bytes = bytes(protobuf_data)
+    #print(data_bytes)
+    p = preset_pb2.preset()
+    p.FromString(data_bytes)
+    print(p)
 
 def calculate_crc8(data):
     crc_table = [
@@ -103,106 +106,273 @@ def extract_nibblized_protobuf_message(sysex_data):
         nibble2 = sysex_data[i+1]
         nibblized_protobuf_message.append(nibble1 + nibble2)
 
+    print(f'nibblized data length: {len(nibblized_protobuf_message)}')
+
     return nibblized_protobuf_message
+
 
 def create_default_preset():
     # Create a new preset message
-    preset = preset_pb2.preset()
+    p = preset_pb2.preset()
 
-    # Set all required parameters to 0
-    preset.main.wave = 0
-    preset.main.lvl = 0
-    preset.main.sub = 0
-    preset.main.noise = 0
-    preset.main.osc_lfo = 0
-    preset.main.cut = 0
-    preset.main.reson = 0
-    preset.main.cut_eg = 0
-    preset.main.a1 = 0
-    preset.main.d1 = 0
-    preset.main.s1 = 0
-    preset.main.r1 = 0
-    preset.main.lfo_rate = 0
-    preset.main.lfo_wave = 0
-    preset.main.pw = 0
-    preset.main.glide = 0
-    preset.main.dtune = 0
-    preset.main.chord = 0
-    preset.main.osc_eg = 0
-    preset.main.hpf = 0
-    preset.main.track = 0
-    preset.main.cut_lfo = 0
-    preset.main.a2 = 0
-    preset.main.d2 = 0
-    preset.main.s2 = 0
-    preset.main.r2 = 0
-    preset.main.lfo_delay = 0
-    preset.main.lfo_fade = 0
+    # Parameter Values
+    p.main.wave = 0.0
+    p.main.lvl = 0.0
+    p.main.sub = 0.0
+    p.main.noise = 0.0
+    p.main.osc_lfo = 0.0
+    p.main.cut = 0.0
+    p.main.reson = 0.0
+    p.main.cut_eg = 0.0
+    p.main.a1 = 0.0
+    p.main.d1 = 0.0
+    p.main.s1 = 0.0
+    p.main.r1 = 0.0
+    p.main.lfo_rate = 0.0
+    p.main.lfo_wave = 0.0
+    p.main.pw = 0.0
+    p.main.glide = 0.0
+    p.main.dtune = 0.0
+    p.main.chord = 0.0
+    p.main.osc_eg = 0.0
+    p.main.hpf = 0.0
+    p.main.track = 0.0
+    p.main.cut_lfo = 0.0
+    p.main.a2 = 0.0
+    p.main.d2 = 0.0
+    p.main.s2 = 0.0
+    p.main.r2 = 0.0
+    p.main.lfo_delay = 0.0
+    p.main.lfo_fade = 0.0
 
-    preset.reverb.size = 0
-    preset.reverb.decay = 0
-    preset.reverb.filter = 0
-    preset.reverb.mix = 0
+    p.reverb.size = 0.0
+    p.reverb.decay = 0.0
+    p.reverb.filter = 0.0
+    p.reverb.mix = 0.0
 
-    # preset.lfo_2.lfo_1_speed_mode = preset_pb2.lfo_speed_mode.slow
-    # preset.lfo_2.lfo_1_sync_mode = preset_pb2.lfo_sync_mode.free
-    # preset.lfo_2.lfo_2_speed_mode = preset_pb2.lfo_speed_mode.slow
-    # preset.lfo_2.lfo_2_sync_mode = preset_pb2.lfo_sync_mode.free
+    # Modulation Matrix Values
+    #
 
-    preset.legato = False
+    # LFO2
+    p.lfo_2.wave = 0.0
+    p.lfo_2.lvl = 0.0
+    p.lfo_2.sub = 0.0
+    p.lfo_2.noise = 0.0
+    p.lfo_2.osc_lfo = 0.0
+    p.lfo_2.cut = 0.0
+    p.lfo_2.reson = 0.0
+    p.lfo_2.cut_eg = 0.0
+    p.lfo_2.a1 = 0.0
+    p.lfo_2.d1 = 0.0
+    p.lfo_2.s1 = 0.0
+    p.lfo_2.r1 = 0.0
+    p.lfo_2.lfo_rate = 0.0
+    p.lfo_2.lfo_wave = 0.0
+    p.lfo_2.pw = 0.0
+    p.lfo_2.glide = 0.0
+    p.lfo_2.dtune = 0.0
+    p.lfo_2.chord = 0.0
+    p.lfo_2.osc_eg = 0.0
+    p.lfo_2.hpf = 0.0
+    p.lfo_2.track = 0.0
+    p.lfo_2.cut_lfo = 0.0
+    p.lfo_2.a2 = 0.0
+    p.lfo_2.d2 = 0.0
+    p.lfo_2.s2 = 0.0
+    p.lfo_2.r2 = 0.0
+    p.lfo_2.lfo_delay = 0.0
+    p.lfo_2.lfo_fade = 0.0
+    
+    # Mod Wheel
+    p.mod_w.wave = 0.0
+    p.mod_w.lvl = 0.0
+    p.mod_w.sub = 0.0
+    p.mod_w.noise = 0.0
+    p.mod_w.osc_lfo = 0.0
+    p.mod_w.cut = 0.0
+    p.mod_w.reson = 0.0
+    p.mod_w.cut_eg = 0.0
+    p.mod_w.a1 = 0.0
+    p.mod_w.d1 = 0.0
+    p.mod_w.s1 = 0.0
+    p.mod_w.r1 = 0.0
+    p.mod_w.lfo_rate = 0.0
+    p.mod_w.lfo_wave = 0.0
+    p.mod_w.pw = 0.0
+    p.mod_w.glide = 0.0
+    p.mod_w.dtune = 0.0
+    p.mod_w.chord = 0.0
+    p.mod_w.osc_eg = 0.0
+    p.mod_w.hpf = 0.0
+    p.mod_w.track = 0.0
+    p.mod_w.cut_lfo = 0.0
+    p.mod_w.a2 = 0.0
+    p.mod_w.d2 = 0.0
+    p.mod_w.s2 = 0.0
+    p.mod_w.r2 = 0.0
+    p.mod_w.lfo_delay = 0.0
+    p.mod_w.lfo_fade = 0.0
 
-    preset.voice_mode = preset_pb2.voice_mode.poly
+    # Velocity
+    p.velo.wave = 0.0
+    p.velo.lvl = 0.0
+    p.velo.sub = 0.0
+    p.velo.noise = 0.0
+    p.velo.osc_lfo = 0.0
+    p.velo.cut = 0.0
+    p.velo.reson = 0.0
+    p.velo.cut_eg = 0.0
+    p.velo.a1 = 0.0
+    p.velo.d1 = 0.0
+    p.velo.s1 = 0.0
+    p.velo.r1 = 0.0
+    p.velo.lfo_rate = 0.0
+    p.velo.lfo_wave = 0.0
+    p.velo.pw = 0.0
+    p.velo.glide = 0.0
+    p.velo.dtune = 0.0
+    p.velo.chord = 0.0
+    p.velo.osc_eg = 0.0
+    p.velo.hpf = 0.0
+    p.velo.track = 0.0
+    p.velo.cut_lfo = 0.0
+    p.velo.a2 = 0.0
+    p.velo.d2 = 0.0
+    p.velo.s2 = 0.0
+    p.velo.r2 = 0.0
+    p.velo.lfo_delay = 0.0
+    p.velo.lfo_fade = 0.0
+    
+    # Aftertouch
+    p.after.wave = 0.0
+    p.after.lvl = 0.0
+    p.after.sub = 0.0
+    p.after.noise = 0.0
+    p.after.osc_lfo = 0.0
+    p.after.cut = 0.0
+    p.after.reson = 0.0
+    p.after.cut_eg = 0.0
+    p.after.a1 = 0.0
+    p.after.d1 = 0.0
+    p.after.s1 = 0.0
+    p.after.r1 = 0.0
+    p.after.lfo_rate = 0.0
+    p.after.lfo_wave = 0.0
+    p.after.pw = 0.0
+    p.after.glide = 0.0
+    p.after.dtune = 0.0
+    p.after.chord = 0.0
+    p.after.osc_eg = 0.0
+    p.after.hpf = 0.0
+    p.after.track = 0.0
+    p.after.cut_lfo = 0.0
+    p.after.a2 = 0.0
+    p.after.d2 = 0.0
+    p.after.s2 = 0.0
+    p.after.r2 = 0.0
+    p.after.lfo_delay = 0.0
+    p.after.lfo_fade = 0.0
+    
+    # LFO Settings
+    p.lfo_settings.lfo_1_speed_mode = preset_pb2.lfo_speed_mode.slow
+    p.lfo_settings.lfo_1_sync_mode = preset_pb2.lfo_sync_mode.free
+    p.lfo_settings.lfo_2_speed_mode = preset_pb2.lfo_speed_mode.slow
+    p.lfo_settings.lfo_2_sync_mode = preset_pb2.lfo_sync_mode.free
 
-    preset.chord_1.root = 0
-    preset.chord_1.semi_1 = 0
-    preset.chord_1.semi_2 = 0
-    preset.chord_1.semi_3 = 0
-    preset.chord_1.semi_4 = 0
-    preset.chord_1.semi_5 = 0
+    # Legato
+    p.legato = False
 
-    preset.extra_lfo_2.lfo_1_rate = 0
-    preset.extra_lfo_2.lfo_1_wave = 0
-    preset.extra_lfo_2.lfo_1_delay = 0
-    preset.extra_lfo_2.lfo_1_fade = 0
-    preset.extra_lfo_2.lfo_2_rate = 0
-    preset.extra_lfo_2.lfo_2_wave = 0
-    preset.extra_lfo_2.lfo_2_delay = 0
-    preset.extra_lfo_2.lfo_2_fade = 0
+    # Voice Mode
+    p.voice_mode = preset_pb2.voice_mode.poly
 
-    preset.extra_mod_w.lfo_2_rate = 0
-    preset.extra_mod_w.lfo_2_wave = 0
-    preset.extra_mod_w.lfo_2_delay = 0
-    preset.extra_mod_w.lfo_2_fade = 0
+    # Chord Settings
+    p.chord_1.root = 0
+    p.chord_1.semi_1 = 0
+    p.chord_1.semi_2 = 0
+    p.chord_1.semi_3 = 0
+    p.chord_1.semi_4 = 0
+    p.chord_1.semi_5 = 0
 
-    preset.extra_velo.lfo_2_rate = 0
-    preset.extra_velo.lfo_2_wave = 0
-    preset.extra_velo.lfo_2_delay = 0
-    preset.extra_velo.lfo_2_fade = 0
+    p.chord_2.root = 0
+    p.chord_2.semi_1 = 0
+    p.chord_2.semi_2 = 0
+    p.chord_2.semi_3 = 0
+    p.chord_2.semi_4 = 0
+    p.chord_2.semi_5 = 0
 
-    preset.extra_after.lfo_2_rate = 0
-    preset.extra_after.lfo_2_wave = 0
-    preset.extra_after.lfo_2_delay = 0
-    preset.extra_after.lfo_2_fade = 0
+    p.chord_3.root = 0
+    p.chord_3.semi_1 = 0
+    p.chord_3.semi_2 = 0
+    p.chord_3.semi_3 = 0
+    p.chord_3.semi_4 = 0
+    p.chord_3.semi_5 = 0
 
-    preset.amp_level = 0
+    p.chord_4.root = 0
+    p.chord_4.semi_1 = 0
+    p.chord_4.semi_2 = 0
+    p.chord_4.semi_3 = 0
+    p.chord_4.semi_4 = 0
+    p.chord_4.semi_5 = 0
 
-    preset.lfo_2.CopyFrom(preset_pb2.basic_inputs())
-    preset.mod_w.CopyFrom(preset_pb2.extra_modulation_parameters())
-    preset.velo.CopyFrom(preset_pb2.extra_modulation_parameters())
-    preset.after.CopyFrom(preset_pb2.extra_modulation_parameters())
-    preset.lfo_settings.lfo_1_speed_mode = preset_pb2.lfo_speed_mode.slow
-    preset.lfo_settings.lfo_1_sync_mode = preset_pb2.lfo_sync_mode.free
-    preset.lfo_settings.lfo_2_speed_mode = preset_pb2.lfo_speed_mode.slow
-    preset.lfo_settings.lfo_2_sync_mode = preset_pb2.lfo_sync_mode.free
-    preset.chord_2.CopyFrom(preset_pb2.chord_info())
-    preset.chord_3.CopyFrom(preset_pb2.chord_info())
-    preset.chord_4.CopyFrom(preset_pb2.chord_info())
-    preset.chord_5.CopyFrom(preset_pb2.chord_info())
-    preset.chord_6.CopyFrom(preset_pb2.chord_info())
-    preset.chord_7.CopyFrom(preset_pb2.chord_info())
-    preset.chord_8.CopyFrom(preset_pb2.chord_info())
+    p.chord_5.root = 0
+    p.chord_5.semi_1 = 0
+    p.chord_5.semi_2 = 0
+    p.chord_5.semi_3 = 0
+    p.chord_5.semi_4 = 0
+    p.chord_5.semi_5 = 0
 
-    return preset
+    p.chord_6.root = 0
+    p.chord_6.semi_1 = 0
+    p.chord_6.semi_2 = 0
+    p.chord_6.semi_3 = 0
+    p.chord_6.semi_4 = 0
+    p.chord_6.semi_5 = 0
+
+    p.chord_7.root = 0
+    p.chord_7.semi_1 = 0
+    p.chord_7.semi_2 = 0
+    p.chord_7.semi_3 = 0
+    p.chord_7.semi_4 = 0
+    p.chord_7.semi_5 = 0
+
+    p.chord_8.root = 0
+    p.chord_8.semi_1 = 0
+    p.chord_8.semi_2 = 0
+    p.chord_8.semi_3 = 0
+    p.chord_8.semi_4 = 0
+    p.chord_8.semi_5 = 0
+    
+    # Extra LFO Parameters
+    p.extra_lfo_2.lfo_1_rate = 0.0
+    p.extra_lfo_2.lfo_1_wave = 0.0
+    p.extra_lfo_2.lfo_1_delay = 0.0
+    p.extra_lfo_2.lfo_1_fade = 0.0
+    
+    p.extra_lfo_2.lfo_2_rate = 0.0
+    p.extra_lfo_2.lfo_2_wave = 0.0
+    p.extra_lfo_2.lfo_2_delay = 0.0
+    p.extra_lfo_2.lfo_2_fade = 0.0
+    
+    # "Extra Modulation Parameters",
+    # ie: Modulation Matrix Targeting LFO2
+    p.extra_mod_w.lfo_2_rate = 0.0
+    p.extra_mod_w.lfo_2_wave = 0.0
+    p.extra_mod_w.lfo_2_delay = 0.0
+    p.extra_mod_w.lfo_2_fade = 0.0
+
+    p.extra_velo.lfo_2_rate = 0.0
+    p.extra_velo.lfo_2_wave = 0.0
+    p.extra_velo.lfo_2_delay = 0.0
+    p.extra_velo.lfo_2_fade = 0.0
+
+    p.extra_after.lfo_2_rate = 0.0
+    p.extra_after.lfo_2_wave = 0.0
+    p.extra_after.lfo_2_delay = 0.0
+    p.extra_after.lfo_2_fade = 0.0
+
+    p.amp_level = 0.0
+
+    return p
 
 # # Create a default preset
 # default_preset = create_default_preset()
