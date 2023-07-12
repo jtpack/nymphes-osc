@@ -1,5 +1,6 @@
 import preset_pb2
 
+
 def preset_from_sysex_data(sysex_data):
     """
     Extracts Nymphes preset data from the supplied MIDI sysex data.
@@ -13,7 +14,9 @@ def preset_from_sysex_data(sysex_data):
     if not (sysex_data[0] == 0x00 and sysex_data[1] == 0x21 and sysex_data[2] == 0x35):
         print('This sysex message does not have the id for Dreadbox')
         return None
-    
+
+    # Skip byte 3 - device ID, as it is not used
+
     # Check for Nymphes model id
     if sysex_data[4] != 0x06:
         print('This sysex message is Dreadbox, but the device id is not Nymphes')
@@ -39,30 +42,25 @@ def preset_from_sysex_data(sysex_data):
     preset_number = sysex_data[8]
     print(f'Bank {bank}, preset {preset_number}')
 
-    # Get CRC
+    # Get CRC - we are ignoring it for now
+    # TODO: Implement CRC check
     crc_lsb_nibble = sysex_data[9]
     crc_msb_nibble = sysex_data[10]
 
-    # Get "nibblized" protobuf sysex data
-    sysex_data = sysex_data[11:11+2096]
-    
-    # hex_data = [hex(val) for val in nibblized_protobuf_sysex_data]
-    # print(hex_data)
+    # The rest of the sysex message is the protobuf preset data,
+    # but it is "nibblized" - transmitted as pairs of 7-bit bytes
+    # because midi sysex cannot support 8-bit bytes.
+    nibblized_protobuf_data = sysex_data[11:]
 
-    print(f'sysex data length: {len(sysex_data)}')
+    # Convert to actual 8-bit bytes of data
+    protobuf_data = convert_sysex_nibble_data_to_bytes(nibblized_protobuf_data)
 
-    # Get just the protobuf data
-    protobuf_data = extract_nibblized_protobuf_message(sysex_data)
-
-    #print(f'F8 index: {protobuf_data.index(0xF8)}')
-
-
-    # Attempt to interpret the sysex message
-    data_bytes = bytes(protobuf_data)
-    #print(data_bytes)
+    # Convert to a preset
     p = preset_pb2.preset()
-    p.FromString(data_bytes)
-    print(p)
+    p.FromString(bytes(protobuf_data))
+
+    return p
+
 
 def calculate_crc8(data):
     crc_table = [
@@ -93,20 +91,19 @@ def calculate_crc8(data):
         crc = crc_table[crc ^ byte]
     return crc
 
-def extract_nibblized_protobuf_message(sysex_data):
-    # Extract the nibblized protobuf message from the SysEx message
-    # The exact logic for extracting the nibblized protobuf message depends on your specific MIDI protocol and format
-    # You'll need to implement the extraction logic here based on the provided information about the SysEx format
-    # This function should return the nibblized protobuf message as a string
+def convert_sysex_nibble_data_to_bytes(nibble_data):
     nibblized_protobuf_message = []
 
     # Extract the nibblized protobuf message
-    for i in range(0, len(sysex_data), 2):
-        nibble1 = sysex_data[i]
-        nibble2 = sysex_data[i+1]
-        nibblized_protobuf_message.append(nibble1 + nibble2)
+    for i in range(0, len(nibble_data), 2):
 
-    print(f'nibblized data length: {len(nibblized_protobuf_message)}')
+        # The first byte in the nibble is the LSB
+        nibble1 = nibble_data[i]
+
+        # The second byte in the nibble is the MSB
+        nibble2 = nibble_data[i + 1] * 16
+
+        nibblized_protobuf_message.append(nibble1 + nibble2)
 
     return nibblized_protobuf_message
 
@@ -373,13 +370,3 @@ def create_default_preset():
     p.amp_level = 0.0
 
     return p
-
-# # Create a default preset
-# default_preset = create_default_preset()
-
-# # Print the default preset
-# print(default_preset)
-
-# # Convert to bytes
-# p_bytes = default_preset.SerializeToString()
-# print(p_bytes)

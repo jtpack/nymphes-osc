@@ -196,11 +196,8 @@ class NymphesMidiOscBridge:
                 self.mod_source.on_midi_message(midi_message)
                 self.legato.on_midi_message(midi_message)
         elif midi_message.type == 'sysex':
-            print('nymphes_osc: sysex message received')
-            print(midi_message)
-            preset_from_sysex_data(list(midi_message.data))
-
-
+            p = preset_from_sysex_data(list(midi_message.data))
+            print(p.main.wave)
         else:
             # A non-control change message was received.
             print(f'nymphes_osc: Another Message Received: {midi_message}')
