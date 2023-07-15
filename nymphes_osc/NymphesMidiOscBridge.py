@@ -197,7 +197,6 @@ class NymphesMidiOscBridge:
                 self.legato.on_midi_message(midi_message)
         elif midi_message.type == 'sysex':
             p = preset_from_sysex_data(list(midi_message.data))
-            print(p.main.wave)
         else:
             # A non-control change message was received.
             print(f'nymphes_osc: Another Message Received: {midi_message}')
@@ -275,3 +274,11 @@ class NymphesMidiOscBridge:
     @property
     def legato(self):
         return self._legato_parameter
+
+    def compare_preset_and_cc_values(self, sysex_preset):
+        """
+
+        """
+
+
+

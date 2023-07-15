@@ -1,4 +1,6 @@
 import preset_pb2
+from pathlib import Path
+from google.protobuf import text_format
 
 
 def preset_from_sysex_data(sysex_data):
@@ -56,8 +58,9 @@ def preset_from_sysex_data(sysex_data):
     protobuf_data = convert_sysex_nibble_data_to_bytes(nibblized_protobuf_data)
 
     # Convert to a preset
-    p = preset_pb2.preset()
-    p.FromString(bytes(protobuf_data))
+    p = preset_pb2.preset.FromString(bytes(protobuf_data))
+
+    print(p)
 
     return p
 
@@ -107,6 +110,11 @@ def convert_sysex_nibble_data_to_bytes(nibble_data):
 
     return nibblized_protobuf_message
 
+def print_nymphes_preset(nymphes_preset):
+    """
+    Print all parameters of a Nymphes sysex preset
+    """
+    pass
 
 def create_default_preset():
     # Create a new preset message
@@ -370,3 +378,57 @@ def create_default_preset():
     p.amp_level = 0.0
 
     return p
+
+def store_preset_to_file(preset_object, file_path):
+    """
+    Store a human-readable string representation of preset_object to a text
+    file at file_path
+    preset_object should be a valid preset_pb2.preset object
+    file_path is a Path or a string
+    """
+
+    # Validate preset_object
+    if not isinstance(preset_object, preset_pb2.preset):
+        raise Exception(f'Invalid preset_object ({preset_object})')
+
+    # Validate file_path
+    #
+    if isinstance(file_path, str):
+        # Create a Path from file_path
+        file_path = Path(file_path)
+
+    if not isinstance(file_path, Path):
+        raise Exception(f'file_path is neither a Path nor a string ({file_path})')
+
+    # Write to the file
+    with open(file_path, 'w') as file:
+        file.write(str(preset_object))
+
+def read_preset_from_file(file_path):
+    """
+    Reads human-readable string representation of a preset from a text file
+    at file_path, and returns a preset_pb2.preset object.
+    file_path is a Path or a string
+    """
+
+    # Validate file_path
+    #
+    if isinstance(file_path, str):
+        # Create a Path from file_path
+        file_path = Path(file_path)
+
+    if not isinstance(file_path, Path):
+        raise Exception(f'file_path is neither a Path nor a string ({file_path})')
+
+    # Read from the file
+    with open(file_path, 'r') as file:
+        file_text = file.read()
+
+    # Convert into a preset object
+    p = preset_pb2.preset()
+    text_format.Parse(file_text, p)
+    return p
+
+
+
+
