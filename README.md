@@ -3,7 +3,7 @@
 ### A software object that provides OSC control of the Dreadbox Nymphes MIDI synthesizer
 
 
-# OSC and MIDI Message Reference
+# Nymphes Control OSC and MIDI Messages
 
 ## Oscillator
 - ### Oscillator Wave Shape
@@ -412,3 +412,122 @@
         - 1: Wheel
         - 2: Velocity
         - 3: Aftertouch
+
+- ### Mod Wheel
+  - CC# 1
+  - /mod_wheel
+
+- ### Velocity
+  - Description: The velocity value of the most recently-received MIDI note-on message. nymphes_osc will output this message whenever a new note_on message is received. We only send this OSC message. We do not respond to incoming messages of this type.
+  - /velocity
+
+- ### Aftertouch
+  - Description: The most recently-received channel aftertouch MIDI message (on the channel we are using for Nymphes)
+  - /aftertouch
+
+# Other OSC Messages
+
+## Commands that nymphes_osc will accept
+
+- ## Preset Handling
+  - ### Load a preset file
+    - Address: /load_preset_file
+    - Arguments:
+      - 0
+        - Type: String
+        - Description: Filepath of preset to load
+      
+  - ### Save current data to new preset file
+    - Address: /save_preset_file
+    - Arguments:
+      - 0
+        - Type: String
+        - Description: Filepath to save preset file to
+
+- ## OSC Host Handling
+  - ### Add an OSC Host or Change Port for Existing Host
+    - Address: /add_osc_host
+    - Arguments:
+      - 0
+        - Type: String
+        - Description: Host name or IP address of host
+      - 1
+        - Type: Int
+        - Description: Port that host will be listening on
+
+  - ### Remove OSC Host
+    - Address: /remove_osc_host
+    - Arguments:
+      - 0
+        - Type: String
+        - Description: Host name or IP address of host
+
+## Status messages that nymphes_osc can send
+
+- ## Preset Handling
+  - ### Preset file loaded
+    - Description: A preset file has just been loaded
+    - Address: /loaded_preset_file
+    - Arguments:
+      - 0
+        - Type: String
+        - Description: Filepath of loaded preset
+      
+  - ### Preset file saved
+    - Description: A preset file has just been saved
+    - Address: /saved_preset_file
+    - Arguments:
+      - 0
+        - Type: String
+        - Description: Filepath of saved preset
+
+- ## OSC Host Handling
+  - ### OSC Host Added
+    - Description: An OSC host has just been added
+    - Address: /added_osc_host
+    - Arguments:
+      - 0
+        - Type: String
+        - Description: Host name or IP address of host
+      - 1
+        - Type: Int
+        - Description: Port that host is listening on
+
+  - ### OSC Host Removed
+    - Description: An OSC host has just been removed
+    - Address: /removed_osc_host
+    - Arguments:
+      - 0
+        - Type: String
+        - Description: Host name or IP address of host
+
+- ## Miscellaneous Status Messages
+  - ### General Status Update Message
+    - Description: A general status message. These messages mirror those output on the console of the machine running the nymphes_osc application
+    - Address: /status_string
+    - Arguments:
+      - 0
+        - Type: String
+
+  - ### Nymphes Connected
+    - Description: The Nymphes synthesizer has just been connected
+    - Address: /nymphes_connected
+    - Arguments: None
+
+  - ### Nymphes Disconnected
+    - Description: The Nymphes synthesizer has just been disconnected
+    - Address: /nymphes_disconnected
+    - Arguments: None
+  
+  - ### Nymphes Program Changed
+    - Description: A program change message has just be received from the Nymphes
+    - Address: /nymphes_program_changed
+    - Arguments:
+      - 0
+        - Type: Int
+        - Description:
+          - The MIDI Program Change value
+      - 1
+        - Type: String
+        - Description:
+          - A human-readable description of the program - ie: Bank A, User Preset 1

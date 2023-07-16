@@ -20,6 +20,7 @@ from .ControlParameter_PlayMode import ControlParameter_PlayMode
 from .ControlParameter_ModSource import ControlParameter_ModSource
 from .ControlParameter_Legato import ControlParameter_Legato
 from .sysex_handling import preset_from_sysex_data
+from pythonosc.osc_message_builder import OscMessageBuilder
 
 
 class NymphesMidiOscBridge:
@@ -53,20 +54,28 @@ class NymphesMidiOscBridge:
         # Flag indicating whether we are connected to a Nymphes synthesizer
         self.nymphes_connected = False
 
+        # Current Nymphes MIDI program number
+        self.nymphes_midi_program_num = None
+
         # Create the control parameter objects
-        self._oscillator_params = OscillatorParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-        self._pitch_params = PitchParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-        self._amp_params = AmpParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-        self._mix_params = MixParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-        self._lpf_params = LpfParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-        self._hpf_params = HpfParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-        self._pitch_filter_env_params = PitchFilterEnvParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-        self._lfo1_params = Lfo1Params(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-        self._lfo2_params = Lfo2Params(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-        self._reverb_params = ReverbParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-        self._play_mode_parameter = ControlParameter_PlayMode(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-        self._mod_source_parameter = ControlParameter_ModSource(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
-        self._legato_parameter = ControlParameter_Legato(self._dispatcher, self._osc_send_function, self._nymphes_midi_send_function)
+        self._oscillator_params = OscillatorParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+        self._pitch_params = PitchParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+        self._amp_params = AmpParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+        self._mix_params = MixParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+        self._lpf_params = LpfParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+        self._hpf_params = HpfParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+        self._pitch_filter_env_params = PitchFilterEnvParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+        self._lfo1_params = Lfo1Params(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+        self._lfo2_params = Lfo2Params(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+        self._reverb_params = ReverbParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+        self._play_mode_parameter = ControlParameter_PlayMode(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+        self._mod_source_parameter = ControlParameter_ModSource(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+        self._legato_parameter = ControlParameter_Legato(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+
+        # Register for OSC messages not associated with our control parameter objects
+        self._dispatcher.map('/mod_wheel', self._on_mod_wheel_osc_message)
+        self._dispatcher.map('/aftertouch', self._on_aftertouch_osc_message)
+
 
     def start_osc_server(self):
         self._osc_server = BlockingOSCUDPServer((self.in_host, self.in_port), self._dispatcher)
@@ -197,24 +206,26 @@ class NymphesMidiOscBridge:
                 self.legato.on_midi_message(midi_message)
         elif midi_message.type == 'sysex':
             p = preset_from_sysex_data(list(midi_message.data))
-            print(p)
+            #print(p)
+        elif midi_message.type == 'program_change':
+            if midi_message.channel == self.midi_channel:
+                self._on_program_change_midi_message(midi_message.program)
         else:
             # A non-control change message was received.
             print(f'nymphes_osc: Another Message Received: {midi_message}')
 
-    def _nymphes_midi_send_function(self, midi_cc, value):
+    def _nymphes_midi_cc_send_function(self, midi_cc, value):
         """
-        A function used to send a MIDI message to the Nymphes synthesizer.
+        A function used to send a MIDI CC message to the Nymphes synthesizer.
         Every member object in NymphesOscController is given a reference
-        to this function so it can send MIDI messages.
+        to this function so it can send MIDI CC messages.
         """
-        if self._nymphes_midi_port is not None:
-            if not self._nymphes_midi_port.closed:
-                # Construct the MIDI message
-                msg = mido.Message('control_change', channel=self.midi_channel, control=midi_cc, value=value)
+        if self.nymphes_connected:
+            # Construct the MIDI message
+            msg = mido.Message('control_change', channel=self.midi_channel, control=midi_cc, value=value)
 
-                # Send the message
-                self._nymphes_midi_port.send(msg)
+            # Send the message
+            self._nymphes_midi_port.send(msg)
 
     def _osc_send_function(self, osc_message):
         """
@@ -223,6 +234,51 @@ class NymphesMidiOscBridge:
         to this function so it can send OSC messages.
         """
         self._osc_client.send(osc_message)
+
+    def _on_mod_wheel_osc_message(self, address, *args):
+        """
+        An OSC host has just sent a message to send a MIDI Mod Wheel message.
+        """
+        value = args[0]
+
+        if self.nymphes_connected:
+            # Construct the MIDI message
+            msg = mido.Message('control_change',
+                               channel=self.midi_channel,
+                               control=1,
+                               value=value)
+
+            # Send the message
+            self._nymphes_midi_port.send(msg)
+
+    def _on_aftertouch_osc_message(self, address, *args):
+        """
+        An OSC host has just sent a message to send a MIDI channel aftertouch message
+        """
+        value = args[0]
+
+        if self.nymphes_connected:
+            # Construct the MIDI message
+            msg = mido.Message('aftertouch',
+                               channel=self.midi_channel,
+                               value=value)
+
+            # Send the message
+            self._nymphes_midi_port.send(msg)
+
+    def _on_program_change_midi_message(self, program_num):
+        """
+        A MIDI program change message has just been received from the Nymphes,
+        indicating that a preset has just been loaded.
+        """
+        self.nymphes_midi_program_num = program_num
+
+        # Inform OSC hosts
+        msg = OscMessageBuilder(address='/nymphes_program_changed')
+        msg.add_arg(int(self.nymphes_midi_program_num))
+        msg = msg.build()
+        self._osc_send_function(msg)
+
 
     @property
     def oscillator(self):
@@ -275,11 +331,3 @@ class NymphesMidiOscBridge:
     @property
     def legato(self):
         return self._legato_parameter
-
-    def compare_preset_and_cc_values(self, sysex_preset):
-        """
-
-        """
-
-
-
