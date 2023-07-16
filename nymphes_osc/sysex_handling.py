@@ -46,21 +46,30 @@ def preset_from_sysex_data(sysex_data):
 
     # Get CRC - we are ignoring it for now
     # TODO: Implement CRC check
-    crc_lsb_nibble = sysex_data[9]
-    crc_msb_nibble = sysex_data[10]
+    sysex_crc_ls_nibble = sysex_data[9]
+    sysex_crc_ms_nibble = sysex_data[10]
 
     # The rest of the sysex message is the protobuf preset data,
     # but it is "nibblized" - transmitted as pairs of 7-bit bytes
     # because midi sysex cannot support 8-bit bytes.
     nibblized_protobuf_data = sysex_data[11:]
 
-    # Convert to actual 8-bit bytes of data
+    # Un-nibblize the data - combine the nibbles to convert back to 8-bit bytes
     protobuf_data = convert_sysex_nibble_data_to_bytes(nibblized_protobuf_data)
 
-    # Convert to a preset
-    p = preset_pb2.preset.FromString(bytes(protobuf_data))
+    # Calculate the CRC
+    crc = calculate_crc8(protobuf_data)
 
-    print(p)
+    # Convert to nibbles
+    protobuf_crc_ms_nibble, protobuf_crc_ls_nibble = nibbles_from_byte(crc)
+
+    # Make sure the CRC is correct
+    if protobuf_crc_ms_nibble != sysex_crc_ms_nibble or protobuf_crc_ls_nibble != sysex_crc_ls_nibble:
+        raise Exception(
+            f'CRC failed: (sysex {sysex_crc_ms_nibble}:{sysex_crc_ls_nibble}, calculated from protobuf: {protobuf_crc_ms_nibble}, {protobuf_crc_ls_nibble})')
+
+    # Convert protobuf data to a preset
+    p = preset_pb2.preset.FromString(bytes(protobuf_data))
 
     return p
 
@@ -103,12 +112,30 @@ def convert_sysex_nibble_data_to_bytes(nibble_data):
         # The first byte in the nibble is the LSB
         nibble1 = nibble_data[i]
 
-        # The second byte in the nibble is the MSB
-        nibble2 = nibble_data[i + 1] * 16
+        # The second byte in the nibble is the MSB,
+        # so shift it by 4 bits
+        nibble2 = nibble_data[i + 1] << 4
 
         nibblized_protobuf_message.append(nibble1 + nibble2)
 
     return nibblized_protobuf_message
+
+def nibbles_from_byte(byte):
+    """
+    Breaks byte into its most significant 4 bits and least significant 4 bits,
+    and returns their values as a tuple of integers.
+    Index 0 is the most significant value
+    Index 1 is the least significant
+    """
+    # Shift the entire value right by 4 bits
+    ms = byte >> 4
+
+    # Use a bitwise AND to mask out the most significant
+    # 4 bits, so only the least significant remain
+    ls = byte & 0b00001111
+
+    return ms, ls
+
 
 def print_nymphes_preset(nymphes_preset):
     """
