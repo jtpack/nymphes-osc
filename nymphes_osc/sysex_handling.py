@@ -55,13 +55,13 @@ def preset_from_sysex_data(sysex_data):
     nibblized_protobuf_data = sysex_data[11:]
 
     # Un-nibblize the data - combine the nibbles to convert back to 8-bit bytes
-    protobuf_data = convert_sysex_nibble_data_to_bytes(nibblized_protobuf_data)
+    protobuf_data = bytes_from_nibbles(nibblized_protobuf_data)
 
     # Calculate the CRC
     crc = calculate_crc8(protobuf_data)
 
     # Convert to nibbles
-    protobuf_crc_ms_nibble, protobuf_crc_ls_nibble = nibbles_from_byte(crc)
+    protobuf_crc_ms_nibble, protobuf_crc_ls_nibble = nibble_from_byte(crc)
 
     # Make sure the CRC is correct
     if protobuf_crc_ms_nibble != sysex_crc_ms_nibble or protobuf_crc_ls_nibble != sysex_crc_ls_nibble:
@@ -103,24 +103,33 @@ def calculate_crc8(data):
         crc = crc_table[crc ^ byte]
     return crc
 
-def convert_sysex_nibble_data_to_bytes(nibble_data):
-    nibblized_protobuf_message = []
+def bytes_from_nibbles(nibbles):
+    bytes_list = []
 
-    # Extract the nibblized protobuf message
-    for i in range(0, len(nibble_data), 2):
+    for i in range(0, len(nibbles), 2):
 
         # The first byte in the nibble is the LSB
-        nibble1 = nibble_data[i]
+        nibble1 = nibbles[i]
 
         # The second byte in the nibble is the MSB,
         # so shift it by 4 bits
-        nibble2 = nibble_data[i + 1] << 4
+        nibble2 = nibbles[i + 1] << 4
 
-        nibblized_protobuf_message.append(nibble1 + nibble2)
+        bytes_list.append(nibble1 + nibble2)
 
-    return nibblized_protobuf_message
+    return bytes_list
 
-def nibbles_from_byte(byte):
+def nibbles_from_bytes(bytes):
+    sysex_data = []
+
+    for byte in bytes:
+        ms, ls = nibble_from_byte(byte)
+        sysex_data.append(ls)
+        sysex_data.append(ms)
+
+    return sysex_data
+
+def nibble_from_byte(byte):
     """
     Breaks byte into its most significant 4 bits and least significant 4 bits,
     and returns their values as a tuple of integers.
@@ -406,7 +415,7 @@ def create_default_preset():
 
     return p
 
-def store_preset_to_file(preset_object, file_path):
+def save_preset_file(preset_object, file_path):
     """
     Store a human-readable string representation of preset_object to a text
     file at file_path
@@ -431,7 +440,7 @@ def store_preset_to_file(preset_object, file_path):
     with open(file_path, 'w') as file:
         file.write(str(preset_object))
 
-def read_preset_from_file(file_path):
+def load_preset_file(file_path):
     """
     Reads human-readable string representation of a preset from a text file
     at file_path, and returns a preset_pb2.preset object.
@@ -456,6 +465,79 @@ def read_preset_from_file(file_path):
     text_format.Parse(file_text, p)
     return p
 
+def sysex_data_from_preset_object(preset_object, preset_import_type, user_or_factory, bank_number, preset_number):
+    """
+    Generates sysex data that can be used to create a sysex MIDI message to send a preset
+    to the Nymphes.
+    Arguments:
+        preset_object: a preset_pb2.preset object
+        preset_import_type (int) 0: non persistent preset load, 1: persistent preset import
+        user_or_factory (int) 0: user preset, 1: factory preset
+        bank_number (int): 1 to 7
+        preset_number (int): 1 to 7
 
+    Returns: A list of bytes
+    """
+    # Validate arguments
+    #
+    if preset_object is None or not isinstance(preset_object, preset_pb2.preset):
+        raise Exception(f'preset_object invalid: {preset_object}')
 
+    if preset_import_type not in [0, 1]:
+        raise Exception(f'preset_import_type invalid (should be 0 or 1): {preset_import_type}')
 
+    if user_or_factory not in [0, 1]:
+        raise Exception(f'user_or_factory invalid (should be 0 or 1): {user_or_factory}')
+
+    if bank_number not in [1, 2, 3, 4, 5, 6, 7]:
+        raise Exception(f'bank_number invalid (should be 1-7): {bank_number}')
+    
+    if preset_number not in [1, 2, 3, 4, 5, 6, 7]:
+        raise Exception(f'preset_number invalid (should be 1-7): {preset_number}')
+
+    sysex_data = []
+
+    # Dreadbox ID
+    sysex_data.extend([0x00, 0x21, 0x35])
+
+    # Device ID (unused)
+    sysex_data.append(0x00)
+
+    # Model ID - Nymphes
+    sysex_data.append(0x06)
+
+    # Preset Import Type
+    # 0: Non-persistent preset load
+    # 1: Persistent preset import
+    sysex_data.append(preset_import_type)
+
+    # User or Factory Preset Type
+    # 0: User
+    # 1: Factory
+    sysex_data.append(user_or_factory)
+
+    # Bank Number
+    sysex_data.append(bank_number)
+
+    # Preset Number
+    sysex_data.append(preset_number)
+
+    # Serialize the preset_object to a list of protobuf bytes
+    protobuf_data = list(preset_object.SerializeToString())
+
+    # CRC
+    #
+    # Calculate CRC from the protobuf bytes
+    crc_byte = calculate_crc8(protobuf_data)
+
+    # Get nibble from the CRC
+    crc_ms, crc_ls = nibble_from_byte(crc_byte)
+
+    sysex_data.extend([crc_ls, crc_ms])
+
+    # Get nibblized version of protobuf_data
+    protobuf_nibbles = nibbles_from_bytes(protobuf_data)
+
+    sysex_data.extend(protobuf_nibbles)
+
+    return sysex_data

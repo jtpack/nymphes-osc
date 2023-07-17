@@ -19,7 +19,7 @@ from .ReverbParams import ReverbParams
 from .ControlParameter_PlayMode import ControlParameter_PlayMode
 from .ControlParameter_ModSource import ControlParameter_ModSource
 from .ControlParameter_Legato import ControlParameter_Legato
-from .sysex_handling import preset_from_sysex_data
+from nymphes_osc import sysex_handling
 from pythonosc.osc_message_builder import OscMessageBuilder
 
 
@@ -75,6 +75,8 @@ class NymphesMidiOscBridge:
         # Register for OSC messages not associated with our control parameter objects
         self._dispatcher.map('/mod_wheel', self._on_mod_wheel_osc_message)
         self._dispatcher.map('/aftertouch', self._on_aftertouch_osc_message)
+        self._dispatcher.map('/load_preset_file', self._on_load_preset_file_osc_message)
+        self._dispatcher.map('/save_preset_file', self._on_load_preset_file_osc_message)
 
 
     def start_osc_server(self):
@@ -205,7 +207,7 @@ class NymphesMidiOscBridge:
                 self.mod_source.on_midi_message(midi_message)
                 self.legato.on_midi_message(midi_message)
         elif midi_message.type == 'sysex':
-            p = preset_from_sysex_data(list(midi_message.data))
+            p = sysex_handling.preset_from_sysex_data(list(midi_message.data))
             #print(p)
         elif midi_message.type == 'program_change':
             if midi_message.channel == self.midi_channel:
@@ -278,6 +280,45 @@ class NymphesMidiOscBridge:
         msg.add_arg(int(self.nymphes_midi_program_num))
         msg = msg.build()
         self._osc_send_function(msg)
+
+    def _on_load_preset_file_osc_message(self, address, *args):
+        """
+        An OSC message has just been received to load a preset file
+        """
+        # Argument 0 is the filepath
+        filepath = str(args[0])
+
+        print(f'_on_load_preset_file_osc_message(): {filepath}')
+
+        # The following is just a test
+        #
+        # Load the preset file into a preset object
+        preset_object = sysex_handling.load_preset_file(filepath)
+
+        # Create MIDI sysex data from it
+        sysex_data = sysex_handling.sysex_data_from_preset_object(preset_object=preset_object,
+                                                                  preset_import_type=0,
+                                                                  user_or_factory=0,
+                                                                  bank_number=5,
+                                                                  preset_number=2)
+
+        # Create a sysex message
+        msg = mido.Message('sysex', data=sysex_data)
+
+        if self.nymphes_connected:
+            self._nymphes_midi_port.send(msg)
+            print('Sent sysex message')
+
+
+        
+    def _on_save_preset_file_osc_message(self, address, *args):
+        """
+        An OSC message has just been received to save a preset file
+        """
+        # Argument 0 is the filepath
+        filepath = str(args[0])
+
+        print(f'_on_save_preset_file_osc_message(): {filepath}')
 
 
     @property

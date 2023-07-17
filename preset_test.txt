@@ -1,0 +1,257 @@
+main {
+  wave: 0
+  lvl: 1
+  sub: 0
+  noise: 0
+  osc_lfo: 0
+  cut: 1
+  reson: 0
+  cut_eg: 0
+  a1: 0
+  d1: 0
+  s1: 0
+  r1: 0
+  lfo_rate: 0
+  lfo_wave: 0
+  pw: 0
+  glide: 0.5
+  dtune: 0
+  chord: 0
+  osc_eg: 0
+  hpf: 0
+  track: 0
+  cut_lfo: 0
+  a2: 0
+  d2: 0
+  s2: 1.0
+  r2: 0
+  lfo_delay: 0
+  lfo_fade: 0
+}
+reverb {
+  size: 0
+  decay: 0
+  filter: 0
+  mix: 0
+}
+lfo_2 {
+  wave: 0
+  lvl: 0
+  sub: 0
+  noise: 0
+  osc_lfo: 0
+  cut: 0
+  reson: 0
+  cut_eg: 0
+  a1: 0
+  d1: 0
+  s1: 0
+  r1: 0
+  lfo_rate: 0
+  lfo_wave: 0
+  pw: 0
+  glide: 0
+  dtune: 0
+  chord: 0
+  osc_eg: 0
+  hpf: 0
+  track: 0
+  cut_lfo: 0
+  a2: 0
+  d2: 0
+  s2: 0
+  r2: 0
+  lfo_delay: 0
+  lfo_fade: 0
+}
+mod_w {
+  wave: 0
+  lvl: 0
+  sub: 0
+  noise: 0
+  osc_lfo: 0
+  cut: 0
+  reson: 0
+  cut_eg: 0
+  a1: 0
+  d1: 0
+  s1: 0
+  r1: 0
+  lfo_rate: 0
+  lfo_wave: 0
+  pw: 0
+  glide: 0
+  dtune: 0
+  chord: 0
+  osc_eg: 0
+  hpf: 0
+  track: 0
+  cut_lfo: 0
+  a2: 0
+  d2: 0
+  s2: 0
+  r2: 0
+  lfo_delay: 0
+  lfo_fade: 0
+}
+velo {
+  wave: 0
+  lvl: 0
+  sub: 0
+  noise: 0
+  osc_lfo: 0
+  cut: 0
+  reson: 0
+  cut_eg: 0
+  a1: 0
+  d1: 0
+  s1: 0
+  r1: 0
+  lfo_rate: 0
+  lfo_wave: 0
+  pw: 0
+  glide: 0
+  dtune: 0
+  chord: 0
+  osc_eg: 0
+  hpf: 0
+  track: 0
+  cut_lfo: 0
+  a2: 0
+  d2: 0
+  s2: 0
+  r2: 0
+  lfo_delay: 0
+  lfo_fade: 0
+}
+after {
+  wave: 0
+  lvl: 0
+  sub: 0
+  noise: 0
+  osc_lfo: 0
+  cut: 0
+  reson: 0
+  cut_eg: 0
+  a1: 0
+  d1: 0
+  s1: 0
+  r1: 0
+  lfo_rate: 0
+  lfo_wave: 0
+  pw: 0
+  glide: 0
+  dtune: 0
+  chord: 0
+  osc_eg: 0
+  hpf: 0
+  track: 0
+  cut_lfo: 0
+  a2: 0
+  d2: 0
+  s2: 0
+  r2: 0
+  lfo_delay: 0
+  lfo_fade: 0
+}
+lfo_settings {
+  lfo_1_speed_mode: slow
+  lfo_1_sync_mode: free
+  lfo_2_speed_mode: slow
+  lfo_2_sync_mode: free
+}
+legato: false
+voice_mode: poly
+chord_1 {
+  root: 0
+  semi_1: 0
+  semi_2: 0
+  semi_3: 0
+  semi_4: 0
+  semi_5: 0
+}
+chord_2 {
+  root: 0
+  semi_1: 0
+  semi_2: 0
+  semi_3: 0
+  semi_4: 0
+  semi_5: 0
+}
+chord_3 {
+  root: 0
+  semi_1: 0
+  semi_2: 0
+  semi_3: 0
+  semi_4: 0
+  semi_5: 0
+}
+chord_4 {
+  root: 0
+  semi_1: 0
+  semi_2: 0
+  semi_3: 0
+  semi_4: 0
+  semi_5: 0
+}
+chord_5 {
+  root: 0
+  semi_1: 0
+  semi_2: 0
+  semi_3: 0
+  semi_4: 0
+  semi_5: 0
+}
+chord_6 {
+  root: 0
+  semi_1: 0
+  semi_2: 0
+  semi_3: 0
+  semi_4: 0
+  semi_5: 0
+}
+chord_7 {
+  root: 0
+  semi_1: 0
+  semi_2: 0
+  semi_3: 0
+  semi_4: 0
+  semi_5: 0
+}
+chord_8 {
+  root: 0
+  semi_1: 0
+  semi_2: 0
+  semi_3: 0
+  semi_4: 0
+  semi_5: 0
+}
+extra_lfo_2 {
+  lfo_1_rate: 0
+  lfo_1_wave: 0
+  lfo_1_delay: 0
+  lfo_1_fade: 0
+  lfo_2_rate: 0
+  lfo_2_wave: 0
+  lfo_2_delay: 0
+  lfo_2_fade: 0
+}
+extra_mod_w {
+  lfo_2_rate: 0
+  lfo_2_wave: 0
+  lfo_2_delay: 0
+  lfo_2_fade: 0
+}
+extra_velo {
+  lfo_2_rate: 0
+  lfo_2_wave: 0
+  lfo_2_delay: 0
+  lfo_2_fade: 0
+}
+extra_after {
+  lfo_2_rate: 0
+  lfo_2_wave: 0
+  lfo_2_delay: 0
+  lfo_2_fade: 0
+}
+amp_level: 1
