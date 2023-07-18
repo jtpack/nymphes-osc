@@ -308,8 +308,6 @@ class NymphesMidiOscBridge:
         if self.nymphes_connected:
             self._nymphes_midi_port.send(msg)
             print('Sent sysex message')
-
-
         
     def _on_save_preset_file_osc_message(self, address, *args):
         """
