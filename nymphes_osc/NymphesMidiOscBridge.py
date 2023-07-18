@@ -84,11 +84,11 @@ class NymphesMidiOscBridge:
         self._osc_server_thread = threading.Thread(target=self._osc_server.serve_forever)
         self._osc_server_thread.start()
         
-        print('nymphes_osc: Started OSC Server')
-        print(f'nymphes_osc: in_host: {self.in_host}')
-        print(f'nymphes_osc: in_port: {self.in_port}')
-        print(f'nymphes_osc: out_host: {self.out_host}')
-        print(f'nymphes_osc: out_port: {self.out_port}')
+        self.send_status(f'Started OSC Server at {self.in_host}:{self.in_port}')
+        # self.send_status(f'in_host: {self.in_host}')
+        # self.send_status(f'in_port: {self.in_port}')
+        # self.send_status(f'out_host: {self.out_host}')
+        # self.send_status(f'out_port: {self.out_port}')
 
     def stop_osc_server(self):
         if self._osc_server is not None:
@@ -97,7 +97,7 @@ class NymphesMidiOscBridge:
             self._osc_server = None
             self._osc_server_thread.join()
             self._osc_server_thread = None
-            print('nymphes_osc: Stopped OSC Server')
+            self.send_status('Stopped OSC Server')
 
     def connect_nymphes_midi_port(self, port_name):
         """
@@ -109,8 +109,8 @@ class NymphesMidiOscBridge:
         # Update connection flag
         self.nymphes_connected = True
 
-        print(f'nymphes_osc: nymphes_osc: Opened MIDI Port {self._nymphes_midi_port.name}')
-        print(f'nymphes_osc: nymphes_osc: Using MIDI channel {self.midi_channel + 1}')
+        self.send_status(f'Opened MIDI Port {self._nymphes_midi_port.name}')
+        #self.send_status(f'Using MIDI channel {self.midi_channel + 1}')
 
     def disconnect_nymphes_midi_port(self):
         """
@@ -119,7 +119,7 @@ class NymphesMidiOscBridge:
         if self.nymphes_connected:
             # Close the port
             self._nymphes_midi_port.close()
-            print(f'nymphes_osc: nymphes_osc: Closed MIDI Port {self._nymphes_midi_port.name}')
+            self.send_status(f'Closed MIDI Port {self._nymphes_midi_port.name}')
 
             # We no longer need this port
             self._nymphes_midi_port = None
@@ -168,7 +168,7 @@ class NymphesMidiOscBridge:
                     self.disconnect_nymphes_midi_port()
             
         except InvalidPortError:
-            print('nymphes_osc: ignoring error while attempting to get port names (rtmidi.InvalidPortError)')
+            self.send_status('ignoring error while attempting to get port names (rtmidi.InvalidPortError)')
                     
             
     def update(self):
@@ -187,7 +187,7 @@ class NymphesMidiOscBridge:
         """
         To be called by the nymphes midi port when new midi messages are received
         """
-        # print(f'nymphes_osc: nymphes_osc: {midi_message}')
+        # print(f'{midi_message}')
         # Only pass on control change midi messages
         if midi_message.is_cc():
 
@@ -214,7 +214,7 @@ class NymphesMidiOscBridge:
                 self._on_program_change_midi_message(midi_message.program)
         else:
             # A non-control change message was received.
-            print(f'nymphes_osc: Another Message Received: {midi_message}')
+            self.send_status(f'Another Message Received: {midi_message}')
 
     def _nymphes_midi_cc_send_function(self, midi_cc, value):
         """
@@ -279,7 +279,7 @@ class NymphesMidiOscBridge:
         msg = OscMessageBuilder(address='/nymphes_program_changed')
         msg.add_arg(int(self.nymphes_midi_program_num))
         msg = msg.build()
-        self._osc_send_function(msg)
+        #self._osc_send_function(msg)
 
     def _on_load_preset_file_osc_message(self, address, *args):
         """
@@ -288,13 +288,25 @@ class NymphesMidiOscBridge:
         # Argument 0 is the filepath
         filepath = str(args[0])
 
-        print(f'_on_load_preset_file_osc_message(): {filepath}')
+        self.load_preset_file(filepath)
+        
+    def _on_save_preset_file_osc_message(self, address, *args):
+        """
+        An OSC message has just been received to save a preset file
+        """
+        # Argument 0 is the filepath
+        filepath = str(args[0])
 
+        self.save_preset_file(filepath)
+
+    def load_preset_file(self, filepath):
         # The following is just a test
         #
         # Load the preset file into a preset object
         preset_object = sysex_handling.load_preset_file(filepath)
 
+        # Send it via sysex to the Nymphes
+        #
         # Create MIDI sysex data from it
         sysex_data = sysex_handling.sysex_data_from_preset_object(preset_object=preset_object,
                                                                   preset_import_type=0,
@@ -307,17 +319,46 @@ class NymphesMidiOscBridge:
 
         if self.nymphes_connected:
             self._nymphes_midi_port.send(msg)
-            print('Sent sysex message')
-        
-    def _on_save_preset_file_osc_message(self, address, *args):
-        """
-        An OSC message has just been received to save a preset file
-        """
-        # Argument 0 is the filepath
-        filepath = str(args[0])
+            self.send_status('Sent sysex message')
 
-        print(f'_on_save_preset_file_osc_message(): {filepath}')
+        # TODO: Update our OSC hosts
 
+        # Status update
+        self.send_status(f'loaded preset file: {filepath}')
+
+        # Send out OSC notification
+        msg = OscMessageBuilder(address='/loaded_preset_file')
+        msg.add_arg(str(filepath))
+        msg = msg.build()
+        self._osc_send_function(msg)
+
+    def save_preset_file(self, filepath):
+        # TODO: Actually save the current preset
+
+        # Status update
+        self.send_status(f'saved preset file: {filepath}')
+
+        # Send out OSC notification
+        msg = OscMessageBuilder(address='/saved_preset_file')
+        msg.add_arg(str(filepath))
+        msg = msg.build()
+        self._osc_send_function(msg)
+
+    def send_status(self, message):
+        """
+        Sends a string status message to OSC hosts, using the address /status.
+        Also prints the message to the console.
+        """
+        # Make sure message is a string
+        if not isinstance(message, str):
+            raise Exception(f'message is not a string ({message})')
+
+        msg = OscMessageBuilder(address='/status')
+        msg.add_arg(str(message))
+        msg = msg.build()
+        self._osc_send_function(msg)
+
+        print(message)
 
     @property
     def oscillator(self):

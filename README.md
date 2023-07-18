@@ -504,7 +504,7 @@
 - ## Miscellaneous Status Messages
   - ### General Status Update Message
     - Description: A general status message. These messages mirror those output on the console of the machine running the nymphes_osc application
-    - Address: /status_string
+    - Address: /status
     - Arguments:
       - 0
         - Type: String
@@ -531,3 +531,5 @@
         - Type: String
         - Description:
           - A human-readable description of the program - ie: Bank A, User Preset 1
+
+    # TODO: set_midi_channel
