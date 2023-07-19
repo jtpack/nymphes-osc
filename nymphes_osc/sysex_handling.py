@@ -1,6 +1,7 @@
 import preset_pb2
 from pathlib import Path
 from google.protobuf import text_format
+import netifaces
 
 
 def preset_from_sysex_data(sysex_data):
@@ -541,3 +542,28 @@ def sysex_data_from_preset_object(preset_object, preset_import_type, user_or_fac
     sysex_data.extend(protobuf_nibbles)
 
     return sysex_data
+
+def get_local_ip_address():
+    """
+    Return the IP address of the local machine as a string.
+    If no address other than 127.0.0.1 can be found, then
+    return 127.0.0.1
+    """
+    # Get a list of all network interfaces
+    interfaces = netifaces.interfaces()
+
+    for iface in interfaces:
+        try:
+            # Get the addresses associated with the interface
+            addresses = netifaces.ifaddresses(iface)
+
+            # Extract the IPv4 addresses (if available)
+            if netifaces.AF_INET in addresses:
+                ip_info = addresses[netifaces.AF_INET][0]
+                ip_address = ip_info['addr']
+                if ip_address != '127.0.0.1':
+                    return ip_address
+        except ValueError:
+            pass
+
+    return '127.0.0.1'  # Default to localhost if no suitable IP address is found

@@ -45,8 +45,9 @@ class NymphesMidiOscBridge:
 
         self._dispatcher = Dispatcher()
 
-        # The OSC Client, which sends out OSC messages
-        self._osc_client = SimpleUDPClient(osc_out_host, osc_out_port)
+        # OSC hosts, which we send OSC messages to.
+        # key: hostname or ip address as a string. value: an osc client for the host
+        self._osc_hosts = {}
 
         # MIDI IO port for messages to and from Nymphes
         self._nymphes_midi_port = None
@@ -77,7 +78,8 @@ class NymphesMidiOscBridge:
         self._dispatcher.map('/aftertouch', self._on_aftertouch_osc_message)
         self._dispatcher.map('/load_preset_file', self._on_load_preset_file_osc_message)
         self._dispatcher.map('/save_preset_file', self._on_load_preset_file_osc_message)
-
+        self._dispatcher.map('/add_host', self._on_add_host_osc_message)
+        self._dispatcher.map('/remove_host', self._on_remove_host_osc_message)
 
     def start_osc_server(self):
         self._osc_server = BlockingOSCUDPServer((self.in_host, self.in_port), self._dispatcher)
@@ -235,7 +237,77 @@ class NymphesMidiOscBridge:
         Every member object in NymphesOscController is given a reference
         to this function so it can send OSC messages.
         """
-        self._osc_client.send(osc_message)
+        for osc_client in self._osc_hosts.values():
+            osc_client.send(osc_message)
+
+    def _on_add_host_osc_message(self, address, *args):
+        """
+        A host has requested to be added
+        """
+        print(f'_on_add_host_osc_message')
+        self.add_osc_host(host_name=str(args[0]), port=int(args[1]))
+
+    def _on_remove_host_osc_message(self, address, *args):
+        """
+        A host has requested to be removed
+        """
+        self.remove_osc_host(host_name=args[0])
+
+    def add_osc_host(self, host_name, port):
+        """
+        Add a new host to send OSC messages to.
+        """
+        # Validate host_name
+        if not isinstance(host_name, str):
+            raise Exception(f'host_name should be a string: {host_name}')
+
+        # Validate port
+        try:
+            port_int = int(port)
+        except ValueError:
+            raise Exception(f'port could not be interpreted as an integer: {port}')
+
+        # Check whether there's already an entry for this host
+        if host_name in self._osc_hosts.keys():
+            self.send_status(f'host already added ({host_name})')
+            return
+
+        # Create an osc client for this host
+        client = SimpleUDPClient(host_name, port_int)
+
+        # Store the client
+        self._osc_hosts[host_name] = client
+
+        # Send status update
+        self.send_status(f'Added host: {host_name} on port {port_int}')
+
+        # Send osc notification to the new host
+        msg = OscMessageBuilder(address='/host_added')
+        msg = msg.build()
+        client.send(msg)
+
+    def remove_osc_host(self, host_name):
+        """
+        Remove a host that was listening for OSC messages.
+        """
+        # Validate host_name
+        if not isinstance(host_name, str):
+            raise Exception(f'host_name should be a string: {host_name}')
+
+        # Remove the host, if it was previously added
+        if host_name in self._osc_hosts.keys():
+            # Remove the host from the collection but get a reference to
+            # it so we can send it one last message confirming that it has
+            # been removed
+            osc_client = self._osc_hosts.pop(host_name)
+
+            # Send osc notification to the host that has been removed
+            msg = OscMessageBuilder(address='/host_removed')
+            msg = msg.build()
+            osc_client.send(msg)
+
+            # Status update
+            self.send_status(f'Removed host: {host_name}')
 
     def _on_mod_wheel_osc_message(self, address, *args):
         """

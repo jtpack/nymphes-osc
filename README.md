@@ -446,7 +446,7 @@
 
 - ## OSC Host Handling
   - ### Add an OSC Host or Change Port for Existing Host
-    - Address: /add_osc_host
+    - Address: /add_host
     - Arguments:
       - 0
         - Type: String
@@ -456,7 +456,7 @@
         - Description: Port that host will be listening on
 
   - ### Remove OSC Host
-    - Address: /remove_osc_host
+    - Address: /remove_host
     - Arguments:
       - 0
         - Type: String
@@ -484,7 +484,7 @@
 - ## OSC Host Handling
   - ### OSC Host Added
     - Description: An OSC host has just been added
-    - Address: /added_osc_host
+    - Address: /host_added
     - Arguments:
       - 0
         - Type: String
@@ -495,7 +495,7 @@
 
   - ### OSC Host Removed
     - Description: An OSC host has just been removed
-    - Address: /removed_osc_host
+    - Address: /host_removed
     - Arguments:
       - 0
         - Type: String
