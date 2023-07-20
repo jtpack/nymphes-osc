@@ -244,7 +244,6 @@ class NymphesMidiOscBridge:
         """
         A host has requested to be added
         """
-        print(f'_on_add_host_osc_message')
         self.add_osc_host(host_name=str(args[0]), port=int(args[1]))
 
     def _on_remove_host_osc_message(self, address, *args):
