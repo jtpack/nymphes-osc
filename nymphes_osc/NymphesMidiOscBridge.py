@@ -111,7 +111,7 @@ class NymphesMidiOscBridge:
         # Update connection flag
         self.nymphes_connected = True
 
-        self.send_status(f'Opened MIDI Port {self._nymphes_midi_port.name}')
+        self.send_status(f'Connected to Nymphes (MIDI Port: {self._nymphes_midi_port.name})')
         #self.send_status(f'Using MIDI channel {self.midi_channel + 1}')
 
     def disconnect_nymphes_midi_port(self):
