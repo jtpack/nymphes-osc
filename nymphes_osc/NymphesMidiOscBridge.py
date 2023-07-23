@@ -58,6 +58,12 @@ class NymphesMidiOscBridge:
         # Current Nymphes MIDI program number
         self.nymphes_midi_program_num = None
 
+        # MIDI IO port for keyboard controller
+        self._midi_controller_port = None
+
+        # Flag indicating whether we are connected to a keyboard controller
+        self.midi_controller_connected = False
+
         # Create the control parameter objects
         self._oscillator_params = OscillatorParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
         self._pitch_params = PitchParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
@@ -80,6 +86,8 @@ class NymphesMidiOscBridge:
         self._dispatcher.map('/save_preset_file', self._on_load_preset_file_osc_message)
         self._dispatcher.map('/add_host', self._on_add_host_osc_message)
         self._dispatcher.map('/remove_host', self._on_remove_host_osc_message)
+        self._dispatcher.map('/connect_midi_controller', self._on_connect_midi_controller_osc_message)
+        self._dispatcher.map('/disconnect_midi_controller', self._on_disconnect_midi_controller_osc_message)
 
     def start_osc_server(self):
         self._osc_server = BlockingOSCUDPServer((self.in_host, self.in_port), self._dispatcher)
@@ -430,6 +438,36 @@ class NymphesMidiOscBridge:
         self._osc_send_function(msg)
 
         print(message)
+
+    def connect_keyboard_midi_port(self, midi_port_name):
+        """
+        Connect to the device with the name midi_port_name.
+        Pass messages through to the Nymphes, while also processing
+        some of them, or at least taking note of their values:
+        - Velocity
+        - Channel Aftertouch
+        """
+
+        # Disconnect from the current controller, if necessary
+        #
+        if self.midi_controller_connected:
+            # We are already connected to a keyboard controller.
+            if midi_port_name != self._midi_controller_port.name:
+                # Disconnect from the current controller
+                self._midi_controller_port.close()
+                self._midi_controller_port = None
+                self.midi_controller_connected = False
+            else:
+                # We are already connected to the keyboard controller
+                return
+
+        # Connect to the new port
+        self._midi_controller_port = mido.open_ioport(midi_port_name)
+        self.midi_controller_connected = True
+
+        self.send_status(f'Connected midi controller {midi_port_name}')
+
+
 
     @property
     def oscillator(self):
