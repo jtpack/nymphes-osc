@@ -8,63 +8,43 @@ def preset_from_sysex_data(sysex_data):
     """
     Extracts Nymphes preset data from the supplied MIDI sysex data.
     sysex_data should be a list of bytes.
+    Returns a tuple: (preset_object, preset_import_type, user_or_factory, bank_number, preset_number)
     """
 
-    # Make sure this really is a Dreadbox Nymphes sysex message
-    #
-
-    # Check for Dreadbox manufacturer id
+    # Verify Dreadbox Manufacturer ID
     if not (sysex_data[0] == 0x00 and sysex_data[1] == 0x21 and sysex_data[2] == 0x35):
         print('This sysex message does not have the id for Dreadbox')
         return None
 
     # Skip byte 3 - device ID, as it is not used
 
-    # Check for Nymphes model id
+    # Verify Nymphes Model ID
     if sysex_data[4] != 0x06:
         print('This sysex message is Dreadbox, but the device id is not Nymphes')
         return None
-    
-    print('This is a Dreadbox Nymphes sysex message')
 
-    # Check the type of preset import
-    if sysex_data[5] == 0x00:
-        print('Non-persistent preset load')
-    elif sysex_data[5] == 0x01:
-        print('Persistent preset import')
-
-    # Determine user or factory preset type
-    if sysex_data[6] == 0x00:
-        print('User preset')
-    elif sysex_data[6] == 0x01:
-        print('Factory preset')
-    
-    # Get bank and preset
-    # Note: Both start at 1, not zero
-    bank = sysex_data[7]
-    preset_number = sysex_data[8]
-    print(f'Bank {bank}, preset {preset_number}')
-
-    # Get CRC - we are ignoring it for now
-    # TODO: Implement CRC check
-    sysex_crc_ls_nibble = sysex_data[9]
-    sysex_crc_ms_nibble = sysex_data[10]
-
-    # The rest of the sysex message is the protobuf preset data,
-    # but it is "nibblized" - transmitted as pairs of 7-bit bytes
-    # because midi sysex cannot support 8-bit bytes.
+    # Preset data starts at byte 11. It has been encoded using the protobuf
+    # system, and then "nibblized" - each protobuf byte has been transmitted
+    # as a pair of bytes because midi sysex only uses 7 bits of each byte.
     nibblized_protobuf_data = sysex_data[11:]
 
     # Un-nibblize the data - combine the nibbles to convert back to 8-bit bytes
     protobuf_data = bytes_from_nibbles(nibblized_protobuf_data)
 
-    # Calculate the CRC
+    # Verify CRC to make sure the data has not been corrupted
+    #
+
+    # Get the CRC check value, which also was nibblized
+    sysex_crc_ls_nibble = sysex_data[9]
+    sysex_crc_ms_nibble = sysex_data[10]
+
+    # Calculate CRC from protobuf data
     crc = calculate_crc8(protobuf_data)
 
     # Convert to nibbles
     protobuf_crc_ms_nibble, protobuf_crc_ls_nibble = nibble_from_byte(crc)
 
-    # Make sure the CRC is correct
+    # Make sure the calculated CRC matches the transmitted CRC value
     if protobuf_crc_ms_nibble != sysex_crc_ms_nibble or protobuf_crc_ls_nibble != sysex_crc_ls_nibble:
         raise Exception(
             f'CRC failed: (sysex {sysex_crc_ms_nibble}:{sysex_crc_ls_nibble}, calculated from protobuf: {protobuf_crc_ms_nibble}, {protobuf_crc_ls_nibble})')
@@ -72,7 +52,18 @@ def preset_from_sysex_data(sysex_data):
     # Convert protobuf data to a preset
     p = preset_pb2.preset.FromString(bytes(protobuf_data))
 
-    return p
+    # Get the preset import type
+    preset_import_type = sysex_data[5]
+
+    # Determine user or factory preset type
+    user_or_factory = sysex_data[6]
+
+    # Get bank number and preset number
+    # Note: Both start at 1, not zero
+    bank_number = sysex_data[7]
+    preset_number = sysex_data[8]
+
+    return p, preset_import_type, user_or_factory, bank_number, preset_number
 
 
 def calculate_crc8(data):

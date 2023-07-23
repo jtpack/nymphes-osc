@@ -58,6 +58,13 @@ class NymphesMidiOscBridge:
         # Current Nymphes MIDI program number
         self.nymphes_midi_program_num = None
 
+        # Preset objects for the presets in the Nymphes' memory.
+        # If a full sysex dump has been done then we will have an
+        # entry for every preset. If not, then we'll only have
+        # entries for the presets that have been recalled since
+        # connecting to the Nymphes
+        self.nymphes_presets = {i: None for i in range(1, 50)}
+
         # MIDI IO port for keyboard controller
         self._midi_controller_port = None
 
@@ -86,8 +93,8 @@ class NymphesMidiOscBridge:
         self._dispatcher.map('/save_preset_file', self._on_load_preset_file_osc_message)
         self._dispatcher.map('/add_host', self._on_add_host_osc_message)
         self._dispatcher.map('/remove_host', self._on_remove_host_osc_message)
-        self._dispatcher.map('/connect_midi_controller', self._on_connect_midi_controller_osc_message)
-        self._dispatcher.map('/disconnect_midi_controller', self._on_disconnect_midi_controller_osc_message)
+        #self._dispatcher.map('/connect_midi_controller', self._on_connect_midi_controller_osc_message)
+        #self._dispatcher.map('/disconnect_midi_controller', self._on_disconnect_midi_controller_osc_message)
 
     def start_osc_server(self):
         self._osc_server = BlockingOSCUDPServer((self.in_host, self.in_port), self._dispatcher)
@@ -216,15 +223,45 @@ class NymphesMidiOscBridge:
                 self.play_mode.on_midi_message(midi_message)
                 self.mod_source.on_midi_message(midi_message)
                 self.legato.on_midi_message(midi_message)
+
         elif midi_message.type == 'sysex':
-            p = sysex_handling.preset_from_sysex_data(list(midi_message.data))
-            #print(p)
+            self._on_nymphes_sysex_message(midi_message)
+
         elif midi_message.type == 'program_change':
             if midi_message.channel == self.midi_channel:
                 self._on_program_change_midi_message(midi_message.program)
         else:
             # A non-control change message was received.
             self.send_status(f'Another Message Received: {midi_message}')
+
+    def _on_nymphes_sysex_message(self, midi_message):
+        """
+        A sysex message has been received from the Nymphes.
+        Try to interpret it as a preset.
+        """
+        p, preset_import_type, user_or_factory, bank_number, preset_number = \
+            sysex_handling.preset_from_sysex_data(midi_message.data)
+
+        if preset_import_type == 0x00:
+            persistent = False
+            print('Non-persistent preset load')
+        elif preset_import_type == 0x01:
+            persistent = True
+            print('Persistent preset import')
+
+        if user_or_factory == 0x00:
+            user = True
+            print('User preset')
+        elif user_or_factory == 0x01:
+            user = False
+            print('Factory preset')
+
+        print(f'Bank {bank_number}, preset {preset_number}')
+
+        # Calculate program number
+
+
+
 
     def _nymphes_midi_cc_send_function(self, midi_cc, value):
         """
