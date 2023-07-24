@@ -63,7 +63,7 @@ class NymphesMidiOscBridge:
         # entry for every preset. If not, then we'll only have
         # entries for the presets that have been recalled since
         # connecting to the Nymphes
-        self.nymphes_presets = {i: None for i in range(1, 50)}
+        self.nymphes_presets = {i: None for i in range(0, 49)}
 
         # MIDI IO port for keyboard controller
         self._midi_controller_port = None
@@ -242,23 +242,27 @@ class NymphesMidiOscBridge:
         p, preset_import_type, user_or_factory, bank_number, preset_number = \
             sysex_handling.preset_from_sysex_data(midi_message.data)
 
-        if preset_import_type == 0x00:
-            persistent = False
-            print('Non-persistent preset load')
-        elif preset_import_type == 0x01:
-            persistent = True
-            print('Persistent preset import')
+        persistent_import = True if preset_import_type == 0x01 else False
+        user_preset = True if user_or_factory == 0x00 else False
 
-        if user_or_factory == 0x00:
-            user = True
-            print('User preset')
-        elif user_or_factory == 0x01:
-            user = False
-            print('Factory preset')
+        # Calculate the index to use when storing this preset data
 
-        print(f'Bank {bank_number}, preset {preset_number}')
+        status_message = 'Nymphes Preset Received:'
+        if persistent_import:
+            status_message += ' Persistent Import'
+        else:
+            status_message += ' Non-Persistent Import'
 
-        # Calculate program number
+        status_message += f', Bank {bank_number}'
+
+        if user_preset:
+            status_message += f', User Preset {preset_number}'
+        else:
+            status_message += f', Factory Preset {preset_number}'
+
+        self.send_status(status_message)
+
+
 
 
 
@@ -395,7 +399,9 @@ class NymphesMidiOscBridge:
         msg = OscMessageBuilder(address='/nymphes_program_changed')
         msg.add_arg(int(self.nymphes_midi_program_num))
         msg = msg.build()
-        #self._osc_send_function(msg)
+        self._osc_send_function(msg)
+
+        self.send_status(f'Program Change {program_num}')
 
     def _on_load_preset_file_osc_message(self, address, *args):
         """
