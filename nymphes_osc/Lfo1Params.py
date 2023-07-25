@@ -78,3 +78,9 @@ class Lfo1Params:
         self.fade.on_midi_message(midi_message)
         self.type.on_midi_message(midi_message)
         self.key_sync.on_midi_message(midi_message)
+
+    def set_mod_source(self, mod_source):
+        self.rate.set_mod_source(mod_source)
+        self.wave.set_mod_source(mod_source)
+        self.delay.set_mod_source(mod_source)
+        self.fade.set_mod_source(mod_source)

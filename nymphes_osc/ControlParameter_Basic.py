@@ -129,6 +129,11 @@ class ControlParameter_Basic:
         self._midi_send_function(midi_cc=self.midi_cc, value=self.value)
 
     def on_midi_message(self, midi_message):
+        """
+        If midi_message is intended for us, then handle it and then
+        return True.
+        If not, then return False.
+        """
         # Determine whether this midi message matches our MIDI CC
         #
 
@@ -164,3 +169,8 @@ class ControlParameter_Basic:
 
             # Send it
             self._osc_send_function(msg)
+
+            return True
+
+        else:
+            return False

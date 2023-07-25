@@ -66,3 +66,10 @@ class LpfParams:
         self.tracking.on_midi_message(midi_message)
         self.env_depth.on_midi_message(midi_message)
         self.lfo1.on_midi_message(midi_message)
+
+    def set_mod_source(self, mod_source):
+        self.cutoff.set_mod_source(mod_source)
+        self.resonance.set_mod_source(mod_source)
+        self.tracking.set_mod_source(mod_source)
+        self.env_depth.set_mod_source(mod_source)
+        self.lfo1.set_mod_source(mod_source)

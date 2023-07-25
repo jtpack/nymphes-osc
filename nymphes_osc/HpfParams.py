@@ -18,3 +18,6 @@ class HpfParams:
 
     def on_midi_message(self, midi_message):
         self.cutoff.on_midi_message(midi_message)
+
+    def set_mod_source(self, mod_source):
+        self.cutoff.set_mod_source(mod_source)

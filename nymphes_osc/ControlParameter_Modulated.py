@@ -121,6 +121,12 @@ class ControlParameter_Modulated:
         self._midi_send_function(midi_cc=self.value_cc, value=self.value)
 
     def on_midi_message(self, midi_message):
+        """
+        If midi_message is intended for us, then handle it and then
+        return True.
+        If not, then return False.
+        """
+
         # Determine whether this midi message matches our MIDI CC
         #
         if midi_message.control == self.value_cc:
@@ -157,8 +163,13 @@ class ControlParameter_Modulated:
             # Send it
             self._osc_send_function(msg)
 
-        # Also pass the message to our modulation amounts object
-        self.mod.on_midi_message(midi_message)
+            return True
+        else:
+            # Pass the message to our modulation amounts object
+            return self.mod.on_midi_message(midi_message)
+
+    def set_mod_source(self, mod_source):
+        self.mod.set_mod_source(mod_source)
 
     class ModulationAmounts:
         def __init__(self, dispatcher, osc_send_function, midi_send_function, base_osc_address, mod_cc):
@@ -332,12 +343,7 @@ class ControlParameter_Modulated:
         def on_midi_message(self, midi_message):
             # Determine whether we should respond to the MIDI message
 
-            if midi_message.control == 30:
-                # This is the modulation source control message.
-                # Store the new source.
-                self._curr_mod_source = midi_message.value
-
-            elif midi_message.control == self.mod_cc:
+            if midi_message.control == self.mod_cc:
                 # This is our modulation MIDI CC, so the message
                 # sets a modulation amount
 
@@ -389,3 +395,12 @@ class ControlParameter_Modulated:
 
                     # Send it
                     self._osc_send_function(msg)
+
+                return True
+
+            else:
+                # midi_message did not match our cc number
+                return False
+
+        def set_mod_source(self, mod_source):
+            self._curr_mod_source = mod_source

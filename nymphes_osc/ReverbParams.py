@@ -54,3 +54,9 @@ class ReverbParams:
         self.decay.on_midi_message(midi_message)
         self.filter.on_midi_message(midi_message)
         self.mix.on_midi_message(midi_message)
+
+    def set_mod_source(self, mod_source):
+        self.size.set_mod_source(mod_source)
+        self.decay.set_mod_source(mod_source)
+        self.filter.set_mod_source(mod_source)
+        self.mix.set_mod_source(mod_source)

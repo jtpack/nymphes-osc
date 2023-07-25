@@ -42,3 +42,8 @@ class MixParams:
         self.osc.on_midi_message(midi_message)
         self.sub.on_midi_message(midi_message)
         self.noise.on_midi_message(midi_message)
+
+    def set_mod_source(self, mod_source):
+        self.osc.set_mod_source(mod_source)
+        self.sub.set_mod_source(mod_source)
+        self.noise.set_mod_source(mod_source)

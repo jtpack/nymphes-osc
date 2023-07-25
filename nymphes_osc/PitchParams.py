@@ -66,3 +66,10 @@ class PitchParams:
         self.env_depth.on_midi_message(midi_message)
         self.lfo1.on_midi_message(midi_message)
         self.glide.on_midi_message(midi_message)
+
+    def set_mod_source(self, mod_source):
+        self.detune.set_mod_source(mod_source)
+        self.chord.set_mod_source(mod_source)
+        self.env_depth.set_mod_source(mod_source)
+        self.lfo1.set_mod_source(mod_source)
+        self.glide.set_mod_source(mod_source)

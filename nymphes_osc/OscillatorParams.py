@@ -30,3 +30,7 @@ class OscillatorParams:
     def on_midi_message(self, midi_message):
         self.wave.on_midi_message(midi_message)
         self.pulsewidth.on_midi_message(midi_message)
+
+    def set_mod_source(self, mod_source):
+        self.wave.set_mod_source(mod_source)
+        self.pulsewidth.set_mod_source(mod_source)

@@ -68,3 +68,9 @@ class AmpParams:
         self.sustain.on_midi_message(midi_message)
         self.release.on_midi_message(midi_message)
         self.level.on_midi_message(midi_message)
+
+    def set_mod_source(self, mod_source):
+        self.attack.set_mod_source(mod_source)
+        self.decay.set_mod_source(mod_source)
+        self.sustain.set_mod_source(mod_source)
+        self.release.set_mod_source(mod_source)

@@ -87,6 +87,7 @@ class NymphesMidiOscBridge:
         self._legato_parameter = ControlParameter_Legato(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
 
         # Register for OSC messages not associated with our control parameter objects
+        self._dispatcher.map('/mod_source', self._on_mod_source_osc_message)
         self._dispatcher.map('/mod_wheel', self._on_mod_wheel_osc_message)
         self._dispatcher.map('/aftertouch', self._on_aftertouch_osc_message)
         self._dispatcher.map('/load_preset_file', self._on_load_preset_file_osc_message)
@@ -204,35 +205,51 @@ class NymphesMidiOscBridge:
         """
         To be called by the nymphes midi port when new midi messages are received
         """
-        # print(f'{midi_message}')
-        # Only pass on control change midi messages
-        if midi_message.is_cc():
+        # Handle MIDI Control Change Messages
+        #
+        if midi_message.is_cc() and midi_message.channel == self.midi_channel:
+            # Handle mod source control message
+            if midi_message.control == 30:
+                self._on_mod_source_midi_message(midi_message.value)
 
-            # Only pass on messages if the channel is correct
-            if midi_message.channel == self.midi_channel:
-                self.amp.on_midi_message(midi_message)
-                self.hpf.on_midi_message(midi_message)
-                self.lfo1.on_midi_message(midi_message)
-                self.lfo2.on_midi_message(midi_message)
-                self.lpf.on_midi_message(midi_message)
-                self.mix.on_midi_message(midi_message)
-                self.oscillator.on_midi_message(midi_message)
-                self.pitch_filter_env.on_midi_message(midi_message)
-                self.pitch.on_midi_message(midi_message)
-                self.reverb.on_midi_message(midi_message)
-                self.play_mode.on_midi_message(midi_message)
-                self.mod_source.on_midi_message(midi_message)
-                self.legato.on_midi_message(midi_message)
+            # Handle control parameter message
+            else:
+                if self.amp.on_midi_message(midi_message):
+                    return
+                if self.hpf.on_midi_message(midi_message):
+                    return
+                if self.lfo1.on_midi_message(midi_message):
+                    return
+                if self.lfo2.on_midi_message(midi_message):
+                    return
+                if self.lpf.on_midi_message(midi_message):
+                    return
+                if self.mix.on_midi_message(midi_message):
+                    return
+                if self.oscillator.on_midi_message(midi_message):
+                    return
+                if self.pitch_filter_env.on_midi_message(midi_message):
+                    return
+                if self.pitch.on_midi_message(midi_message):
+                    return
+                if self.reverb.on_midi_message(midi_message):
+                    return
+                if self.play_mode.on_midi_message(midi_message):
+                    return
+                if self.mod_source.on_midi_message(midi_message):
+                    return
+                if self.legato.on_midi_message(midi_message):
+                    return
 
         elif midi_message.type == 'sysex':
             self._on_nymphes_sysex_message(midi_message)
 
-        elif midi_message.type == 'program_change':
-            if midi_message.channel == self.midi_channel:
-                self._on_program_change_midi_message(midi_message.program)
+        elif midi_message.type == 'program_change' and midi_message.channel == self.midi_channel:
+            self._on_program_change_midi_message(midi_message.program)
+
         else:
-            # A non-control change message was received.
-            self.send_status(f'Another Message Received: {midi_message}')
+            # Some other unhandled midi message was received
+            self.send_status(f'Unhandled MIDI Message Received: {midi_message}')
 
     def _on_nymphes_sysex_message(self, midi_message):
         """
@@ -261,10 +278,6 @@ class NymphesMidiOscBridge:
             status_message += f', Factory Preset {preset_number}'
 
         self.send_status(status_message)
-
-
-
-
 
 
     def _nymphes_midi_cc_send_function(self, midi_cc, value):
@@ -356,6 +369,62 @@ class NymphesMidiOscBridge:
 
             # Status update
             self.send_status(f'Removed host: {host_name}')
+
+    def _on_mod_source_osc_message(self, address, *args):
+        """
+        An OSC host has just sent a message to set the mod source
+        0 = 'lfo2'
+        1 = 'wheel'
+        2 = 'velocity'
+        3 = 'aftertouch'
+        """
+
+        mod_source = args[0]
+
+        # Send the new mod source to all parameter groups.
+        #
+        self.amp.set_mod_source(mod_source)
+        self.hpf.set_mod_source(mod_source)
+        self.lfo1.set_mod_source(mod_source)
+        self.lfo2.set_mod_source(mod_source)
+        self.lpf.set_mod_source(mod_source)
+        self.mix.set_mod_source(mod_source)
+        self.oscillator.set_mod_source(mod_source)
+        self.pitch_filter_env.set_mod_source(mod_source)
+        self.pitch.set_mod_source(mod_source)
+        self.reverb.set_mod_source(mod_source)
+
+        # Send the new mod source to Nymphes
+        #
+        if self.nymphes_connected:
+            # Construct the MIDI message
+            msg = mido.Message('control_change',
+                               channel=self.midi_channel,
+                               control=30,
+                               value=mod_source)
+
+            # Send the message
+            self._nymphes_midi_port.send(msg)
+
+    def _on_mod_source_midi_message(self, mod_source):
+        # Send the new mod source to all parameter groups.
+        #
+        self.amp.set_mod_source(mod_source)
+        self.hpf.set_mod_source(mod_source)
+        self.lfo1.set_mod_source(mod_source)
+        self.lfo2.set_mod_source(mod_source)
+        self.lpf.set_mod_source(mod_source)
+        self.mix.set_mod_source(mod_source)
+        self.oscillator.set_mod_source(mod_source)
+        self.pitch_filter_env.set_mod_source(mod_source)
+        self.pitch.set_mod_source(mod_source)
+        self.reverb.set_mod_source(mod_source)
+
+        # Send to OSC hosts
+        msg = OscMessageBuilder(address='/mod_source')
+        msg.add_arg(int(mod_source))
+        msg = msg.build()
+        self._osc_send_function(msg)
 
     def _on_mod_wheel_osc_message(self, address, *args):
         """
