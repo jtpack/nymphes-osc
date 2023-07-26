@@ -63,11 +63,18 @@ class AmpParams:
         return self._level
 
     def on_midi_message(self, midi_message):
-        self.attack.on_midi_message(midi_message)
-        self.decay.on_midi_message(midi_message)
-        self.sustain.on_midi_message(midi_message)
-        self.release.on_midi_message(midi_message)
-        self.level.on_midi_message(midi_message)
+        if self.attack.on_midi_message(midi_message):
+            return True
+        if self.decay.on_midi_message(midi_message):
+            return True
+        if self.sustain.on_midi_message(midi_message):
+            return True
+        if self.release.on_midi_message(midi_message):
+            return True
+        if self.level.on_midi_message(midi_message):
+            return True
+
+        return False
 
     def set_mod_source(self, mod_source):
         self.attack.set_mod_source(mod_source)

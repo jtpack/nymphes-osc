@@ -535,11 +535,17 @@
     - Description: A program change message has just be received from the Nymphes
     - Address: /nymphes_program_changed
     - Arguments:
-      - 0
+      - 0 
+      - Type: Int
+      - Description:
+        - User or Factory
+          - 0 is User
+          - 1 is Factory
+      - 1
         - Type: Int
         - Description:
           - The MIDI Program Change value
-      - 1
+      - 2
         - Type: String
         - Description:
           - A human-readable description of the program - ie: Bank A, User Preset 1

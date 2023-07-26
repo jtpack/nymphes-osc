@@ -72,12 +72,20 @@ class Lfo2Params:
         return self._key_sync
 
     def on_midi_message(self, midi_message):
-        self.rate.on_midi_message(midi_message)
-        self.wave.on_midi_message(midi_message)
-        self.delay.on_midi_message(midi_message)
-        self.fade.on_midi_message(midi_message)
-        self.type.on_midi_message(midi_message)
-        self.key_sync.on_midi_message(midi_message)
+        if self.rate.on_midi_message(midi_message):
+            return True
+        if self.wave.on_midi_message(midi_message):
+            return True
+        if self.delay.on_midi_message(midi_message):
+            return True
+        if self.fade.on_midi_message(midi_message):
+            return True
+        if self.type.on_midi_message(midi_message):
+            return True
+        if self.key_sync.on_midi_message(midi_message):
+            return True
+
+        return False
 
     def set_mod_source(self, mod_source):
         self.rate.set_mod_source(mod_source)

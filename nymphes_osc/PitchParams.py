@@ -61,11 +61,18 @@ class PitchParams:
         return self._glide
 
     def on_midi_message(self, midi_message):
-        self.detune.on_midi_message(midi_message)
-        self.chord.on_midi_message(midi_message)
-        self.env_depth.on_midi_message(midi_message)
-        self.lfo1.on_midi_message(midi_message)
-        self.glide.on_midi_message(midi_message)
+        if self.detune.on_midi_message(midi_message):
+            return True
+        if self.chord.on_midi_message(midi_message):
+            return True
+        if self.env_depth.on_midi_message(midi_message):
+            return True
+        if self.lfo1.on_midi_message(midi_message):
+            return True
+        if self.glide.on_midi_message(midi_message):
+            return True
+
+        return False
 
     def set_mod_source(self, mod_source):
         self.detune.set_mod_source(mod_source)

@@ -56,6 +56,7 @@ class NymphesMidiOscBridge:
         self.nymphes_connected = False
 
         # Current Nymphes MIDI program number
+        self.nymphes_user_or_factory = None
         self.nymphes_midi_program_num = None
 
         # Preset objects for the presets in the Nymphes' memory.
@@ -208,8 +209,13 @@ class NymphesMidiOscBridge:
         # Handle MIDI Control Change Messages
         #
         if midi_message.is_cc() and midi_message.channel == self.midi_channel:
+            # Handle Bank MSB message
+            # This indicates user or factory preset type
+            if midi_message.control == 0:
+                self._on_bank_select_midi_message(midi_message.value)
+
             # Handle mod source control message
-            if midi_message.control == 30:
+            elif midi_message.control == 30:
                 self._on_mod_source_midi_message(midi_message.value)
 
             # Handle control parameter message
@@ -241,6 +247,8 @@ class NymphesMidiOscBridge:
                 if self.legato.on_midi_message(midi_message):
                     return
 
+                print(f'Unhandled MIDI CC message: CC {midi_message.control}, Value {midi_message.value}')
+
         elif midi_message.type == 'sysex':
             self._on_nymphes_sysex_message(midi_message)
 
@@ -270,7 +278,8 @@ class NymphesMidiOscBridge:
         else:
             status_message += ' Non-Persistent Import'
 
-        status_message += f', Bank {bank_number}'
+        bank_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+        status_message += f', Bank {bank_names[bank_number-1]}'
 
         if user_preset:
             status_message += f', User Preset {preset_number}'
@@ -464,13 +473,38 @@ class NymphesMidiOscBridge:
         """
         self.nymphes_midi_program_num = program_num
 
+        print(f'program_num: {program_num}')
+
+        # Construct program change string
+        bank_num = int(program_num / 7)
+        bank_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+        bank_name = bank_names[bank_num]
+        preset_num = f'{(program_num % 7) + 1}'
+        preset_type = 'User' if self.nymphes_user_or_factory == 0 else 'Factory'
+        prog_change_string = f'Bank {bank_name}, {preset_type} Preset {preset_num}'
+
         # Inform OSC hosts
         msg = OscMessageBuilder(address='/nymphes_program_changed')
+        msg.add_arg(int(self.nymphes_user_or_factory))
         msg.add_arg(int(self.nymphes_midi_program_num))
+        msg.add_arg(prog_change_string)
         msg = msg.build()
         self._osc_send_function(msg)
 
-        self.send_status(f'Program Change {program_num}')
+        self.send_status(f'Program Change: {prog_change_string}')
+
+    def _on_bank_select_midi_message(self, bank):
+        """
+        A control change 0 message (Bank Select MSB) message has
+        been received. This is always sent just before a program
+        change message, and indicates whether the program is a
+        user or factory preset.
+        This is NOT the same as the Nymphes' preset banks (A-G).
+        0: User
+        1: Factory
+        """
+        # We will just store this value
+        self.nymphes_user_or_factory = bank
 
     def _on_load_preset_file_osc_message(self, address, *args):
         """

@@ -17,7 +17,10 @@ class HpfParams:
         return self._cutoff
 
     def on_midi_message(self, midi_message):
-        self.cutoff.on_midi_message(midi_message)
+        if self.cutoff.on_midi_message(midi_message):
+            return True
+
+        return False
 
     def set_mod_source(self, mod_source):
         self.cutoff.set_mod_source(mod_source)

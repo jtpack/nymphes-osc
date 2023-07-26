@@ -39,9 +39,14 @@ class MixParams:
         return self._noise
 
     def on_midi_message(self, midi_message):
-        self.osc.on_midi_message(midi_message)
-        self.sub.on_midi_message(midi_message)
-        self.noise.on_midi_message(midi_message)
+        if self.osc.on_midi_message(midi_message):
+            return True
+        if self.sub.on_midi_message(midi_message):
+            return True
+        if self.noise.on_midi_message(midi_message):
+            return True
+
+        return False
 
     def set_mod_source(self, mod_source):
         self.osc.set_mod_source(mod_source)

@@ -143,7 +143,7 @@ class ControlParameter_Modulated:
                         self._last_midi_message_time = time.perf_counter()
 
                         # Do nothing else with this message
-                        return
+                        return True
 
             # This is not a duplicate message, so handle it
             #

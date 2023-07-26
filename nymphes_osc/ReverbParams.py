@@ -50,10 +50,16 @@ class ReverbParams:
         return self._mix
 
     def on_midi_message(self, midi_message):
-        self.size.on_midi_message(midi_message)
-        self.decay.on_midi_message(midi_message)
-        self.filter.on_midi_message(midi_message)
-        self.mix.on_midi_message(midi_message)
+        if self.size.on_midi_message(midi_message):
+            return True
+        if self.decay.on_midi_message(midi_message):
+            return True
+        if self.filter.on_midi_message(midi_message):
+            return True
+        if self.mix.on_midi_message(midi_message):
+            return True
+
+        return False
 
     def set_mod_source(self, mod_source):
         self.size.set_mod_source(mod_source)
