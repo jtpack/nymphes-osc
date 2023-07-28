@@ -63,8 +63,10 @@ class NymphesMidiOscBridge:
         # If a full sysex dump has been done then we will have an
         # entry for every preset. If not, then we'll only have
         # entries for the presets that have been recalled since
-        # connecting to the Nymphes
-        self.nymphes_presets = {i: None for i in range(0, 49)}
+        # connecting to the Nymphes.
+        # The dict key is a tuple. ie: for bank A, user preset 1: ('user', 'A', 1).
+        # The value is a preset_pb2.preset object.
+        self.nymphes_presets = {}
 
         # MIDI IO port for keyboard controller
         self._midi_controller_port = None
@@ -264,30 +266,20 @@ class NymphesMidiOscBridge:
         A sysex message has been received from the Nymphes.
         Try to interpret it as a preset.
         """
-        p, preset_import_type, user_or_factory, bank_number, preset_number = \
+        p, preset_import_type, preset_type, bank_name, preset_number = \
             sysex_handling.preset_from_sysex_data(midi_message.data)
 
-        persistent_import = True if preset_import_type == 0x01 else False
-        user_preset = True if user_or_factory == 0x00 else False
+        if preset_import_type == 'persistent':
+            # Store a copy of any persistent preset received
+            self.nymphes_presets[(preset_type, bank_name, preset_number)] = p
 
-        # Calculate the index to use when storing this preset data
-
-        status_message = 'Nymphes Preset Received:'
-        if persistent_import:
-            status_message += ' Persistent Import'
-        else:
-            status_message += ' Non-Persistent Import'
-
-        bank_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-        status_message += f', Bank {bank_names[bank_number-1]}'
-
-        if user_preset:
-            status_message += f', User Preset {preset_number}'
-        else:
-            status_message += f', Factory Preset {preset_number}'
-
+        # Prepare status update message
+        status_message = 'Nymphes Preset Received: '
+        status_message += f'{preset_import_type.capitalize()} import, '
+        status_message += f'Bank {bank_name}, '
+        status_message += f'{preset_type.capitalize()} Preset '
+        status_message += f'{preset_number}'
         self.send_status(status_message)
-
 
     def _nymphes_midi_cc_send_function(self, midi_cc, value):
         """

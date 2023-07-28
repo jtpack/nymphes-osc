@@ -53,17 +53,18 @@ def preset_from_sysex_data(sysex_data):
     p = preset_pb2.preset.FromString(bytes(protobuf_data))
 
     # Get the preset import type
-    preset_import_type = sysex_data[5]
+    preset_import_type = 'persistent' if sysex_data[5] == 0x01 else 'non-persistent'
 
     # Determine user or factory preset type
-    user_or_factory = sysex_data[6]
+    preset_type = 'user' if sysex_data[6] == 0 else 'factory'
 
-    # Get bank number and preset number
-    # Note: Both start at 1, not zero
-    bank_number = sysex_data[7]
+    # Get bank name. We will return it as a capital letter from A to G
+    bank_name = ['A', 'B', 'C', 'D', 'E', 'F', 'G'][sysex_data[7]-1]
+
+    # Get preset number. It is a number between 1 and 7
     preset_number = sysex_data[8]
 
-    return p, preset_import_type, user_or_factory, bank_number, preset_number
+    return p, preset_import_type, preset_type, bank_name, preset_number
 
 
 def calculate_crc8(data):
