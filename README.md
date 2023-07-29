@@ -536,11 +536,11 @@
     - Address: /nymphes_program_changed
     - Arguments:
       - 0 
-      - Type: Int
-      - Description:
-        - User or Factory
-          - 0 is User
-          - 1 is Factory
+        - Type: Int
+        - Description:
+          - User or Factory
+            - 0 is User
+            - 1 is Factory
       - 1
         - Type: Int
         - Description:
@@ -549,5 +549,62 @@
         - Type: String
         - Description:
           - A human-readable description of the program - ie: Bank A, User Preset 1
+    
+  - ### MIDI Controller Connected
+    - Description: A MIDI controller has been connected. There is only one MIDI controller.
+    - Address: /midi_controller_connected
+    - Arguments:
+      - 0
+        - Type: String
+        - Description: The name of the MIDI controller's port
+  
+  - ### MIDI Controller Disconnected
+    - Description: The MIDI controller has been disconnected.
+    - Address: /midi_controller_disconnected
+    - Arguments:
+      - 0
+        - Type: String
+        - Description: The name of the MIDI controller's port
+  
+  - ### New MIDI Port Detected
+    - Description: A new MIDI port has been detected, ie: a new MIDI device has been connected to the computer.
+      - Note: This does not mean that we have connected to it.
+    - Address: /midi_port_detected
+    - Arguments:
+      - 0
+        - Type: String
+        - Description: The name of the newly-detected MIDI port 
+  
+  - ### MIDI Port No Longer Detected
+    - Description: A previously-detected MIDI port has disconnected.
+    - Address: /midi_port_no_longer_detected
+    - Arguments:
+      - 0
+        - Type: String
+        - Description: The name of the MIDI port that is no longer detected 
 
-    # TODO: set_midi_channel
+ - ### Detected MIDI Ports
+   - Description: A list of detected non-Nymphes MIDI ports. This is automatically sent to a newly-connected OSC host.
+   - Address: /detected_midi_ports
+   - Arguments: One String argument for the name of each detected port
+     - Note: If no ports are detected, then the message will be sent but there will be no arguments
+
+  - ### Set Nymphes MIDI Channel
+    - Description: Set the MIDI channel that Nymphes uses
+    - Address: /set_nymphes_midi_channel
+    - Arguments:
+      - 0
+        - Type: Int
+        - Range: 1 to 16
+        - Description: The MIDI channel
+  
+  - ### Nymphes MIDI Channel Changed
+    - Description: The MIDI channel that Nymphes uses changed
+    - Address: /nymphes_midi_channel_changed
+    - Arguments:
+      - 0
+        - Type: Int
+        - Range: 1 to 16
+        - Description: The MIDI channel
+
+ 
