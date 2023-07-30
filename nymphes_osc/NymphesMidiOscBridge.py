@@ -29,14 +29,12 @@ class NymphesMidiOscBridge:
     We communicate with a Pure Data patch via OSC. The patch communicates with the Nymphes via MIDI.
     """
 
-    def __init__(self, midi_channel, osc_in_host, osc_in_port, osc_out_host, osc_out_port):
+    def __init__(self, midi_channel, osc_in_host, osc_in_port):
         # Prepare OSC objects
         #
         self.midi_channel = midi_channel-1 # mido library is zero-referenced, so MIDI channel 1 is specified as 0
         self.in_host = osc_in_host
         self.in_port = osc_in_port
-        self.out_host = osc_out_host
-        self.out_port = osc_out_port
 
         # The OSC Server, which receives OSC messages on a background thread
         #
@@ -55,8 +53,9 @@ class NymphesMidiOscBridge:
         # Flag indicating whether we are connected to a Nymphes synthesizer
         self.nymphes_connected = False
 
-        # Current Nymphes MIDI program number
-        self.nymphes_user_or_factory = None
+        # Current Nymphes preset type
+        # Possible values: 'user' or 'factory'
+        self.curr_preset_type = None
 
         # Preset objects for the presets in the Nymphes' memory.
         # If a full sysex dump has been done then we will have an
@@ -104,6 +103,9 @@ class NymphesMidiOscBridge:
         self._dispatcher.map('/remove_host', self._on_osc_message_remove_host)
         self._dispatcher.map('/connect_midi_controller', self._on_osc_message_connect_midi_controller)
         self._dispatcher.map('/disconnect_midi_controller', self._on_osc_message_disconnect_midi_controller)
+
+        # Start the OSC Server
+        self.start_osc_server()
 
     @property
     def oscillator(self):
@@ -163,10 +165,6 @@ class NymphesMidiOscBridge:
         self._osc_server_thread.start()
         
         self.send_status(f'Started OSC Server at {self.in_host}:{self.in_port}')
-        # self.send_status(f'in_host: {self.in_host}')
-        # self.send_status(f'in_port: {self.in_port}')
-        # self.send_status(f'out_host: {self.out_host}')
-        # self.send_status(f'out_port: {self.out_port}')
 
     def stop_osc_server(self):
         if self._osc_server is not None:
@@ -829,12 +827,12 @@ class NymphesMidiOscBridge:
         bank_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
         bank_name = bank_names[bank_num]
         preset_num = f'{(program_num % 7) + 1}'
-        preset_type = 'User' if self.nymphes_user_or_factory == 0 else 'Factory'
+        preset_type = 'User' if self.curr_preset_type == 'user' else 'Factory'
         prog_change_string = f'Bank {bank_name}, {preset_type} Preset {preset_num}'
 
         # Inform OSC hosts
         msg = OscMessageBuilder(address='/nymphes_program_changed')
-        msg.add_arg(int(self.nymphes_user_or_factory))
+        msg.add_arg(self.curr_preset_type)
         msg.add_arg(int(program_num))
         msg.add_arg(prog_change_string)
         msg = msg.build()
@@ -853,4 +851,4 @@ class NymphesMidiOscBridge:
         1: Factory
         """
         # We will just store this value
-        self.nymphes_user_or_factory = bank
+        self.curr_preset_type = 'user' if bank == 0 else 'factory'

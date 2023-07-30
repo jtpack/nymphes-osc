@@ -536,19 +536,17 @@
     - Address: /nymphes_program_changed
     - Arguments:
       - 0 
-        - Type: Int
-        - Description:
-          - User or Factory
-            - 0 is User
-            - 1 is Factory
-      - 1
-        - Type: Int
-        - Description:
-          - The MIDI Program Change value
-      - 2
         - Type: String
-        - Description:
-          - A human-readable description of the program - ie: Bank A, User Preset 1
+        - Description: Type of preset
+          - 'user' or 'factory'
+      - 1
+        - Type: String
+        - Description: Bank
+          - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
+      - 2
+        - Type: Int
+        - Description: Preset Number
+          - Possible Values: 1, 2, 3, 4, 5, 6, `7
     
   - ### MIDI Controller Connected
     - Description: A MIDI controller has been connected. There is only one MIDI controller.
