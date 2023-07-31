@@ -66,17 +66,17 @@ class NymphesMidiOscBridge:
         # The value is a preset_pb2.preset object.
         self.nymphes_presets = {}
 
-        # MIDI IO port for keyboard controller
-        self._midi_controller_port = None
+        # MIDI ports for keyboard controller
+        self._midi_controller_input_port = None
+        self._midi_controller_output_port = None
 
-        # Flag indicating whether we are connected to a MIDI controller
-        self.midi_controller_connected = False
+        # Flags indicating whether we are connected to a MIDI controller's input and output
+        self.midi_controller_input_connected = False
+        self.midi_controller_output_connected = False
 
-        # List of detected non-Nymphes midi ports
-        self._non_nymphes_midi_port_names = []
-
-        # Flag indicating whether we are connected to a keyboard controller
-        self.midi_controller_connected = False
+        # Lists of detected non-Nymphes midi ports
+        self._non_nymphes_midi_input_port_names = []
+        self._non_nymphes_midi_output_port_names = []
 
         # Create the control parameter objects
         self._oscillator_params = OscillatorParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
@@ -101,8 +101,10 @@ class NymphesMidiOscBridge:
         self._dispatcher.map('/save_preset_file', self._on_osc_message_load_preset_file)
         self._dispatcher.map('/add_host', self._on_osc_message_add_host)
         self._dispatcher.map('/remove_host', self._on_osc_message_remove_host)
-        self._dispatcher.map('/connect_midi_controller', self._on_osc_message_connect_midi_controller)
-        self._dispatcher.map('/disconnect_midi_controller', self._on_osc_message_disconnect_midi_controller)
+        self._dispatcher.map('/connect_midi_controller_input', self._on_osc_message_connect_midi_controller_input)
+        self._dispatcher.map('/disconnect_midi_controller_input', self._on_osc_message_disconnect_midi_controller_input)
+        self._dispatcher.map('/connect_midi_controller_output', self._on_osc_message_connect_midi_controller_output)
+        self._dispatcher.map('/disconnect_midi_controller_output', self._on_osc_message_disconnect_midi_controller_output)
 
         # Start the OSC Server
         self.start_osc_server()
@@ -181,10 +183,11 @@ class NymphesMidiOscBridge:
         """
         # Automatically connect to a Nymphes synthesizer if it is detected,
         # and disconnect if no longer detected.
-        self._detect_midi_devices()
+        self._detect_nymphes_midi_io_port()
 
         # Automatically detect other connected MIDI devices
-        self._detect_midi_devices()
+        self._detect_non_nymphes_midi_input_ports()
+        self._detect_non_nymphes_midi_output_ports()
 
         # Handle any incoming MIDI messages waiting for us from Nymphes
         if self.nymphes_connected:
@@ -192,13 +195,18 @@ class NymphesMidiOscBridge:
                 self._on_nymphes_midi_message(midi_message)
 
         # Handle any incoming MIDI messages waiting for us from the MIDI Controller
-        if self.midi_controller_connected:
-            for midi_message in self._midi_controller_port.iter_pending():
+        if self.midi_controller_input_connected:
+            for midi_message in self._midi_controller_input_port.iter_pending():
                 self._on_midi_controller_message(midi_message)
 
     def add_osc_host(self, host_name, port):
         """
         Add a new host to send OSC messages to.
+        If the host has already been added previously, we don't add it again.
+        However, we still send it the same status messages, etc that we send
+        to new hosts. This is because the server may run for longer than the
+        hosts do, and we may get a request from the same host as it is started
+        up.
         """
         # Validate host_name
         if not isinstance(host_name, str):
@@ -210,21 +218,22 @@ class NymphesMidiOscBridge:
         except ValueError:
             raise Exception(f'port could not be interpreted as an integer: {port}')
 
-        # Check whether there's already an entry for this host
-        if host_name in self._osc_hosts.keys():
-            self.send_status(f'host already added ({host_name})')
-            return
+        if host_name not in self._osc_hosts.keys():
+            # This is a new host.
+            # Create an osc client for it.
+            client = SimpleUDPClient(host_name, port_int)
 
-        # Create an osc client for this host
-        client = SimpleUDPClient(host_name, port_int)
+            # Store the client
+            self._osc_hosts[host_name] = client
 
-        # Store the client
-        self._osc_hosts[host_name] = client
+            # Send status update
+            self.send_status(f'Added host: {host_name} on port {port_int}')
+        else:
+            # We have already added this host.
+            client = self._osc_hosts[host_name]
+            self.send_status(f'Host already added ({host_name} on port {client._port})')
 
-        # Send status update
-        self.send_status(f'Added host: {host_name} on port {port_int}')
-
-        # Send osc notification to the new host
+        # Send osc notification to the host
         msg = OscMessageBuilder(address='/host_added')
         msg = msg.build()
         client.send(msg)
@@ -235,13 +244,40 @@ class NymphesMidiOscBridge:
         client.send(msg)
 
         # Notify the host whether or not a MIDI controller is connected
-        msg = OscMessageBuilder(address='/midi_controller_connected' if self.midi_controller_connected else '/midi_controller_disconnected')
+        msg = OscMessageBuilder(address='/midi_controller_connected' if self.midi_controller_input_connected else '/midi_controller_disconnected')
         msg = msg.build()
         client.send(msg)
 
-        # Send the host a list of detected non-nymphes MIDI ports
-        msg = OscMessageBuilder(address='/detected_midi_ports')
-        for port_name in self._non_nymphes_midi_port_names:
+        # Send the host a list of detected non-nymphes MIDI input ports
+        msg = OscMessageBuilder(address='/detected_midi_input_ports')
+        for port_name in self._non_nymphes_midi_input_port_names:
+            msg.add_arg(port_name)
+        msg = msg.build()
+        client.send(msg)
+
+        # Send the host a list of detected non-nymphes MIDI output ports
+        msg = OscMessageBuilder(address='/detected_midi_output_ports')
+        for port_name in self._non_nymphes_midi_output_port_names:
+            msg.add_arg(port_name)
+        msg = msg.build()
+        client.send(msg)
+
+    def send_non_nymphes_midi_input_port_names(self):
+        """
+        Send a list of detected non-Nymphes MIDI input port names to all OSC hosts.
+        """
+        msg = OscMessageBuilder(address='/detected_midi_input_ports')
+        for port_name in self._non_nymphes_midi_input_port_names:
+            msg.add_arg(port_name)
+        msg = msg.build()
+        self._osc_send_function(msg)
+        
+    def send_non_nymphes_midi_output_port_names(self):
+        """
+        Send a list of detected non-Nymphes MIDI output port names to all OSC hosts.
+        """
+        msg = OscMessageBuilder(address='/detected_midi_output_ports')
+        for port_name in self._non_nymphes_midi_output_port_names:
             msg.add_arg(port_name)
         msg = msg.build()
         self._osc_send_function(msg)
@@ -269,49 +305,93 @@ class NymphesMidiOscBridge:
             # Status update
             self.send_status(f'Removed host: {host_name}')
 
-    def connect_midi_controller(self, port_name):
+    def connect_midi_controller_input_port(self, port_name):
         """
-        Connect to the midi device with the name port_name.
+        Connect to the midi input device with the name port_name.
         """
 
         # Disconnect from the current controller, if necessary
         #
-        if self.midi_controller_connected:
-            # We are already connected to a midi controller.
-            if port_name != self._midi_controller_port.name:
-                # Disconnect from the current controller
-                self.disconnect_midi_controller()
+        if self.midi_controller_input_connected:
+            # We are already connected to a midi controller input.
+            if port_name != self._midi_controller_input_port.name:
+                # Disconnect from the current controller input
+                self.disconnect_midi_controller_input_port()
             else:
                 # We are already connected to the specified MIDI controller
                 return
 
         # Connect to the new port
-        self._midi_controller_port = mido.open_ioport(port_name)
-        self.midi_controller_connected = True
+        self._midi_controller_input_port = mido.open_input(port_name)
+        self.midi_controller_input_connected = True
 
-        # Notify OSC Hosts that the MIDI controller has been connected
-        msg = OscMessageBuilder(address='/midi_controller_connected')
+        # Notify OSC Hosts that the MIDI controller input has been connected
+        msg = OscMessageBuilder(address='/midi_controller_input_connected')
         msg.add_arg(port_name)
         msg = msg.build()
         self._osc_send_function(msg)
 
         # Send a status update
-        self.send_status(f'Connected midi controller: {port_name}')
+        self.send_status(f'Connected midi controller input: {port_name}')
+        
+    def connect_midi_controller_output_port(self, port_name):
+        """
+        Connect to the midi output device with the name port_name.
+        """
 
-    def disconnect_midi_controller(self):
-        if self.midi_controller_connected:
-            midi_controller_port_name = self._midi_controller_port.name
-            self._midi_controller_port.close()
-            self._midi_controller_port = None
-            self.midi_controller_connected = False
+        # Disconnect from the current controller, if necessary
+        #
+        if self.midi_controller_output_connected:
+            # We are already connected to a midi controller output.
+            if port_name != self._midi_controller_output_port.name:
+                # Disconnect from the current controller output
+                self.disconnect_midi_controller_output_port()
+            else:
+                # We are already connected to the specified MIDI controller
+                return
 
-            # Notify OSC Hosts that the MIDI controller has disconnected
-            msg = OscMessageBuilder(address='/midi_controller_disconnected')
+        # Connect to the new port
+        self._midi_controller_output_port = mido.open_output(port_name)
+        self.midi_controller_output_connected = True
+
+        # Notify OSC Hosts that the MIDI controller output has been connected
+        msg = OscMessageBuilder(address='/midi_controller_output_connected')
+        msg.add_arg(port_name)
+        msg = msg.build()
+        self._osc_send_function(msg)
+
+        # Send a status update
+        self.send_status(f'Connected midi controller output: {port_name}')
+
+    def disconnect_midi_controller_input_port(self):
+        if self.midi_controller_input_connected:
+            midi_controller_port_name = self._midi_controller_input_port.name
+            self._midi_controller_input_port.close()
+            self._midi_controller_input_port = None
+            self.midi_controller_input_connected = False
+
+            # Notify OSC Hosts that the MIDI controller input has disconnected
+            msg = OscMessageBuilder(address='/midi_controller_input_disconnected')
             msg = msg.build()
             self._osc_send_function(msg)
 
             # Send a status update
-            self.send_status(f'Disconnected from midi controller: {midi_controller_port_name}')
+            self.send_status(f'Disconnected from midi controller input: {midi_controller_port_name}')
+            
+    def disconnect_midi_controller_output_port(self):
+        if self.midi_controller_output_connected:
+            midi_controller_port_name = self._midi_controller_output_port.name
+            self._midi_controller_output_port.close()
+            self._midi_controller_output_port = None
+            self.midi_controller_output_connected = False
+
+            # Notify OSC Hosts that the MIDI controller output has disconnected
+            msg = OscMessageBuilder(address='/midi_controller_output_disconnected')
+            msg = msg.build()
+            self._osc_send_function(msg)
+
+            # Send a status update
+            self.send_status(f'Disconnected from midi controller output: {midi_controller_port_name}')
 
     def load_preset_file(self, filepath):
         # The following is just a test
@@ -435,8 +515,11 @@ class NymphesMidiOscBridge:
             # Send the message
             self._nymphes_midi_port.send(msg)
 
-    def _on_osc_message_disconnect_midi_controller(self, address, *args):
-        self.disconnect_midi_controller()
+    def _on_osc_message_disconnect_midi_controller_input(self, address, *args):
+        self.disconnect_midi_controller_input_port()
+        
+    def _on_osc_message_disconnect_midi_controller_output(self, address, *args):
+        self.disconnect_midi_controller_output_port()
 
     def _on_osc_message_load_preset_file(self, address, *args):
         """
@@ -456,9 +539,13 @@ class NymphesMidiOscBridge:
 
         self.save_preset_file(filepath)
 
-    def _on_osc_message_connect_midi_controller(self, address, *args):
+    def _on_osc_message_connect_midi_controller_input(self, address, *args):
         port_name = args[0]
-        self.connect_midi_controller(port_name)
+        self.connect_midi_controller_input_port(port_name)
+        
+    def _on_osc_message_connect_midi_controller_output(self, address, *args):
+        port_name = args[0]
+        self.connect_midi_controller_output_port(port_name)
 
     def _on_osc_message_mod_wheel(self, address, *args):
         """
@@ -495,11 +582,10 @@ class NymphesMidiOscBridge:
     # MIDI Methods
     #
 
-    def _detect_midi_devices(self):
+    def _detect_nymphes_midi_io_port(self):
         """
         Automatically connect to a Nymphes synthesizer if it is detected,
         and handle disconnection if no longer detected.
-        Track other connected MIDI devices as well.
         """
         # Sometimes getting port names causes an Exception...
         try:
@@ -557,11 +643,26 @@ class NymphesMidiOscBridge:
                 # Send status update
                 self.send_status(f'Disconnected from Nymphes (MIDI Port: {old_nymphes_port_name})')
 
-            #
-            # Handle other MIDI devices
-            #
+        except InvalidPortError:
+            # Sometimes an exception is thrown when trying to get port names.
+            self.send_status('_detect_nymphes_midi_io_port(): ignoring error while attempting to get port names (rtmidi.InvalidPortError)')
 
-            # Get a list of non-Nymphes midi ports
+    def _detect_non_nymphes_midi_input_ports(self):
+        """
+        Detect non-Nymphes MIDI input ports.
+        """
+        # Sometimes getting port names causes an Exception...
+        try:
+            # Get a list of MIDI input ports
+            port_names = mido.get_input_names()
+
+            # Find the port with the word nymphes in its name (if it exists)
+            nymphes_port_name = None
+            for port_name in port_names:
+                if 'nymphes' in (port_name).lower():
+                    nymphes_port_name = port_name
+
+            # Get a list of non-Nymphes midi input ports
             other_midi_port_names = port_names
             if nymphes_port_name is not None:
                 other_midi_port_names.remove(nymphes_port_name)
@@ -569,62 +670,148 @@ class NymphesMidiOscBridge:
             # Determine whether any new ports have been detected, or known ports
             # have disconnected
 
-            if set(other_midi_port_names) != set(self._non_nymphes_midi_port_names):
+            if set(other_midi_port_names) != set(self._non_nymphes_midi_input_port_names):
                 # There has been some kind of change to the list of detected MIDI ports.
 
                 # Handle ports that have disconnected
                 #
-                for port_name in self._non_nymphes_midi_port_names:
+                for port_name in self._non_nymphes_midi_input_port_names:
                     if port_name not in other_midi_port_names:
                         # This port is no longer connected.
-                        self._non_nymphes_midi_port_names.remove(port_name)
+                        self._non_nymphes_midi_input_port_names.remove(port_name)
 
                         # Notify OSC Hosts that a port has disconnected
-                        msg = OscMessageBuilder(address='/midi_port_no_longer_detected')
+                        msg = OscMessageBuilder(address='/midi_input_port_no_longer_detected')
                         msg.add_arg(port_name)
                         msg = msg.build()
                         self._osc_send_function(msg)
 
                         # Send status update
-                        self.send_status(f'MIDI port no longer detected: {port_name}')
+                        self.send_status(f'MIDI input port no longer detected: {port_name}')
 
                         # Check whether this was our MIDI controller
-                        if self.midi_controller_connected and self._midi_controller_port.name == port_name:
-                            # This was the port of our midi controller.
+                        if self.midi_controller_input_connected and self._midi_controller_input_port.name == port_name:
+                            # This was the input port of our midi controller.
                             # Close the port.
-                            self._midi_controller_port.close()
+                            self._midi_controller_input_port.close()
 
-                            self._midi_controller_port = None
+                            self._midi_controller_input_port = None
 
-                            self.midi_controller_connected = False
+                            self.midi_controller_input_connected = False
 
                             # Send status update
-                            self.send_status(f'MIDI controller disconnected ({port_name}')
+                            self.send_status(f'MIDI controller input disconnected ({port_name}')
 
                             # Notify OSC Hosts that the MIDI controller has disconnected
-                            msg = OscMessageBuilder(address='/midi_controller_disconnected')
+                            msg = OscMessageBuilder(address='/midi_controller_input_disconnected')
                             msg.add_arg(port_name)
                             msg = msg.build()
                             self._osc_send_function(msg)
 
                 # Handle newly-connected MIDI ports
                 for port_name in other_midi_port_names:
-                    if port_name not in self._non_nymphes_midi_port_names:
+                    if port_name not in self._non_nymphes_midi_input_port_names:
                         # This port has just been connected.
-                        self._non_nymphes_midi_port_names.append(port_name)
+                        self._non_nymphes_midi_input_port_names.append(port_name)
 
                         # Notify OSC Hosts that a new MIDI port has been detected
-                        msg = OscMessageBuilder(address='/midi_port_detected')
+                        msg = OscMessageBuilder(address='/midi_input_port_detected')
                         msg.add_arg(port_name)
                         msg = msg.build()
                         self._osc_send_function(msg)
 
                         # Send status update
-                        self.send_status(f'MIDI port detected: {port_name}')
+                        self.send_status(f'MIDI input port detected: {port_name}')
+
+                # Send the new list of detected ports to all OSC hosts
+                self.send_non_nymphes_midi_input_port_names()
 
         except InvalidPortError:
             # Sometimes an exception is thrown when trying to get port names.
-            self.send_status('ignoring error while attempting to get port names (rtmidi.InvalidPortError)')
+            self.send_status('ignoring error while attempting to get input port names (rtmidi.InvalidPortError)')
+            
+    def _detect_non_nymphes_midi_output_ports(self):
+        """
+        Detect non-Nymphes MIDI output ports.
+        """
+        # Sometimes getting port names causes an Exception...
+        try:
+            # Get a list of MIDI output ports
+            port_names = mido.get_output_names()
+
+            # Find the port with the word nymphes in its name (if it exists)
+            nymphes_port_name = None
+            for port_name in port_names:
+                if 'nymphes' in (port_name).lower():
+                    nymphes_port_name = port_name
+
+            # Get a list of non-Nymphes midi output ports
+            other_midi_port_names = port_names
+            if nymphes_port_name is not None:
+                other_midi_port_names.remove(nymphes_port_name)
+
+            # Determine whether any new ports have been detected, or known ports
+            # have disconnected
+
+            if set(other_midi_port_names) != set(self._non_nymphes_midi_output_port_names):
+                # There has been some kind of change to the list of detected MIDI ports.
+
+                # Handle ports that have disconnected
+                #
+                for port_name in self._non_nymphes_midi_output_port_names:
+                    if port_name not in other_midi_port_names:
+                        # This port is no longer connected.
+                        self._non_nymphes_midi_output_port_names.remove(port_name)
+
+                        # Notify OSC Hosts that a port has disconnected
+                        msg = OscMessageBuilder(address='/midi_output_port_no_longer_detected')
+                        msg.add_arg(port_name)
+                        msg = msg.build()
+                        self._osc_send_function(msg)
+
+                        # Send status update
+                        self.send_status(f'MIDI output port no longer detected: {port_name}')
+
+                        # Check whether this was our MIDI controller
+                        if self.midi_controller_output_connected and self._midi_controller_output_port.name == port_name:
+                            # This was the output port of our midi controller.
+                            # Close the port.
+                            self._midi_controller_output_port.close()
+
+                            self._midi_controller_output_port = None
+
+                            self.midi_controller_output_connected = False
+
+                            # Send status update
+                            self.send_status(f'MIDI controller output disconnected ({port_name}')
+
+                            # Notify OSC Hosts that the MIDI controller has disconnected
+                            msg = OscMessageBuilder(address='/midi_controller_output_disconnected')
+                            msg.add_arg(port_name)
+                            msg = msg.build()
+                            self._osc_send_function(msg)
+
+                # Handle newly-connected MIDI ports
+                for port_name in other_midi_port_names:
+                    if port_name not in self._non_nymphes_midi_output_port_names:
+                        # This port has just been connected.
+                        self._non_nymphes_midi_output_port_names.append(port_name)
+
+                        # Notify OSC Hosts that a new MIDI port has been detected
+                        msg = OscMessageBuilder(address='/midi_output_port_detected')
+                        msg.add_arg(port_name)
+                        msg = msg.build()
+                        self._osc_send_function(msg)
+
+                        # Send status update
+                        self.send_status(f'MIDI output port detected: {port_name}')
+
+                # Send the new list of detected ports to all OSC hosts
+                self.send_non_nymphes_midi_output_port_names()
+
+        except InvalidPortError:
+            # Sometimes an exception is thrown when trying to get port names.
+            self.send_status('ignoring error while attempting to get output port names (rtmidi.InvalidPortError)')
 
     def _nymphes_midi_cc_send_function(self, midi_cc, value):
         """
