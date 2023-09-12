@@ -214,20 +214,20 @@ class NymphesMidiOscBridge:
 
         # Validate port
         try:
-            port_int = int(port)
+            _ = int(port)
         except ValueError:
             raise Exception(f'port could not be interpreted as an integer: {port}')
 
         if host_name not in self._osc_hosts.keys():
             # This is a new host.
             # Create an osc client for it.
-            client = SimpleUDPClient(host_name, port_int)
+            client = SimpleUDPClient(host_name, int(port))
 
             # Store the client
             self._osc_hosts[host_name] = client
 
             # Send status update
-            self.send_status(f'Added host: {host_name} on port {port_int}')
+            self.send_status(f'Added host: {host_name} on port {int(port)}')
         else:
             # We have already added this host.
             client = self._osc_hosts[host_name]
@@ -235,6 +235,8 @@ class NymphesMidiOscBridge:
 
         # Send osc notification to the host
         msg = OscMessageBuilder(address='/host_added')
+        msg.add_arg(host_name)
+        msg.add_arg(int(port))
         msg = msg.build()
         client.send(msg)
 
