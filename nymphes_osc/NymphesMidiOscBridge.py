@@ -444,6 +444,18 @@ class NymphesMidiOscBridge:
     # OSC Methods
     #
 
+    def build_and_send_osc_message(self, address, arguments):
+        """
+        :param address: The osc address including the forward slash ie: /add_host
+        :param arguments: A list of arguments. Hopefully their types will all be automatically detected correctly
+        :return:
+        """
+        msg = OscMessageBuilder(address=address)
+        for argument in arguments:
+            msg.add_arg(argument)
+        msg = msg.build()
+        self._osc_client.send(msg)
+
     def send_status(self, message):
         """
         Sends a string status message to OSC hosts, using the address /status.
