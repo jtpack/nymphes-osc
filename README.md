@@ -485,6 +485,15 @@
     - Address: /disconnect_midi_controller_output
     - Arguments: None
 
+  - ### Set Nymphes MIDI Channel
+  - Description: Set the MIDI channel that Nymphes uses
+  - Address: /set_nymphes_midi_channel
+  - Arguments:
+    - 0
+      - Type: Int
+      - Range: 1 to 16
+      - Description: The MIDI channel
+
 ## Status messages that nymphes_osc can send
 
 - ## Preset Handling
@@ -638,15 +647,6 @@
     - Address: /detected_midi_output_ports
     - Arguments: One String argument for the name of each detected output port
       - Note: If no output ports are detected, then the message will be sent but there will be no arguments
-
-- ### Set Nymphes MIDI Channel
-  - Description: Set the MIDI channel that Nymphes uses
-  - Address: /set_nymphes_midi_channel
-  - Arguments:
-    - 0
-      - Type: Int
-      - Range: 1 to 16
-      - Description: The MIDI channel
   
 - ### Nymphes MIDI Channel Changed
   - Description: The MIDI channel that Nymphes uses changed

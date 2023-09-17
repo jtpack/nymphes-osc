@@ -245,8 +245,13 @@ class NymphesMidiOscBridge:
         msg = msg.build()
         client.send(msg)
 
-        # Notify the host whether or not a MIDI controller is connected
-        msg = OscMessageBuilder(address='/midi_controller_connected' if self.midi_controller_input_connected else '/midi_controller_disconnected')
+        # Notify the host whether or not a MIDI controller input port is connected
+        msg = OscMessageBuilder(address='/midi_controller_input_connected' if self.midi_controller_input_connected else '/midi_controller_input_disconnected')
+        msg = msg.build()
+        client.send(msg)
+
+        # Notify the host whether or not a MIDI controller output port is connected
+        msg = OscMessageBuilder(address='/midi_controller_output_connected' if self.midi_controller_output_connected else '/midi_controller_output_disconnected')
         msg = msg.build()
         client.send(msg)
 
