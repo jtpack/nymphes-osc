@@ -247,14 +247,26 @@ class NymphesMidiOscBridge:
         client.send(msg)
 
         # Notify the host whether or not a MIDI controller input port is connected
-        msg = OscMessageBuilder(address='/midi_controller_input_connected' if self.midi_controller_input_connected else '/midi_controller_input_disconnected')
-        msg = msg.build()
-        client.send(msg)
+        if self.midi_controller_input_connected:
+            msg = OscMessageBuilder(address='/midi_controller_input_connected')
+            msg.add_arg(self._midi_controller_input_port.name)
+            msg = msg.build()
+            client.send(msg)
+        else:
+            msg = OscMessageBuilder(address='/midi_controller_input_disconnected')
+            msg = msg.build()
+            client.send(msg)
 
         # Notify the host whether or not a MIDI controller output port is connected
-        msg = OscMessageBuilder(address='/midi_controller_output_connected' if self.midi_controller_output_connected else '/midi_controller_output_disconnected')
-        msg = msg.build()
-        client.send(msg)
+        if self.midi_controller_output_connected:
+            msg = OscMessageBuilder(address='/midi_controller_output_connected')
+            msg.add_arg(self._midi_controller_output_port.name)
+            msg = msg.build()
+            client.send(msg)
+        else:
+            msg = OscMessageBuilder(address='/midi_controller_output_disconnected')
+            msg = msg.build()
+            client.send(msg)
 
         # Send the host a list of detected non-nymphes MIDI input ports
         msg = OscMessageBuilder(address='/detected_midi_input_ports')
@@ -317,6 +329,7 @@ class NymphesMidiOscBridge:
         """
         Connect to the midi input device with the name port_name.
         """
+        print(f'nymphes_osc connect_midi_controller_input_port {port_name}')
 
         # Disconnect from the current controller, if necessary
         #
@@ -536,6 +549,7 @@ class NymphesMidiOscBridge:
             self._nymphes_midi_port.send(msg)
 
     def _on_osc_message_disconnect_midi_controller_input(self, address, *args):
+        print(f'Received {address}')
         self.disconnect_midi_controller_input_port()
         
     def _on_osc_message_disconnect_midi_controller_output(self, address, *args):
