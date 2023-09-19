@@ -3,6 +3,7 @@ import configparser
 from pathlib import Path
 from nymphes_osc.config_handling import create_new_config_file
 from nymphes_osc.sysex_handling import get_local_ip_address
+import time
 
 
 def run_osc_midi_bridge(midi_channel, osc_in_host, osc_in_port):
@@ -14,6 +15,7 @@ def run_osc_midi_bridge(midi_channel, osc_in_host, osc_in_port):
     # Stay running until manually killed
     while True:
         nymphes.update()
+        time.sleep(0.001)
 
 
 if __name__ == '__main__':

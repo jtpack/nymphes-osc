@@ -53,6 +53,11 @@ class NymphesMidiOscBridge:
         # Flag indicating whether we are connected to a Nymphes synthesizer
         self.nymphes_connected = False
 
+        # Timer used for detecting MIDI ports
+        #
+        self.midi_port_detect_timer_interval_sec = 0.1
+        self._midi_port_detect_timer = threading.Timer(self.midi_port_detect_timer_interval_sec, self._detect_all_midi_ports)
+
         # Current Nymphes preset type
         # Possible values: 'user' or 'factory'
         self.curr_preset_type = None
@@ -108,6 +113,9 @@ class NymphesMidiOscBridge:
 
         # Start the OSC Server
         self.start_osc_server()
+
+        # Start the MIDI port detection timer
+        self._midi_port_detect_timer.start()
 
     @property
     def oscillator(self):
@@ -181,13 +189,6 @@ class NymphesMidiOscBridge:
         """
         Should be called regularly.
         """
-        # Automatically connect to a Nymphes synthesizer if it is detected,
-        # and disconnect if no longer detected.
-        self._detect_nymphes_midi_io_port()
-
-        # Automatically detect other connected MIDI devices
-        self._detect_non_nymphes_midi_input_ports()
-        self._detect_non_nymphes_midi_output_ports()
 
         # Handle any incoming MIDI messages waiting for us from Nymphes
         if self.nymphes_connected:
@@ -600,6 +601,19 @@ class NymphesMidiOscBridge:
     #
     # MIDI Methods
     #
+
+    def _detect_all_midi_ports(self):
+        # Automatically connect to a Nymphes synthesizer if it is detected,
+        # and disconnect if no longer detected.
+        self._detect_nymphes_midi_io_port()
+
+        # Automatically detect other connected MIDI devices
+        self._detect_non_nymphes_midi_input_ports()
+        self._detect_non_nymphes_midi_output_ports()
+
+        # Schedule the next run of this function
+        self._midi_port_detect_timer = threading.Timer(self.midi_port_detect_timer_interval_sec, self._detect_all_midi_ports)
+        self._midi_port_detect_timer.start()
 
     def _detect_nymphes_midi_io_port(self):
         """
@@ -1058,3 +1072,4 @@ class NymphesMidiOscBridge:
         """
         # We will just store this value
         self.curr_preset_type = 'user' if bank == 0 else 'factory'
+        
