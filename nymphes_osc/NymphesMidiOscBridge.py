@@ -703,15 +703,15 @@ class NymphesMidiOscBridge:
             # Get a list of MIDI input ports
             port_names = mido.get_input_names()
 
-            # Find the port with the word nymphes in its name (if it exists)
-            nymphes_port_name = None
+            # Find the ports with the word nymphes in their names (if they exist)
+            nymphes_port_names = []
             for port_name in port_names:
                 if 'nymphes' in (port_name).lower():
-                    nymphes_port_name = port_name
+                    nymphes_port_names.append(port_name)
 
             # Get a list of non-Nymphes midi input ports
             other_midi_port_names = port_names
-            if nymphes_port_name is not None:
+            for nymphes_port_name in nymphes_port_names:
                 other_midi_port_names.remove(nymphes_port_name)
 
             # Determine whether any new ports have been detected, or known ports
@@ -786,15 +786,15 @@ class NymphesMidiOscBridge:
             # Get a list of MIDI output ports
             port_names = mido.get_output_names()
 
-            # Find the port with the word nymphes in its name (if it exists)
-            nymphes_port_name = None
+            # Find the ports with the word nymphes in their names (if they exist)
+            nymphes_port_names = []
             for port_name in port_names:
                 if 'nymphes' in (port_name).lower():
-                    nymphes_port_name = port_name
+                    nymphes_port_names.append(port_name)
 
             # Get a list of non-Nymphes midi output ports
             other_midi_port_names = port_names
-            if nymphes_port_name is not None:
+            for nymphes_port_name in nymphes_port_names:
                 other_midi_port_names.remove(nymphes_port_name)
 
             # Determine whether any new ports have been detected, or known ports
