@@ -55,7 +55,7 @@ class NymphesMidiOscBridge:
 
         # Timer used for detecting MIDI ports
         #
-        self.midi_port_detect_timer_interval_sec = 0.1
+        self.midi_port_detect_timer_interval_sec = 0.5
         self._midi_port_detect_timer = threading.Timer(self.midi_port_detect_timer_interval_sec, self._detect_all_midi_ports)
 
         # Current Nymphes preset type
