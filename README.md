@@ -430,14 +430,31 @@
 ## Commands that nymphes_osc will accept
 
 - ## Preset Handling
-  - ### Load a preset file
+
+  - ### Load Preset from memory
+    - Address: /load_preset
+    - Arguments:
+      - 0
+        - Type: String
+        - Description: Preset Bank 
+        - Possible Values: 'A' through 'G'
+      - 1
+        - Type: Int
+        - Description: Preset Number 
+        - Possible Values: 1 through 7
+      - 2
+        - Type: String
+        - Description: Preset Type
+        - Possible Values: 'user' or 'factory'
+
+  - ### Load a preset file from disk
     - Address: /load_preset_file
     - Arguments:
       - 0
         - Type: String
         - Description: Filepath of preset to load
       
-  - ### Save current data to new preset file
+  - ### Save current data to new preset file on disk
     - Address: /save_preset_file
     - Arguments:
       - 0
@@ -497,6 +514,24 @@
 ## Status messages that nymphes_osc can send
 
 - ## Preset Handling
+
+  - ### Nymphes Preset Loaded
+    - Description: A program change message has just been received from the Nymphes,indicating that a preset was loaded from memory
+    - Address: /loaded_preset
+    - Arguments:
+      - 0 
+        - Type: String
+        - Description: Type of preset
+          - 'user' or 'factory'
+      - 1
+        - Type: String
+        - Description: Bank
+          - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
+      - 2
+        - Type: Int
+        - Description: Preset Number
+          - Possible Values: 1, 2, 3, 4, 5, 6, 7
+
   - ### Preset file loaded
     - Description: A preset file has just been loaded
     - Address: /loaded_preset_file
@@ -550,24 +585,7 @@
     - Description: The Nymphes synthesizer has just been disconnected
     - Address: /nymphes_disconnected
     - Arguments: None
-  
-  - ### Nymphes Program Changed
-    - Description: A program change message has just be received from the Nymphes
-    - Address: /nymphes_program_changed
-    - Arguments:
-      - 0 
-        - Type: String
-        - Description: Type of preset
-          - 'user' or 'factory'
-      - 1
-        - Type: String
-        - Description: Bank
-          - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
-      - 2
-        - Type: Int
-        - Description: Preset Number
-          - Possible Values: 1, 2, 3, 4, 5, 6, `7
-    
+      
   - ### MIDI Controller Input Connected
     - Description: A MIDI input port from a MIDI controller (out from the controller, in to nymphes-osc) has been connected. Only one MIDI controller input can be connected at a time.
     - Address: /midi_controller_input_connected

@@ -102,8 +102,9 @@ class NymphesMidiOscBridge:
         self._dispatcher.map('/mod_source', self._on_osc_message_mod_source)
         self._dispatcher.map('/mod_wheel', self._on_osc_message_mod_wheel)
         self._dispatcher.map('/aftertouch', self._on_osc_message_aftertouch)
+        self._dispatcher.map('/load_preset', self._on_osc_message_load_preset)
         self._dispatcher.map('/load_preset_file', self._on_osc_message_load_preset_file)
-        self._dispatcher.map('/save_preset_file', self._on_osc_message_load_preset_file)
+        self._dispatcher.map('/save_preset_file', self._on_osc_message_save_preset_file)
         self._dispatcher.map('/add_host', self._on_osc_message_add_host)
         self._dispatcher.map('/remove_host', self._on_osc_message_remove_host)
         self._dispatcher.map('/connect_midi_controller_input', self._on_osc_message_connect_midi_controller_input)
@@ -414,9 +415,29 @@ class NymphesMidiOscBridge:
             # Send a status update
             self.send_status(f'Disconnected from midi controller output: {midi_controller_port_name}')
 
+    def load_preset(self, preset_type, bank_name, preset_num):
+        preset_types = ['user', 'factory']
+        bank_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+        preset_nums = [1, 2, 3, 4, 5, 6, 7]
+
+        # Validate the arguments
+        if preset_type not in preset_types:
+            raise Exception(f'Invalid preset_type: {preset_type}')
+
+        if bank_name not in bank_names:
+            raise Exception(f'Invalid bank_name: {bank_name}')
+
+        if preset_num not in preset_nums:
+            raise Exception(f'Invalid preset_num: {preset_num}')
+        
+        # Send a MIDI bank select message to let the Nymphes
+        # know whethr we will be loading a user or factory preset
+        self._nymphes_midi_cc_send_function(midi_cc=0, value=preset_types.index(preset_type))
+
+        # Send a MIDI program change message to load the preset
+        self._nymphes_midi_program_change_send_function(program=(bank_names.index(bank_name) * 7) + preset_nums.index(preset_num))
+
     def load_preset_file(self, filepath):
-        # The following is just a test
-        #
         # Load the preset file into a preset object
         preset_object = sysex_handling.load_preset_file(filepath)
 
@@ -436,7 +457,8 @@ class NymphesMidiOscBridge:
             self._nymphes_midi_port.send(msg)
             self.send_status('Sent sysex message')
 
-        # TODO: Update our OSC hosts
+        # Update our OSC hosts
+        #
 
         # Status update
         self.send_status(f'loaded preset file: {filepath}')
@@ -554,6 +576,13 @@ class NymphesMidiOscBridge:
         
     def _on_osc_message_disconnect_midi_controller_output(self, address, *args):
         self.disconnect_midi_controller_output_port()
+
+    def _on_osc_message_load_preset(self, address, *args):
+        """
+        An OSC message has just been received to load a preset from meory
+        """
+        # Argument 0 is preset_type
+        self.load_preset(preset_type=args[0], bank_name=args[1], preset_num=args[2])
 
     def _on_osc_message_load_preset_file(self, address, *args):
         """
@@ -873,6 +902,17 @@ class NymphesMidiOscBridge:
             # Send the message
             self._nymphes_midi_port.send(msg)
 
+    def _nymphes_midi_program_change_send_function(self, program):
+        """
+        Used to send a program change message to the Nymphes
+        """
+        if self.nymphes_connected:
+            # Construct the MIDI message
+            msg = mido.Message('program_change', channel=self.midi_channel, program=program)
+
+            # Send the message
+            self._nymphes_midi_port.send(msg)
+
     def _on_nymphes_midi_message(self, midi_message):
         """
         To be called by the nymphes midi port when new midi messages are received
@@ -1008,8 +1048,8 @@ class NymphesMidiOscBridge:
         elif midi_message.type == 'aftertouch' and midi_message.channel == self.midi_channel:
             self._on_midi_message_aftertouch(midi_message.value)
 
-        elif midi_message.type == 'program_change' and midi_message.channel == self.midi_channel:
-            self._on_midi_message_program_change(midi_message.program)
+        # elif midi_message.type == 'program_change' and midi_message.channel == self.midi_channel:
+        #     self._on_midi_message_program_change(midi_message.program)
 
     def _on_midi_message_mod_source(self, mod_source):
         # Send the new mod source to all parameter groups.
@@ -1062,17 +1102,16 @@ class NymphesMidiOscBridge:
         bank_name = bank_names[bank_num]
         preset_num = f'{(program_num % 7) + 1}'
         preset_type = 'User' if self.curr_preset_type == 'user' else 'Factory'
-        prog_change_string = f'Bank {bank_name}, {preset_type} Preset {preset_num}'
 
         # Inform OSC hosts
-        msg = OscMessageBuilder(address='/nymphes_program_changed')
+        msg = OscMessageBuilder(address='/loaded_preset')
         msg.add_arg(self.curr_preset_type)
-        msg.add_arg(int(program_num))
-        msg.add_arg(prog_change_string)
+        msg.add_arg(bank_name)
+        msg.add_arg(int(preset_num))
         msg = msg.build()
         self._osc_send_function(msg)
 
-        self.send_status(f'Program Change: {prog_change_string}')
+        self.send_status(f'Preset Loaded: Bank {bank_name}, {preset_type} Preset {preset_num}')
 
     def _on_midi_message_bank_select(self, bank):
         """
