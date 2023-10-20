@@ -415,7 +415,7 @@ class NymphesMidiOscBridge:
             # Send a status update
             self.send_status(f'Disconnected from midi controller output: {midi_controller_port_name}')
 
-    def load_preset(self, preset_type, bank_name, preset_num):
+    def load_preset(self, bank_name, preset_num, preset_type):
         preset_types = ['user', 'factory']
         bank_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
         preset_nums = [1, 2, 3, 4, 5, 6, 7]
@@ -581,8 +581,7 @@ class NymphesMidiOscBridge:
         """
         An OSC message has just been received to load a preset from meory
         """
-        # Argument 0 is preset_type
-        self.load_preset(preset_type=args[0], bank_name=args[1], preset_num=args[2])
+        self.load_preset(bank_name=args[0], preset_num=args[1], preset_type=args[2])
 
     def _on_osc_message_load_preset_file(self, address, *args):
         """
@@ -1105,9 +1104,9 @@ class NymphesMidiOscBridge:
 
         # Inform OSC hosts
         msg = OscMessageBuilder(address='/loaded_preset')
-        msg.add_arg(self.curr_preset_type)
         msg.add_arg(bank_name)
         msg.add_arg(int(preset_num))
+        msg.add_arg(self.curr_preset_type)
         msg = msg.build()
         self._osc_send_function(msg)
 

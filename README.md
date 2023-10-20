@@ -519,18 +519,18 @@
     - Description: A program change message has just been received from the Nymphes,indicating that a preset was loaded from memory
     - Address: /loaded_preset
     - Arguments:
-      - 0 
-        - Type: String
-        - Description: Type of preset
-          - 'user' or 'factory'
-      - 1
+      - 0
         - Type: String
         - Description: Bank
           - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
-      - 2
+      - 1
         - Type: Int
         - Description: Preset Number
           - Possible Values: 1, 2, 3, 4, 5, 6, 7
+      - 2
+        - Type: String
+        - Description: Type of preset
+          - 'user' or 'factory'
 
   - ### Preset file loaded
     - Description: A preset file has just been loaded
