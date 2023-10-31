@@ -44,7 +44,7 @@ class Lfo2Params:
         self._key_sync = ControlParameter_LfoKeySync(dispatcher=dispatcher,
                                                      osc_send_function=osc_send_function,
                                                      midi_send_function=midi_send_function,
-                                                     osc_address='lfo2/key_sync',
+                                                     osc_address='/lfo2/key_sync',
                                                      midi_cc=29)
 
     @property
