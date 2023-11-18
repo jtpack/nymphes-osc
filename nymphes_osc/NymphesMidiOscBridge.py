@@ -974,20 +974,31 @@ class NymphesMidiOscBridge:
         A sysex message has been received from the Nymphes.
         Try to interpret it as a preset.
         """
-        p, preset_import_type, preset_type, bank_name, preset_number = \
+        p, preset_import_type, preset_type, bank_name, preset_num = \
             sysex_handling.preset_from_sysex_data(midi_message.data)
 
         if preset_import_type == 'persistent':
             # Store a copy of any persistent preset received
-            self.nymphes_presets[(preset_type, bank_name, preset_number)] = p
+            self.nymphes_presets[(preset_type, bank_name, preset_num)] = p
 
         # Prepare status update message
         status_message = 'Nymphes Preset Received: '
         status_message += f'{preset_import_type.capitalize()} import, '
         status_message += f'Bank {bank_name}, '
         status_message += f'{preset_type.capitalize()} Preset '
-        status_message += f'{preset_number}'
+        status_message += f'{preset_num}'
         self.send_status(status_message)
+
+        # Also send a specific preset load OSC message
+        msg = OscMessageBuilder(address='/loaded_preset')
+        msg.add_arg(bank_name)
+        msg.add_arg(int(preset_num))
+        msg.add_arg(preset_type)
+        msg = msg.build()
+        self._osc_send_function(msg)
+
+
+
 
     def _on_midi_controller_message(self, midi_message):
         """
