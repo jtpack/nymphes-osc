@@ -1,8 +1,8 @@
-from nymphes_osc.NymphesMidiOscBridge import NymphesMidiOscBridge
+from src.nymphes_osc import NymphesMidiOscBridge
 import configparser
 from pathlib import Path
-from nymphes_osc.config_handling import create_new_config_file
-from nymphes_osc.sysex_handling import get_local_ip_address
+from src.nymphes_osc.config_handling import create_new_config_file
+from src.nymphes_osc.sysex_handling import get_local_ip_address
 import time
 
 

@@ -5,7 +5,6 @@ import threading
 import mido
 import mido.backends.rtmidi
 from rtmidi import InvalidPortError
-import time
 from .OscillatorParams import OscillatorParams
 from .PitchParams import PitchParams
 from .AmpParams import AmpParams
@@ -19,7 +18,7 @@ from .ReverbParams import ReverbParams
 from .ControlParameter_PlayMode import ControlParameter_PlayMode
 from .ControlParameter_ModSource import ControlParameter_ModSource
 from .ControlParameter_Legato import ControlParameter_Legato
-from nymphes_osc import sysex_handling
+from src.nymphes_osc import sysex_handling
 from pythonosc.osc_message_builder import OscMessageBuilder
 
 
