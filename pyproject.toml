@@ -28,4 +28,4 @@ requires-python = ">=3.9"
 Homepage = "https://github.com/jtpack/nymphes-osc"
 
 [project.scripts]
-nymphes-osc = "nymphes_osc.__main__:main"
+nymphes-osc = "nymphes_osc.src.__main__:main"

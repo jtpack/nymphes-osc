@@ -1,7 +1,6 @@
-import preset_pb2
+from nymphes_osc.src.preset_pb2 import preset, lfo_speed_mode, lfo_sync_mode, voice_mode
 from pathlib import Path
 from google.protobuf import text_format
-import netifaces
 
 
 def preset_from_sysex_data(sysex_data):
@@ -50,7 +49,7 @@ def preset_from_sysex_data(sysex_data):
             f'CRC failed: (sysex {sysex_crc_ms_nibble}:{sysex_crc_ls_nibble}, calculated from protobuf: {protobuf_crc_ms_nibble}, {protobuf_crc_ls_nibble})')
 
     # Convert protobuf data to a preset
-    p = preset_pb2.preset.FromString(bytes(protobuf_data))
+    p = preset.FromString(bytes(protobuf_data))
 
     # Get the preset import type
     preset_import_type = 'persistent' if sysex_data[5] == 0x01 else 'non-persistent'
@@ -147,7 +146,7 @@ def print_nymphes_preset(nymphes_preset):
 
 def create_default_preset():
     # Create a new preset message
-    p = preset_pb2.preset()
+    p = preset()
 
     # Parameter Values
     p.main.wave = 0.0
@@ -308,16 +307,16 @@ def create_default_preset():
     p.after.lfo_fade = 0.0
     
     # LFO Settings
-    p.lfo_settings.lfo_1_speed_mode = preset_pb2.lfo_speed_mode.slow
-    p.lfo_settings.lfo_1_sync_mode = preset_pb2.lfo_sync_mode.free
-    p.lfo_settings.lfo_2_speed_mode = preset_pb2.lfo_speed_mode.slow
-    p.lfo_settings.lfo_2_sync_mode = preset_pb2.lfo_sync_mode.free
+    p.lfo_settings.lfo_1_speed_mode = lfo_speed_mode.slow
+    p.lfo_settings.lfo_1_sync_mode = lfo_sync_mode.free
+    p.lfo_settings.lfo_2_speed_mode = lfo_speed_mode.slow
+    p.lfo_settings.lfo_2_sync_mode = lfo_sync_mode.free
 
     # Legato
     p.legato = False
 
     # Voice Mode
-    p.voice_mode = preset_pb2.voice_mode.poly
+    p.voice_mode = voice_mode.poly
 
     # Chord Settings
     p.chord_1.root = 0
@@ -408,35 +407,35 @@ def create_default_preset():
 
     return p
 
-def save_preset_file(preset_object, file_path):
+def save_preset_file(preset_object, filepath):
     """
     Store a human-readable string representation of preset_object to a text
     file at file_path
-    preset_object should be a valid preset_pb2.preset object
+    preset_object should be a valid preset object
     file_path is a Path or a string
     """
 
     # Validate preset_object
-    if not isinstance(preset_object, preset_pb2.preset):
+    if not isinstance(preset_object, preset):
         raise Exception(f'Invalid preset_object ({preset_object})')
 
     # Validate file_path
     #
-    if isinstance(file_path, str):
+    if isinstance(filepath, str):
         # Create a Path from file_path
-        file_path = Path(file_path)
+        filepath = Path(filepath)
 
-    if not isinstance(file_path, Path):
-        raise Exception(f'file_path is neither a Path nor a string ({file_path})')
+    if not isinstance(filepath, Path):
+        raise Exception(f'file_path is neither a Path nor a string ({filepath})')
 
     # Write to the file
-    with open(file_path, 'w') as file:
+    with open(filepath, 'w') as file:
         file.write(str(preset_object))
 
 def load_preset_file(file_path):
     """
     Reads human-readable string representation of a preset from a text file
-    at file_path, and returns a preset_pb2.preset object.
+    at file_path, and returns a preset object.
     file_path is a Path or a string
     """
 
@@ -454,7 +453,7 @@ def load_preset_file(file_path):
         file_text = file.read()
 
     # Convert into a preset object
-    p = preset_pb2.preset()
+    p = preset()
     text_format.Parse(file_text, p)
     return p
 
@@ -463,7 +462,7 @@ def sysex_data_from_preset_object(preset_object, preset_import_type, user_or_fac
     Generates sysex data that can be used to create a sysex MIDI message to send a preset
     to the Nymphes.
     Arguments:
-        preset_object: a preset_pb2.preset object
+        preset_object: a preset object
         preset_import_type (int) 0: non persistent preset load, 1: persistent preset import
         user_or_factory (int) 0: user preset, 1: factory preset
         bank_number (int): 1 to 7
@@ -473,7 +472,7 @@ def sysex_data_from_preset_object(preset_object, preset_import_type, user_or_fac
     """
     # Validate arguments
     #
-    if preset_object is None or not isinstance(preset_object, preset_pb2.preset):
+    if preset_object is None or not isinstance(preset_object, preset):
         raise Exception(f'preset_object invalid: {preset_object}')
 
     if preset_import_type not in [0, 1]:
@@ -535,27 +534,4 @@ def sysex_data_from_preset_object(preset_object, preset_import_type, user_or_fac
 
     return sysex_data
 
-def get_local_ip_address():
-    """
-    Return the IP address of the local machine as a string.
-    If no address other than 127.0.0.1 can be found, then
-    return 127.0.0.1
-    """
-    # Get a list of all network interfaces
-    interfaces = netifaces.interfaces()
 
-    for iface in interfaces:
-        try:
-            # Get the addresses associated with the interface
-            addresses = netifaces.ifaddresses(iface)
-
-            # Extract the IPv4 addresses (if available)
-            if netifaces.AF_INET in addresses:
-                ip_info = addresses[netifaces.AF_INET][0]
-                ip_address = ip_info['addr']
-                if ip_address != '127.0.0.1':
-                    return ip_address
-        except ValueError:
-            pass
-
-    return '127.0.0.1'  # Default to localhost if no suitable IP address is found

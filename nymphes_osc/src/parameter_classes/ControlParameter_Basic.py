@@ -82,6 +82,10 @@ class ControlParameter_Basic:
             raise ValueError(f'value could not be converted to an int: {val}') from None
 
     @property
+    def float_value(self):
+        return float(self.value / 127.0)
+
+    @property
     def min_val(self):
         return self._min_val
 

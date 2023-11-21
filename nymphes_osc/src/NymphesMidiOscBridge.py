@@ -5,20 +5,21 @@ import threading
 import mido
 import mido.backends.rtmidi
 from rtmidi import InvalidPortError
-from .OscillatorParams import OscillatorParams
-from .PitchParams import PitchParams
-from .AmpParams import AmpParams
-from .HpfParams import HpfParams
-from .Lfo1Params import Lfo1Params
-from .Lfo2Params import Lfo2Params
-from .LpfParams import LpfParams
-from .MixParams import MixParams
-from .PitchFilterEnvParams import PitchFilterEnvParams
-from .ReverbParams import ReverbParams
-from .ControlParameter_PlayMode import ControlParameter_PlayMode
-from .ControlParameter_ModSource import ControlParameter_ModSource
-from .ControlParameter_Legato import ControlParameter_Legato
-from src.nymphes_osc import sysex_handling
+from nymphes_osc.src.parameter_classes.OscillatorParams import OscillatorParams
+from nymphes_osc.src.parameter_classes.PitchParams import PitchParams
+from nymphes_osc.src.parameter_classes.AmpParams import AmpParams
+from nymphes_osc.src.parameter_classes.HpfParams import HpfParams
+from nymphes_osc.src.parameter_classes.Lfo1Params import Lfo1Params
+from nymphes_osc.src.parameter_classes.Lfo2Params import Lfo2Params
+from nymphes_osc.src.parameter_classes.LpfParams import LpfParams
+from nymphes_osc.src.parameter_classes.MixParams import MixParams
+from nymphes_osc.src.parameter_classes.PitchFilterEnvParams import PitchFilterEnvParams
+from nymphes_osc.src.parameter_classes.ReverbParams import ReverbParams
+from nymphes_osc.src.parameter_classes.ControlParameter_PlayMode import ControlParameter_PlayMode
+from nymphes_osc.src.parameter_classes.ControlParameter_ModSource import ControlParameter_ModSource
+from nymphes_osc.src.parameter_classes.ControlParameter_Legato import ControlParameter_Legato
+from nymphes_osc.src import sysex_handling
+from nymphes_osc.src.preset_pb2 import preset, lfo_speed_mode, lfo_sync_mode, voice_mode
 from pythonosc.osc_message_builder import OscMessageBuilder
 
 
@@ -69,6 +70,7 @@ class NymphesMidiOscBridge:
         # The dict key is a tuple. ie: for bank A, user preset 1: ('user', 'A', 1).
         # The value is a preset_pb2.preset object.
         self.nymphes_presets = {}
+        self.curr_nymphes_preset_dict_key = None
 
         # MIDI ports for keyboard controller
         self._midi_controller_input_port = None
@@ -415,6 +417,10 @@ class NymphesMidiOscBridge:
             self.send_status(f'Disconnected from midi controller output: {midi_controller_port_name}')
 
     def load_preset(self, bank_name, preset_num, preset_type):
+        """
+        Send the Nymphes a MIDI program change message to load
+        the specified preset from its internal memory.
+        """
         preset_types = ['user', 'factory']
         bank_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
         preset_nums = [1, 2, 3, 4, 5, 6, 7]
@@ -469,7 +475,11 @@ class NymphesMidiOscBridge:
         self._osc_send_function(msg)
 
     def save_preset_file(self, filepath):
-        # TODO: Actually save the current preset
+        # Get the current settings as a preset object
+        p = self.preset_object_for_current_settings()
+
+        # Save it to a file
+        sysex_handling.save_preset_file(preset_object=p, filepath=filepath)
 
         # Status update
         self.send_status(f'saved preset file: {filepath}')
@@ -578,7 +588,7 @@ class NymphesMidiOscBridge:
 
     def _on_osc_message_load_preset(self, address, *args):
         """
-        An OSC message has just been received to load a preset from meory
+        An OSC message has just been received to load a preset from memory
         """
         self.load_preset(bank_name=args[0], preset_num=args[1], preset_type=args[2])
 
@@ -961,8 +971,8 @@ class NymphesMidiOscBridge:
         elif midi_message.type == 'sysex':
             self._on_nymphes_sysex_message(midi_message)
 
-        elif midi_message.type == 'program_change' and midi_message.channel == self.midi_channel:
-            self._on_midi_message_program_change(midi_message.program)
+        # elif midi_message.type == 'program_change' and midi_message.channel == self.midi_channel:
+        #     self._on_midi_message_program_change(midi_message.program)
 
         else:
             # Some other unhandled midi message was received
@@ -976,9 +986,12 @@ class NymphesMidiOscBridge:
         p, preset_import_type, preset_type, bank_name, preset_num = \
             sysex_handling.preset_from_sysex_data(midi_message.data)
 
-        if preset_import_type == 'persistent':
-            # Store a copy of any persistent preset received
-            self.nymphes_presets[(preset_type, bank_name, preset_num)] = p
+        # Store a copy of the preset
+        preset_key = (preset_type, bank_name, preset_num)
+        self.nymphes_presets[preset_key] = p
+
+        # Also store the dict key of the current preset
+        self.curr_nymphes_preset_dict_key = preset_key
 
         # Prepare status update message
         status_message = 'Nymphes Preset Received: '
@@ -988,16 +1001,13 @@ class NymphesMidiOscBridge:
         status_message += f'{preset_num}'
         self.send_status(status_message)
 
-        # Also send a specific preset load OSC message
+        # Also send a specific loaded_preset OSC message
         msg = OscMessageBuilder(address='/loaded_preset')
         msg.add_arg(bank_name)
         msg.add_arg(int(preset_num))
         msg.add_arg(preset_type)
         msg = msg.build()
         self._osc_send_function(msg)
-
-
-
 
     def _on_midi_controller_message(self, midi_message):
         """
@@ -1098,29 +1108,18 @@ class NymphesMidiOscBridge:
         msg = msg.build()
         self._osc_send_function(msg)
 
-    def _on_midi_message_program_change(self, program_num):
-        """
-        A MIDI program change message has just been received, either from the Nymphes
-        or the MIDI controller.
-        """
-        print(f'program_num: {program_num}')
-
-        # Construct program change string
-        bank_num = int(program_num / 7)
-        bank_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
-        bank_name = bank_names[bank_num]
-        preset_num = f'{(program_num % 7) + 1}'
-        preset_type = 'User' if self.curr_preset_type == 'user' else 'Factory'
-
-        # Inform OSC hosts
-        msg = OscMessageBuilder(address='/loaded_preset')
-        msg.add_arg(bank_name)
-        msg.add_arg(int(preset_num))
-        msg.add_arg(self.curr_preset_type)
-        msg = msg.build()
-        self._osc_send_function(msg)
-
-        self.send_status(f'Preset Loaded: Bank {bank_name}, {preset_type} Preset {preset_num}')
+    # def _on_midi_message_program_change(self, program_num):
+    #     """
+    #     A MIDI program change message has just been received, either from the Nymphes
+    #     or the MIDI controller.
+    #     """
+    #
+    #     # Construct program change string
+    #     bank_num = int(program_num / 7)
+    #     bank_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+    #     bank_name = bank_names[bank_num]
+    #     preset_num = f'{(program_num % 7) + 1}'
+    #     preset_type = 'User' if self.curr_preset_type == 'user' else 'Factory'
 
     def _on_midi_message_bank_select(self, bank):
         """
@@ -1134,4 +1133,310 @@ class NymphesMidiOscBridge:
         """
         # We will just store this value
         self.curr_preset_type = 'user' if bank == 0 else 'factory'
-        
+
+    def preset_object_for_current_settings(self):
+        """
+        Create and return a preset object based on the Nymphes' current settings.
+        """
+        p = preset()
+
+        # Parameter Values
+        p.main.wave = self._oscillator_params.wave.float_value
+        p.main.lvl = self._mix_params.osc.float_value
+        p.main.sub = self._mix_params.sub.float_value
+        p.main.noise = self._mix_params.noise.float_value
+        p.main.osc_lfo = self._pitch_params.lfo1.float_value
+        p.main.cut = self._lpf_params.cutoff.float_value
+        p.main.reson = self._lpf_params.resonance.float_value
+        p.main.cut_eg = self._lpf_params.env_depth.float_value
+        p.main.a1 = self._pitch_filter_env_params.attack.float_value
+        p.main.d1 = self._pitch_filter_env_params.decay.float_value
+        p.main.s1 = self._pitch_filter_env_params.sustain.float_value
+        p.main.r1 = self._pitch_filter_env_params.release.float_value
+        p.main.lfo_rate = self._lfo1_params.rate.float_value
+        p.main.lfo_wave = self._lfo1_params.wave.float_value
+        p.main.pw = self._oscillator_params.pulsewidth.float_value
+        p.main.glide = self._pitch_params.glide.float_value
+        p.main.dtune = self._pitch_params.detune.float_value
+        p.main.chord = self._pitch_params.chord.float_value
+        p.main.osc_eg = self._pitch_params.env_depth.float_value
+        p.main.hpf = self._hpf_params.cutoff.float_value
+        p.main.track = self._lpf_params.tracking.float_value
+        p.main.cut_lfo = self._lpf_params.lfo1.float_value
+        p.main.a2 = self._amp_params.attack.float_value
+        p.main.d2 = self._amp_params.decay.float_value
+        p.main.s2 = self._amp_params.sustain.float_value
+        p.main.r2 = self._amp_params.release.float_value
+        p.main.lfo_delay = self._lfo1_params.delay.float_value
+        p.main.lfo_fade = self._lfo1_params.fade.float_value
+
+        p.reverb.size = self._reverb_params.size.float_value
+        p.reverb.decay = self._reverb_params.decay.float_value
+        p.reverb.filter = self._reverb_params.filter.float_value
+        p.reverb.mix = self._reverb_params.mix.float_value
+
+        # Modulation Matrix Values
+        #
+
+        # LFO2
+        p.lfo_2.wave = self._oscillator_params.wave.mod.lfo2_float_value
+        p.lfo_2.lvl = self._mix_params.osc.mod.lfo2_float_value
+        p.lfo_2.sub = self._mix_params.sub.mod.lfo2_float_value
+        p.lfo_2.noise = self._mix_params.noise.mod.lfo2_float_value
+        p.lfo_2.osc_lfo = self._pitch_params.lfo1.mod.lfo2_float_value
+        p.lfo_2.cut = self._lpf_params.cutoff.mod.lfo2_float_value
+        p.lfo_2.reson = self._lpf_params.resonance.mod.lfo2_float_value
+        p.lfo_2.cut_eg = self._lpf_params.env_depth.mod.lfo2_float_value
+        p.lfo_2.a1 = self._pitch_filter_env_params.attack.mod.lfo2_float_value
+        p.lfo_2.d1 = self._pitch_filter_env_params.decay.mod.lfo2_float_value
+        p.lfo_2.s1 = self._pitch_filter_env_params.sustain.mod.lfo2_float_value
+        p.lfo_2.r1 = self._pitch_filter_env_params.release.mod.lfo2_float_value
+        p.lfo_2.lfo_rate = self._lfo1_params.rate.mod.lfo2_float_value
+        p.lfo_2.lfo_wave = self._lfo1_params.wave.mod.lfo2_float_value
+        p.lfo_2.pw = self._oscillator_params.pulsewidth.mod.lfo2_float_value
+        p.lfo_2.glide = self._pitch_params.glide.mod.lfo2_float_value
+        p.lfo_2.dtune = self._pitch_params.detune.mod.lfo2_float_value
+        p.lfo_2.chord = self._pitch_params.chord.mod.lfo2_float_value
+        p.lfo_2.osc_eg = self._pitch_params.env_depth.mod.lfo2_float_value
+        p.lfo_2.hpf = self._hpf_params.cutoff.mod.lfo2_float_value
+        p.lfo_2.track = self._lpf_params.tracking.mod.lfo2_float_value
+        p.lfo_2.cut_lfo = self._lpf_params.lfo1.mod.lfo2_float_value
+        p.lfo_2.a2 = self._amp_params.attack.mod.lfo2_float_value
+        p.lfo_2.d2 = self._amp_params.decay.mod.lfo2_float_value
+        p.lfo_2.s2 = self._amp_params.sustain.mod.lfo2_float_value
+        p.lfo_2.r2 = self._amp_params.release.mod.lfo2_float_value
+        p.lfo_2.lfo_delay = self._lfo1_params.delay.mod.lfo2_float_value
+        p.lfo_2.lfo_fade = self._lfo1_params.fade.mod.lfo2_float_value
+
+        # Mod Wheel
+        p.mod_w.wave = self._oscillator_params.wave.mod.wheel_float_value
+        p.mod_w.lvl = self._mix_params.osc.mod.wheel_float_value
+        p.mod_w.sub = self._mix_params.sub.mod.wheel_float_value
+        p.mod_w.noise = self._mix_params.noise.mod.wheel_float_value
+        p.mod_w.osc_lfo = self._pitch_params.lfo1.mod.wheel_float_value
+        p.mod_w.cut = self._lpf_params.cutoff.mod.wheel_float_value
+        p.mod_w.reson = self._lpf_params.resonance.mod.wheel_float_value
+        p.mod_w.cut_eg = self._lpf_params.env_depth.mod.wheel_float_value
+        p.mod_w.a1 = self._pitch_filter_env_params.attack.mod.wheel_float_value
+        p.mod_w.d1 = self._pitch_filter_env_params.decay.mod.wheel_float_value
+        p.mod_w.s1 = self._pitch_filter_env_params.sustain.mod.wheel_float_value
+        p.mod_w.r1 = self._pitch_filter_env_params.release.mod.wheel_float_value
+        p.mod_w.lfo_rate = self._lfo1_params.rate.mod.wheel_float_value
+        p.mod_w.lfo_wave = self._lfo1_params.wave.mod.wheel_float_value
+        p.mod_w.pw = self._oscillator_params.pulsewidth.mod.wheel_float_value
+        p.mod_w.glide = self._pitch_params.glide.mod.wheel_float_value
+        p.mod_w.dtune = self._pitch_params.detune.mod.wheel_float_value
+        p.mod_w.chord = self._pitch_params.chord.mod.wheel_float_value
+        p.mod_w.osc_eg = self._pitch_params.env_depth.mod.wheel_float_value
+        p.mod_w.hpf = self._hpf_params.cutoff.mod.wheel_float_value
+        p.mod_w.track = self._lpf_params.tracking.mod.wheel_float_value
+        p.mod_w.cut_lfo = self._lpf_params.lfo1.mod.wheel_float_value
+        p.mod_w.a2 = self._amp_params.attack.mod.wheel_float_value
+        p.mod_w.d2 = self._amp_params.decay.mod.wheel_float_value
+        p.mod_w.s2 = self._amp_params.sustain.mod.wheel_float_value
+        p.mod_w.r2 = self._amp_params.release.mod.wheel_float_value
+        p.mod_w.lfo_delay = self._lfo1_params.delay.mod.wheel_float_value
+        p.mod_w.lfo_fade = self._lfo1_params.fade.mod.wheel_float_value
+
+        # Velocity
+        p.velo.wave = self._oscillator_params.wave.mod.velocity_float_value
+        p.velo.lvl = self._mix_params.osc.mod.velocity_float_value
+        p.velo.sub = self._mix_params.sub.mod.velocity_float_value
+        p.velo.noise = self._mix_params.noise.mod.velocity_float_value
+        p.velo.osc_lfo = self._pitch_params.lfo1.mod.velocity_float_value
+        p.velo.cut = self._lpf_params.cutoff.mod.velocity_float_value
+        p.velo.reson = self._lpf_params.resonance.mod.velocity_float_value
+        p.velo.cut_eg = self._lpf_params.env_depth.mod.velocity_float_value
+        p.velo.a1 = self._pitch_filter_env_params.attack.mod.velocity_float_value
+        p.velo.d1 = self._pitch_filter_env_params.decay.mod.velocity_float_value
+        p.velo.s1 = self._pitch_filter_env_params.sustain.mod.velocity_float_value
+        p.velo.r1 = self._pitch_filter_env_params.release.mod.velocity_float_value
+        p.velo.lfo_rate = self._lfo1_params.rate.mod.velocity_float_value
+        p.velo.lfo_wave = self._lfo1_params.wave.mod.velocity_float_value
+        p.velo.pw = self._oscillator_params.pulsewidth.mod.velocity_float_value
+        p.velo.glide = self._pitch_params.glide.mod.velocity_float_value
+        p.velo.dtune = self._pitch_params.detune.mod.velocity_float_value
+        p.velo.chord = self._pitch_params.chord.mod.velocity_float_value
+        p.velo.osc_eg = self._pitch_params.env_depth.mod.velocity_float_value
+        p.velo.hpf = self._hpf_params.cutoff.mod.velocity_float_value
+        p.velo.track = self._lpf_params.tracking.mod.velocity_float_value
+        p.velo.cut_lfo = self._lpf_params.lfo1.mod.velocity_float_value
+        p.velo.a2 = self._amp_params.attack.mod.velocity_float_value
+        p.velo.d2 = self._amp_params.decay.mod.velocity_float_value
+        p.velo.s2 = self._amp_params.sustain.mod.velocity_float_value
+        p.velo.r2 = self._amp_params.release.mod.velocity_float_value
+        p.velo.lfo_delay = self._lfo1_params.delay.mod.velocity_float_value
+        p.velo.lfo_fade = self._lfo1_params.fade.mod.velocity_float_value
+
+        # Aftertouch
+        p.after.wave = self._oscillator_params.wave.mod.aftertouch_float_value
+        p.after.lvl = self._mix_params.osc.mod.aftertouch_float_value
+        p.after.sub = self._mix_params.sub.mod.aftertouch_float_value
+        p.after.noise = self._mix_params.noise.mod.aftertouch_float_value
+        p.after.osc_lfo = self._pitch_params.lfo1.mod.aftertouch_float_value
+        p.after.cut = self._lpf_params.cutoff.mod.aftertouch_float_value
+        p.after.reson = self._lpf_params.resonance.mod.aftertouch_float_value
+        p.after.cut_eg = self._lpf_params.env_depth.mod.aftertouch_float_value
+        p.after.a1 = self._pitch_filter_env_params.attack.mod.aftertouch_float_value
+        p.after.d1 = self._pitch_filter_env_params.decay.mod.aftertouch_float_value
+        p.after.s1 = self._pitch_filter_env_params.sustain.mod.aftertouch_float_value
+        p.after.r1 = self._pitch_filter_env_params.release.mod.aftertouch_float_value
+        p.after.lfo_rate = self._lfo1_params.rate.mod.aftertouch_float_value
+        p.after.lfo_wave = self._lfo1_params.wave.mod.aftertouch_float_value
+        p.after.pw = self._oscillator_params.pulsewidth.mod.aftertouch_float_value
+        p.after.glide = self._pitch_params.glide.mod.aftertouch_float_value
+        p.after.dtune = self._pitch_params.detune.mod.aftertouch_float_value
+        p.after.chord = self._pitch_params.chord.mod.aftertouch_float_value
+        p.after.osc_eg = self._pitch_params.env_depth.mod.aftertouch_float_value
+        p.after.hpf = self._hpf_params.cutoff.mod.aftertouch_float_value
+        p.after.track = self._lpf_params.tracking.mod.aftertouch_float_value
+        p.after.cut_lfo = self._lpf_params.lfo1.mod.aftertouch_float_value
+        p.after.a2 = self._amp_params.attack.mod.aftertouch_float_value
+        p.after.d2 = self._amp_params.decay.mod.aftertouch_float_value
+        p.after.s2 = self._amp_params.sustain.mod.aftertouch_float_value
+        p.after.r2 = self._amp_params.release.mod.aftertouch_float_value
+        p.after.lfo_delay = self._lfo1_params.delay.mod.aftertouch_float_value
+        p.after.lfo_fade = self._lfo1_params.fade.mod.aftertouch_float_value
+
+        # LFO1 Settings
+        # Speed Mode
+        if self._lfo1_params.type.string_value == 'bpm':
+            p.lfo_settings.lfo_1_speed_mode = lfo_speed_mode.bpm
+        elif self._lfo1_params.type.string_value == 'low':
+            p.lfo_settings.lfo_1_speed_mode = lfo_speed_mode.slow
+        elif self._lfo1_params.type.string_value == 'high':
+            p.lfo_settings.lfo_1_speed_mode = lfo_speed_mode.fast
+        elif self._lfo1_params.type.string_value == 'track':
+            p.lfo_settings.lfo_1_speed_mode = lfo_speed_mode.tracking
+
+        # Sync Mode
+        if self._lfo1_params.key_sync.value:
+            p.lfo_settings.lfo_1_sync_mode = lfo_sync_mode.key_synced
+        else:
+            p.lfo_settings.lfo_1_sync_mode = lfo_sync_mode.free
+
+        # LFO2 Settings
+        # Speed Mode
+        if self._lfo2_params.type.string_value == 'bpm':
+            p.lfo_settings.lfo_2_speed_mode = lfo_speed_mode.bpm
+        elif self._lfo2_params.type.string_value == 'low':
+            p.lfo_settings.lfo_2_speed_mode = lfo_speed_mode.slow
+        elif self._lfo2_params.type.string_value == 'high':
+            p.lfo_settings.lfo_2_speed_mode = lfo_speed_mode.fast
+        elif self._lfo2_params.type.string_value == 'track':
+            p.lfo_settings.lfo_2_speed_mode = lfo_speed_mode.tracking
+
+        # Sync Mode
+        if self._lfo2_params.key_sync.value:
+            p.lfo_settings.lfo_2_sync_mode = lfo_sync_mode.key_synced
+        else:
+            p.lfo_settings.lfo_2_sync_mode = lfo_sync_mode.free
+
+        # Legato
+        p.legato = self._legato_parameter.value
+
+        # Voice Mode
+        if self._play_mode_parameter.string_value == 'polyphonic':
+            p.voice_mode = voice_mode.poly
+        elif self._play_mode_parameter.string_value == 'unison-6':
+            p.voice_mode = voice_mode.uni_6
+        elif self._play_mode_parameter.string_value == 'unison-4':
+            p.voice_mode = voice_mode.uni_4
+        elif self._play_mode_parameter.string_value == 'triphonic':
+            p.voice_mode = voice_mode.uni_3
+        elif self._play_mode_parameter.string_value == 'duophonic':
+            p.voice_mode = voice_mode.uni_2
+        elif self._play_mode_parameter.string_value == 'monophonic':
+            p.voice_mode = voice_mode.mono
+
+        # TODO: Implement Chords
+        # Chord Settings
+        p.chord_1.root = 0
+        p.chord_1.semi_1 = 0
+        p.chord_1.semi_2 = 0
+        p.chord_1.semi_3 = 0
+        p.chord_1.semi_4 = 0
+        p.chord_1.semi_5 = 0
+
+        p.chord_2.root = 0
+        p.chord_2.semi_1 = 0
+        p.chord_2.semi_2 = 0
+        p.chord_2.semi_3 = 0
+        p.chord_2.semi_4 = 0
+        p.chord_2.semi_5 = 0
+
+        p.chord_3.root = 0
+        p.chord_3.semi_1 = 0
+        p.chord_3.semi_2 = 0
+        p.chord_3.semi_3 = 0
+        p.chord_3.semi_4 = 0
+        p.chord_3.semi_5 = 0
+
+        p.chord_4.root = 0
+        p.chord_4.semi_1 = 0
+        p.chord_4.semi_2 = 0
+        p.chord_4.semi_3 = 0
+        p.chord_4.semi_4 = 0
+        p.chord_4.semi_5 = 0
+
+        p.chord_5.root = 0
+        p.chord_5.semi_1 = 0
+        p.chord_5.semi_2 = 0
+        p.chord_5.semi_3 = 0
+        p.chord_5.semi_4 = 0
+        p.chord_5.semi_5 = 0
+
+        p.chord_6.root = 0
+        p.chord_6.semi_1 = 0
+        p.chord_6.semi_2 = 0
+        p.chord_6.semi_3 = 0
+        p.chord_6.semi_4 = 0
+        p.chord_6.semi_5 = 0
+
+        p.chord_7.root = 0
+        p.chord_7.semi_1 = 0
+        p.chord_7.semi_2 = 0
+        p.chord_7.semi_3 = 0
+        p.chord_7.semi_4 = 0
+        p.chord_7.semi_5 = 0
+
+        p.chord_8.root = 0
+        p.chord_8.semi_1 = 0
+        p.chord_8.semi_2 = 0
+        p.chord_8.semi_3 = 0
+        p.chord_8.semi_4 = 0
+        p.chord_8.semi_5 = 0
+
+        # Extra LFO Parameters
+        # LFO 2 targeting LFO 1
+        p.extra_lfo_2.lfo_1_rate = self._lfo1_params.rate.mod.lfo2_float_value
+        p.extra_lfo_2.lfo_1_wave = self._lfo1_params.wave.mod.lfo2_float_value
+        p.extra_lfo_2.lfo_1_delay = self._lfo1_params.delay.mod.lfo2_float_value
+        p.extra_lfo_2.lfo_1_fade = self._lfo1_params.fade.mod.lfo2_float_value
+
+        # LFO 2 targeting itself
+        p.extra_lfo_2.lfo_2_rate = self._lfo2_params.rate.mod.lfo2_float_value
+        p.extra_lfo_2.lfo_2_wave = self._lfo2_params.wave.mod.lfo2_float_value
+        p.extra_lfo_2.lfo_2_delay = self._lfo2_params.delay.mod.lfo2_float_value
+        p.extra_lfo_2.lfo_2_fade = self._lfo2_params.fade.mod.lfo2_float_value
+
+        # "Extra Modulation Parameters",
+        # ie: Modulation Matrix Targeting LFO2
+        p.extra_mod_w.lfo_2_rate = self._lfo2_params.rate.mod.wheel_float_value
+        p.extra_mod_w.lfo_2_wave = self._lfo2_params.wave.mod.wheel_float_value
+        p.extra_mod_w.lfo_2_delay = self._lfo2_params.delay.mod.wheel_float_value
+        p.extra_mod_w.lfo_2_fade = self._lfo2_params.fade.mod.wheel_float_value
+
+        p.extra_velo.lfo_2_rate = self._lfo2_params.rate.mod.velocity_float_value
+        p.extra_velo.lfo_2_wave = self._lfo2_params.wave.mod.velocity_float_value
+        p.extra_velo.lfo_2_delay = self._lfo2_params.delay.mod.velocity_float_value
+        p.extra_velo.lfo_2_fade = self._lfo2_params.fade.mod.velocity_float_value
+
+        p.extra_after.lfo_2_rate = self._lfo2_params.rate.mod.aftertouch_float_value
+        p.extra_after.lfo_2_wave = self._lfo2_params.wave.mod.aftertouch_float_value
+        p.extra_after.lfo_2_delay = self._lfo2_params.delay.mod.aftertouch_float_value
+        p.extra_after.lfo_2_fade = self._lfo2_params.fade.mod.aftertouch_float_value
+
+        p.amp_level = self._amp_params.level.float_value
+
+        return p

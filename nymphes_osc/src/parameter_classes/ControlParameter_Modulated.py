@@ -87,6 +87,10 @@ class ControlParameter_Modulated:
             raise ValueError(f'value could not be converted to an int: {val}') from None
 
     @property
+    def float_value(self):
+        return float(self.value / 127.0)
+
+    @property
     def value_cc(self):
         return self._value_cc
 
@@ -224,6 +228,10 @@ class ControlParameter_Modulated:
                 raise ValueError(f'value could not be converted to an int: {value}') from None
 
         @property
+        def lfo2_float_value(self):
+            return float(self.lfo2 / 127.0)
+        
+        @property
         def wheel(self):
             return self._wheel_value
 
@@ -245,6 +253,10 @@ class ControlParameter_Modulated:
 
             except ValueError:
                 raise ValueError(f'value could not be converted to an int: {value}') from None
+
+        @property
+        def wheel_float_value(self):
+            return float(self.wheel / 127.0)
 
         @property
         def velocity(self):
@@ -270,6 +282,10 @@ class ControlParameter_Modulated:
                 raise ValueError(f'value could not be converted to an int: {value}') from None
 
         @property
+        def velocity_float_value(self):
+            return float(self.velocity / 127.0)
+        
+        @property
         def aftertouch(self):
             return self._aftertouch_value
 
@@ -291,6 +307,10 @@ class ControlParameter_Modulated:
 
             except ValueError:
                 raise ValueError(f'value could not be converted to an int: {value}') from None
+
+        @property
+        def aftertouch_float_value(self):
+            return float(self.aftertouch / 127.0)
 
         @property
         def mod_cc(self):

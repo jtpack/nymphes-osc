@@ -1,6 +1,0 @@
-mido
-python-osc
-python-rtmidi
-PyInstaller
-protobuf
-netifaces

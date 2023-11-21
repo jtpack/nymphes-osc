@@ -1,4 +1,4 @@
-from .ControlParameter_Modulated import ControlParameter_Modulated
+from nymphes_osc.src.parameter_classes.ControlParameter_Modulated import ControlParameter_Modulated
 
 
 class PitchParams:
