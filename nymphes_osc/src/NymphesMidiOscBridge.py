@@ -21,6 +21,7 @@ from nymphes_osc.src.parameter_classes.ControlParameter_Legato import ControlPar
 from nymphes_osc.src import sysex_handling
 from nymphes_osc.src.preset_pb2 import preset, lfo_speed_mode, lfo_sync_mode, voice_mode
 from pythonosc.osc_message_builder import OscMessageBuilder
+from pathlib import Path
 
 
 class NymphesMidiOscBridge:
@@ -985,6 +986,12 @@ class NymphesMidiOscBridge:
         """
         p, preset_import_type, preset_type, bank_name, preset_num = \
             sysex_handling.preset_from_sysex_data(midi_message.data)
+
+        # Save the preset as a file so we can examine it
+        filepath = Path('/Users/Jtpack2/curr_preset.preset')
+        sysex_handling.save_preset_file(p, filepath)
+
+        print(f'Stored preset as {filepath}')
 
         # Store a copy of the preset
         preset_key = (preset_type, bank_name, preset_num)
