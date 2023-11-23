@@ -6,3 +6,4 @@ dist/
 build/
 nymphes_osc/config.txt
 nymphes_osc.egg-info/
+scratch.py

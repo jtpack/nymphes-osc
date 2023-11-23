@@ -20,7 +20,8 @@ dependencies = [
     "python-osc",
     "python-rtmidi",
     "protobuf",
-    "netifaces"
+    "netifaces",
+    "zeroconf"
 ]
 requires-python = ">=3.9"
 

@@ -22,6 +22,8 @@ from nymphes_osc.src import sysex_handling
 from nymphes_osc.src.preset_pb2 import preset, lfo_speed_mode, lfo_sync_mode, voice_mode
 from pythonosc.osc_message_builder import OscMessageBuilder
 from pathlib import Path
+import socket
+from zeroconf import ServiceInfo, Zeroconf
 
 
 class NymphesMidiOscBridge:
@@ -41,6 +43,10 @@ class NymphesMidiOscBridge:
         #
         self._osc_server = None
         self._osc_server_thread = None
+
+        # mDNS Advertisement Objects
+        self._mdns_service_info = None
+        self._zeroconf = None
 
         self._dispatcher = Dispatcher()
 
@@ -176,8 +182,23 @@ class NymphesMidiOscBridge:
         self._osc_server = BlockingOSCUDPServer((self.in_host, self.in_port), self._dispatcher)
         self._osc_server_thread = threading.Thread(target=self._osc_server.serve_forever)
         self._osc_server_thread.start()
+
+        # Advertise OSC server using mDNS
+        self._mdns_service_info = ServiceInfo(
+            type_="_osc._udp.local.",
+            name="nymphes-osc._osc._udp.local.",
+            port=self.in_port,
+            weight=0,
+            priority=0,
+            properties={},
+            server="nymphes-osc.local."
+        )
+
+        self._zeroconf = Zeroconf()
+        self._zeroconf.register_service(info=self._mdns_service_info)
         
         self.send_status(f'Started OSC Server at {self.in_host}:{self.in_port}')
+        print(f'Advertising as {self._mdns_service_info.name}')
 
     def stop_osc_server(self):
         if self._osc_server is not None:
