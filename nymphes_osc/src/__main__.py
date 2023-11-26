@@ -9,7 +9,7 @@ def main():
     #
     # Get configuration from config file
     #
-    config_file_path = '../config.txt'
+    config_file_path = 'config.txt'
 
     # Create a configuration file if one doesn't exist
     if not Path(config_file_path).exists():
@@ -58,10 +58,7 @@ def create_new_config_file(filepath):
         'channel': 1
     }
     config['OSC'] = {
-        'in_host': 'localhost',
-        'in_port': 1237,
-        'out_host': '192.168.4.28',
-        'out_port': 1236
+        'in_port': 1237
     }
 
     # Write config file

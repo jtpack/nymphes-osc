@@ -1,0 +1,6 @@
+[MIDI]
+channel = 1
+
+[OSC]
+in_port = 1237
+
