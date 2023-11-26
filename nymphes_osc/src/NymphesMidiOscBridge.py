@@ -197,6 +197,7 @@ class NymphesMidiOscBridge:
         self._mdns_service_info = ServiceInfo(
             type_="_osc._udp.local.",
             name="nymphes-osc._osc._udp.local.",
+            addresses=[socket.inet_aton(self.in_host)],
             port=self.in_port,
             weight=0,
             priority=0,
@@ -208,7 +209,7 @@ class NymphesMidiOscBridge:
         self._zeroconf.register_service(info=self._mdns_service_info)
         
         self.send_status(f'Started OSC Server at {self.in_host}:{self.in_port}')
-        print(f'Advertising as {self._mdns_service_info.name}')
+        print(f'Advertising as {self._mdns_service_info.server}')
 
     def stop_osc_server(self):
         if self._osc_server is not None:
