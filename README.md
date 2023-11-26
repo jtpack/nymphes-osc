@@ -461,23 +461,42 @@
         - Type: String
         - Description: Filepath to save preset file to
 
-- ## OSC Host Handling
-  - ### Add an OSC Host or Change Port for Existing Host
-    - Address: /add_host
+- ## OSC Client Handling
+  - ### Add an OSC Client
+  - Address: /register_client
+  - Arguments:
+    - 0
+      - Type: Int
+      - Description: Port that host will be listening on
+  - Notes:
+    - The sender's IP address will be detected and used
+      
+    - Address: /register_client_with_ip_address
     - Arguments:
       - 0
         - Type: String
-        - Description: Host name or IP address of host
+        - Description: Client name or IP address of host
       - 1
         - Type: Int
         - Description: Port that host will be listening on
 
-  - ### Remove OSC Host
-    - Address: /remove_host
+  - ### Remove OSC Client
+    - Address: /unregister_client
+    - Arguments:
+      - 0
+        - Type: Int
+        - Description: Client port
+    - Notes:
+      - The ip address of the sender will be used
+    
+    - Address: /unregister_client_with_ip_address
     - Arguments:
       - 0
         - Type: String
-        - Description: Host name or IP address of host
+        - Description: Host name or IP address of client
+      - 1
+        - Type: Int
+        - Description: Client port
 
 - ## MIDI Controller Handling
   - ### Connect a MIDI controller (keyboard, sequencer, etc) input port by its name
@@ -548,25 +567,28 @@
         - Type: String
         - Description: Filepath of saved preset
 
-- ## OSC Host Handling
-  - ### OSC Host Added
-    - Description: An OSC host has just been added
-    - Address: /host_added
+- ## OSC Client Handling
+  - ### OSC Client Added
+    - Description: An OSC client has just been added
+    - Address: /client_registered
     - Arguments:
       - 0
         - Type: String
-        - Description: Host name or IP address of host
+        - Description: Host name or IP address of client
       - 1
         - Type: Int
         - Description: Port that host is listening on
 
-  - ### OSC Host Removed
-    - Description: An OSC host has just been removed
-    - Address: /host_removed
+  - ### OSC Client Removed
+    - Description: An OSC client has just been unregistered
+    - Address: /client_unregistered
     - Arguments:
       - 0
         - Type: String
-        - Description: Host name or IP address of host
+        - Description: Host name or IP address of client
+      - 1
+        - Type: Int
+        - Description: Port of client 
 
 - ## Miscellaneous Status Messages
   - ### General Status Update Message
