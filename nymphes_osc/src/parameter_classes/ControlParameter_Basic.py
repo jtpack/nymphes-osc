@@ -78,6 +78,9 @@ class ControlParameter_Basic:
             # Store the new value
             self._value = new_val
 
+            # Send an OSC message
+            self._osc_send_function(self.osc_address, self.value)
+
         except ValueError:
             raise ValueError(f'value could not be converted to an int: {val}') from None
 
@@ -102,8 +105,6 @@ class ControlParameter_Basic:
         return self._osc_address
 
     def on_osc_message(self, address, *args):
-        # print(f'{address}: {args[0]}')
-
         # Get the new value
         value = args[0]
 
@@ -123,8 +124,8 @@ class ControlParameter_Basic:
         # This is not a duplicate message, so handle it
         #
 
-        # Store the new value
-        self.value = value
+        # Update the protected variable so we don't trigger a new OSC message
+        self._value = value
 
         # Store the time
         self._last_osc_message_time = time.perf_counter()
@@ -160,19 +161,11 @@ class ControlParameter_Basic:
             # This is not a duplicate message, so handle it
             #
 
-            # Update our value
+            # Update our value and trigger OSC message
             self.value = midi_message.value
 
             # Store the time
             self._last_midi_message_time = time.perf_counter()
-
-            # Build an OSC message
-            msg = OscMessageBuilder(address=self.osc_address)
-            msg.add_arg(self.value)
-            msg = msg.build()
-
-            # Send it
-            self._osc_send_function(msg)
 
             return True
 

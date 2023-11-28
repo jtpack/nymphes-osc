@@ -92,19 +92,19 @@ class NymphesMidiOscBridge:
         self._non_nymphes_midi_output_port_names = []
 
         # Create the control parameter objects
-        self._oscillator_params = OscillatorParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
-        self._pitch_params = PitchParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
-        self._amp_params = AmpParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
-        self._mix_params = MixParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
-        self._lpf_params = LpfParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
-        self._hpf_params = HpfParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
-        self._pitch_filter_env_params = PitchFilterEnvParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
-        self._lfo1_params = Lfo1Params(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
-        self._lfo2_params = Lfo2Params(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
-        self._reverb_params = ReverbParams(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
-        self._play_mode_parameter = ControlParameter_PlayMode(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
-        self._mod_source_parameter = ControlParameter_ModSource(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
-        self._legato_parameter = ControlParameter_Legato(self._dispatcher, self._osc_send_function, self._nymphes_midi_cc_send_function)
+        self._oscillator_params = OscillatorParams(self._dispatcher, self.send_osc_to_all_clients, self._nymphes_midi_cc_send_function)
+        self._pitch_params = PitchParams(self._dispatcher, self.send_osc_to_all_clients, self._nymphes_midi_cc_send_function)
+        self._amp_params = AmpParams(self._dispatcher, self.send_osc_to_all_clients, self._nymphes_midi_cc_send_function)
+        self._mix_params = MixParams(self._dispatcher, self.send_osc_to_all_clients, self._nymphes_midi_cc_send_function)
+        self._lpf_params = LpfParams(self._dispatcher, self.send_osc_to_all_clients, self._nymphes_midi_cc_send_function)
+        self._hpf_params = HpfParams(self._dispatcher, self.send_osc_to_all_clients, self._nymphes_midi_cc_send_function)
+        self._pitch_filter_env_params = PitchFilterEnvParams(self._dispatcher, self.send_osc_to_all_clients, self._nymphes_midi_cc_send_function)
+        self._lfo1_params = Lfo1Params(self._dispatcher, self.send_osc_to_all_clients, self._nymphes_midi_cc_send_function)
+        self._lfo2_params = Lfo2Params(self._dispatcher, self.send_osc_to_all_clients, self._nymphes_midi_cc_send_function)
+        self._reverb_params = ReverbParams(self._dispatcher, self.send_osc_to_all_clients, self._nymphes_midi_cc_send_function)
+        self._play_mode_parameter = ControlParameter_PlayMode(self._dispatcher, self.send_osc_to_all_clients, self._nymphes_midi_cc_send_function)
+        self._mod_source_parameter = ControlParameter_ModSource(self._dispatcher, self.send_osc_to_all_clients, self._nymphes_midi_cc_send_function)
+        self._legato_parameter = ControlParameter_Legato(self._dispatcher, self.send_osc_to_all_clients, self._nymphes_midi_cc_send_function)
 
         # Register for OSC messages not associated with our control parameter objects
         self._dispatcher.map('/mod_source', self._on_osc_message_mod_source)
@@ -320,21 +320,15 @@ class NymphesMidiOscBridge:
         """
         Send a list of detected non-Nymphes MIDI input port names to all OSC clients.
         """
-        msg = OscMessageBuilder(address='/detected_midi_input_ports')
-        for port_name in self._non_nymphes_midi_input_port_names:
-            msg.add_arg(port_name)
-        msg = msg.build()
-        self._osc_send_function(msg)
+        self.send_osc_to_all_clients('/detected_midi_input_ports',
+                                     [name for name in self._non_nymphes_midi_input_port_names])
         
     def send_non_nymphes_midi_output_port_names(self):
         """
         Send a list of detected non-Nymphes MIDI output port names to all OSC clients.
         """
-        msg = OscMessageBuilder(address='/detected_midi_output_ports')
-        for port_name in self._non_nymphes_midi_output_port_names:
-            msg.add_arg(port_name)
-        msg = msg.build()
-        self._osc_send_function(msg)
+        self.send_osc_to_all_clients('/detected_midi_output_ports',
+                                     [name for name in self._non_nymphes_midi_output_port_names])
 
     def unregister_client(self, ip_address_string, port):
         """
@@ -384,10 +378,7 @@ class NymphesMidiOscBridge:
         self.midi_controller_input_connected = True
 
         # Notify OSC clients that the MIDI controller input has been connected
-        msg = OscMessageBuilder(address='/midi_controller_input_connected')
-        msg.add_arg(port_name)
-        msg = msg.build()
-        self._osc_send_function(msg)
+        self.send_osc_to_all_clients('/midi_controller_input_connected', port_name)
 
         # Send a status update
         self.send_status(f'Connected midi controller input: {port_name}')
@@ -413,10 +404,7 @@ class NymphesMidiOscBridge:
         self.midi_controller_output_connected = True
 
         # Notify OSC clients that the MIDI controller output has been connected
-        msg = OscMessageBuilder(address='/midi_controller_output_connected')
-        msg.add_arg(port_name)
-        msg = msg.build()
-        self._osc_send_function(msg)
+        self.send_osc_to_all_clients('/midi_controller_output_connected', port_name)
 
         # Send a status update
         self.send_status(f'Connected midi controller output: {port_name}')
@@ -429,9 +417,7 @@ class NymphesMidiOscBridge:
             self.midi_controller_input_connected = False
 
             # Notify OSC clients that the MIDI controller input has disconnected
-            msg = OscMessageBuilder(address='/midi_controller_input_disconnected')
-            msg = msg.build()
-            self._osc_send_function(msg)
+            self.send_osc_to_all_clients('/midi_controller_input_disconnected', midi_controller_port_name)
 
             # Send a status update
             self.send_status(f'Disconnected from midi controller input: {midi_controller_port_name}')
@@ -444,9 +430,7 @@ class NymphesMidiOscBridge:
             self.midi_controller_output_connected = False
 
             # Notify OSC clients that the MIDI controller output has disconnected
-            msg = OscMessageBuilder(address='/midi_controller_output_disconnected')
-            msg = msg.build()
-            self._osc_send_function(msg)
+            self.send_osc_to_all_clients('/midi_controller_output_disconnected', midi_controller_port_name)
 
             # Send a status update
             self.send_status(f'Disconnected from midi controller output: {midi_controller_port_name}')
@@ -504,10 +488,7 @@ class NymphesMidiOscBridge:
         self.send_status(f'loaded preset file: {filepath}')
 
         # Send out OSC notification
-        msg = OscMessageBuilder(address='/loaded_preset_file')
-        msg.add_arg(str(filepath))
-        msg = msg.build()
-        self._osc_send_function(msg)
+        self.send_osc_to_all_clients('/loaded_preset_file', str(filepath))
 
     def save_preset_file(self, filepath):
         # Get the current settings as a preset object
@@ -520,10 +501,7 @@ class NymphesMidiOscBridge:
         self.send_status(f'saved preset file: {filepath}')
 
         # Send out OSC notification
-        msg = OscMessageBuilder(address='/saved_preset_file')
-        msg.add_arg(str(filepath))
-        msg = msg.build()
-        self._osc_send_function(msg)
+        self.send_osc_to_all_clients('/saved_preset_file', str(filepath))
 
     #
     # OSC Methods
@@ -546,25 +524,32 @@ class NymphesMidiOscBridge:
         Sends a string status message to OSC clients, using the address /status.
         Also prints the message to the console.
         """
-        # Make sure message is a string
-        if not isinstance(message, str):
-            raise Exception(f'message is not a string ({message})')
+        # Make sure the message is a string
+        message = str(message)
 
-        msg = OscMessageBuilder(address='/status')
-        msg.add_arg(str(message))
-        msg = msg.build()
-        self._osc_send_function(msg)
+        # Send to all clients
+        self.send_osc_to_all_clients('/status', message)
 
+        # Print to the console
         print(message)
 
-    def _osc_send_function(self, osc_message):
+    def send_osc_to_all_clients(self, address, *args):
         """
-        A function used to send an OSC message.
-        Every member object in NymphesOscController is given a reference
-        to this function so it can send OSC messages.
+        Creates an OSC message from the supplied address and arguments
+        and sends it to all clients.
+        :param address: The osc address including the forward slash ie: /register_host
+        :param args: A variable number of arguments, separated by commas.
+        :return:
         """
+        msg = OscMessageBuilder(address=address)
+        for arg in args:
+            msg.add_arg(arg)
+        msg = msg.build()
+
         for osc_client in self._osc_clients.values():
-            osc_client.send(osc_message)
+            osc_client.send(msg)
+
+        print(f'send_osc_to_clients: {address}, {[str(arg) + " " for arg in args]}')
 
     def _on_osc_message_register_client(self, client_address, address, *args):
         """
@@ -769,9 +754,7 @@ class NymphesMidiOscBridge:
                 self.nymphes_connected = True
 
                 # Notify OSC clients
-                msg = OscMessageBuilder(address='/nymphes_connected')
-                msg = msg.build()
-                self._osc_send_function(msg)
+                self.send_osc_to_all_clients('/nymphes_connected')
 
                 # Send status update
                 self.send_status(f'Connected to Nymphes (MIDI Port: {self._nymphes_midi_port.name})')
@@ -792,9 +775,7 @@ class NymphesMidiOscBridge:
                 self.nymphes_connected = False
 
                 # Notify OSC clients
-                msg = OscMessageBuilder(address='/nymphes_disconnected')
-                msg = msg.build()
-                self._osc_send_function(msg)
+                self.send_osc_to_all_clients('/nymphes_disconnected')
 
                 # Send status update
                 self.send_status(f'Disconnected from Nymphes (MIDI Port: {old_nymphes_port_name})')
@@ -837,10 +818,7 @@ class NymphesMidiOscBridge:
                         self._non_nymphes_midi_input_port_names.remove(port_name)
 
                         # Notify OSC clients that a port has disconnected
-                        msg = OscMessageBuilder(address='/midi_input_port_no_longer_detected')
-                        msg.add_arg(port_name)
-                        msg = msg.build()
-                        self._osc_send_function(msg)
+                        self.send_osc_to_all_clients('/midi_input_port_no_longer_detected', port_name)
 
                         # Send status update
                         self.send_status(f'MIDI input port no longer detected: {port_name}')
@@ -859,10 +837,7 @@ class NymphesMidiOscBridge:
                             self.send_status(f'MIDI controller input disconnected ({port_name}')
 
                             # Notify OSC clients that the MIDI controller has disconnected
-                            msg = OscMessageBuilder(address='/midi_controller_input_disconnected')
-                            msg.add_arg(port_name)
-                            msg = msg.build()
-                            self._osc_send_function(msg)
+                            self.send_osc_to_all_clients('/midi_controller_input_disconnected', port_name)
 
                 # Handle newly-connected MIDI ports
                 for port_name in other_midi_port_names:
@@ -871,10 +846,7 @@ class NymphesMidiOscBridge:
                         self._non_nymphes_midi_input_port_names.append(port_name)
 
                         # Notify OSC clients that a new MIDI port has been detected
-                        msg = OscMessageBuilder(address='/midi_input_port_detected')
-                        msg.add_arg(port_name)
-                        msg = msg.build()
-                        self._osc_send_function(msg)
+                        self.send_osc_to_all_clients('/midi_input_port_detected', port_name)
 
                         # Send status update
                         self.send_status(f'MIDI input port detected: {port_name}')
@@ -920,10 +892,7 @@ class NymphesMidiOscBridge:
                         self._non_nymphes_midi_output_port_names.remove(port_name)
 
                         # Notify OSC clients that a port has disconnected
-                        msg = OscMessageBuilder(address='/midi_output_port_no_longer_detected')
-                        msg.add_arg(port_name)
-                        msg = msg.build()
-                        self._osc_send_function(msg)
+                        self.send_osc_to_all_clients('/midi_output_port_no_longer_detected', port_name)
 
                         # Send status update
                         self.send_status(f'MIDI output port no longer detected: {port_name}')
@@ -942,10 +911,7 @@ class NymphesMidiOscBridge:
                             self.send_status(f'MIDI controller output disconnected ({port_name}')
 
                             # Notify OSC clients that the MIDI controller has disconnected
-                            msg = OscMessageBuilder(address='/midi_controller_output_disconnected')
-                            msg.add_arg(port_name)
-                            msg = msg.build()
-                            self._osc_send_function(msg)
+                            self.send_osc_to_all_clients('/midi_controller_output_disconnected', port_name)
 
                 # Handle newly-connected MIDI ports
                 for port_name in other_midi_port_names:
@@ -954,10 +920,7 @@ class NymphesMidiOscBridge:
                         self._non_nymphes_midi_output_port_names.append(port_name)
 
                         # Notify OSC clients that a new MIDI port has been detected
-                        msg = OscMessageBuilder(address='/midi_output_port_detected')
-                        msg.add_arg(port_name)
-                        msg = msg.build()
-                        self._osc_send_function(msg)
+                        self.send_osc_to_all_clients('/midi_output_port_detected', port_name)
 
                         # Send status update
                         self.send_status(f'MIDI output port detected: {port_name}')
@@ -1038,17 +1001,18 @@ class NymphesMidiOscBridge:
                 if self.legato.on_midi_message(midi_message):
                     return
 
-                print(f'Unhandled MIDI CC message: CC {midi_message.control}, Value {midi_message.value}')
+                print(f'Unhandled MIDI CC message from Nymphes: Ch: {midi_message.channel}, CC {midi_message.control}, Value {midi_message.value}')
 
         elif midi_message.type == 'sysex':
             self._on_nymphes_sysex_message(midi_message)
 
-        # elif midi_message.type == 'program_change' and midi_message.channel == self.midi_channel:
-        #     self._on_midi_message_program_change(midi_message.program)
+        elif midi_message.type == 'program_change' and midi_message.channel == self.midi_channel:
+            # self._on_midi_message_program_change(midi_message.program)
+            pass
 
         else:
             # Some other unhandled midi message was received
-            self.send_status(f'Unhandled MIDI Message Received: {midi_message}')
+            self.send_status(f'Unhandled MIDI message received from Nymphes on channel {midi_message.channel}: {midi_message}')
 
     def _on_nymphes_sysex_message(self, midi_message):
         """
@@ -1080,12 +1044,7 @@ class NymphesMidiOscBridge:
         self.send_status(status_message)
 
         # Also send a specific loaded_preset OSC message
-        msg = OscMessageBuilder(address='/loaded_preset')
-        msg.add_arg(bank_name)
-        msg.add_arg(int(preset_num))
-        msg.add_arg(preset_type)
-        msg = msg.build()
-        self._osc_send_function(msg)
+        self.send_osc_to_all_clients('/loaded_preset', bank_name, int(preset_num), preset_type)
 
     def _on_midi_controller_message(self, midi_message):
         """
@@ -1140,7 +1099,7 @@ class NymphesMidiOscBridge:
                 if self.legato.on_midi_message(midi_message):
                     return
 
-                print(f'Unhandled MIDI CC message: CC {midi_message.control}, Value {midi_message.value}')
+                print(f'Unhandled MIDI CC message from MIDI Controller on channel {midi_message.channel}: CC {midi_message.control}, Value {midi_message.value}')
 
         elif midi_message.type == 'aftertouch' and midi_message.channel == self.midi_channel:
             self._on_midi_message_aftertouch(midi_message.value)
@@ -1163,28 +1122,19 @@ class NymphesMidiOscBridge:
         self.reverb.set_mod_source(mod_source)
 
         # Send to OSC clients
-        msg = OscMessageBuilder(address='/mod_source')
-        msg.add_arg(int(mod_source))
-        msg = msg.build()
-        self._osc_send_function(msg)
+        self.send_osc_to_all_clients('/mod_source', int(mod_source))
 
     def _on_midi_message_mod_wheel(self, mod_wheel_value):
         """
         A mod wheel MIDI message has been received from the MIDI controller.
         """
-        msg = OscMessageBuilder(address='/mod_wheel')
-        msg.add_arg(mod_wheel_value)
-        msg = msg.build()
-        self._osc_send_function(msg)
+        self.send_osc_to_all_clients('/mod_wheel', mod_wheel_value)
             
     def _on_midi_message_aftertouch(self, aftertouch_value):
         """
         An aftertouch MIDI message has been received from the MIDI controller.
         """
-        msg = OscMessageBuilder(address='/aftertouch')
-        msg.add_arg(aftertouch_value)
-        msg = msg.build()
-        self._osc_send_function(msg)
+        self.send_osc_to_all_clients('/aftertouch', aftertouch_value)
 
     # def _on_midi_message_program_change(self, program_num):
     #     """

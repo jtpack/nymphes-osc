@@ -18,7 +18,7 @@ class ControlParameter_Modulated:
     def __init__(self, dispatcher, osc_send_function, midi_send_function, base_osc_address, value_cc, mod_cc):
         """
         - dispatcher is an OSC dispatcher that we use to map incoming OSC messages with our OSC addresses.
-        - osc_send_function is a function that we can call to send an outgoing OSC message (signature: f(osc_message))
+        - osc_send_function is a function that we can call to send an outgoing OSC message (signature: f(address, *args))
         - midi_send_function is a function that we can call to send an outgoing MIDI message (signature: f(midi_cc, value))
         - base_osc_address is a string. THe full OSC address for each of the values is built with the base OSC address
         as a starting point. Ex: /base_osc_address/value, /base_osc_address/mod/lfo2, etc
@@ -82,6 +82,9 @@ class ControlParameter_Modulated:
 
             # Store the new value
             self._value = new_val
+
+            # Send an OSC message
+            self._osc_send_function(self._base_osc_address + "/value", self.value)
 
         except ValueError:
             raise ValueError(f'value could not be converted to an int: {val}') from None
@@ -152,20 +155,11 @@ class ControlParameter_Modulated:
             # This is not a duplicate message, so handle it
             #
 
-            # Update our value
+            # Update our value and trigger OSC message
             self.value = midi_message.value
 
             # Store the time
             self._last_midi_message_time = time.perf_counter()
-
-            # Build an OSC message
-            osc_address = self._base_osc_address + "/value"
-            msg = OscMessageBuilder(address=osc_address)
-            msg.add_arg(self.value)
-            msg = msg.build()
-
-            # Send it
-            self._osc_send_function(msg)
 
             return True
         else:
@@ -222,7 +216,7 @@ class ControlParameter_Modulated:
                 self._lfo2_value = new_val
 
                 # Send out an OSC message with the new value
-                self._osc_send_function.send_message(self.base_osc_address + '/mod/lfo2', self._lfo2_value)
+                self._osc_send_function(self.base_osc_address + '/mod/lfo2', self.lfo2)
 
             except ValueError:
                 raise ValueError(f'value could not be converted to an int: {value}') from None
@@ -249,7 +243,7 @@ class ControlParameter_Modulated:
                 self._wheel_value = new_val
 
                 # Send out an OSC message with the new value
-                self._osc_send_function.send_message(self.base_osc_address + '/mod/wheel', self._wheel_value)
+                self._osc_send_function(self.base_osc_address + '/mod/wheel', self.wheel)
 
             except ValueError:
                 raise ValueError(f'value could not be converted to an int: {value}') from None
@@ -276,7 +270,7 @@ class ControlParameter_Modulated:
                 self._velocity_value = new_val
 
                 # Send out an OSC message with the new value
-                self._osc_send_function.send_message(self.base_osc_address + '/mod/velocity', self._velocity_value)
+                self._osc_send_function(self.base_osc_address + '/mod/velocity', self.velocity)
 
             except ValueError:
                 raise ValueError(f'value could not be converted to an int: {value}') from None
@@ -303,7 +297,7 @@ class ControlParameter_Modulated:
                 self._aftertouch_value = new_val
 
                 # Send out an OSC message with the new value
-                self._osc_send_function.send_message(self.base_osc_address + '/mod/aftertouch', self._aftertouch_value)
+                self._osc_send_function(self.base_osc_address + '/mod/aftertouch', self.aftertouch)
 
             except ValueError:
                 raise ValueError(f'value could not be converted to an int: {value}') from None
@@ -318,47 +312,51 @@ class ControlParameter_Modulated:
 
         def on_osc_lfo2_message(self, address, *args):
             val = args[0]
+
+            # Update the protected variable so we don't trigger a new osc message
             self._lfo2_value = val
-            # print(f'{address}: {val}')
 
             # Send a MIDI message to the Nymphes to set the mod source to LFO2
             self._midi_send_function(midi_cc=30, value=0)
 
             # Send a MIDI message with the LFO2 modulation amount
-            self._midi_send_function(midi_cc=self.mod_cc, value=self._lfo2_value)
+            self._midi_send_function(midi_cc=self.mod_cc, value=self.lfo2)
 
         def on_osc_wheel_message(self, address, *args):
             val = args[0]
+
+            # Update the protected variable so we don't trigger a new OSC message
             self._wheel_value = val
-            # print(f'{address}: {val}')
 
             # Send a MIDI message to the Nymphes to set the mod source to Wheel
             self._midi_send_function(midi_cc=30, value=1)
 
             # Send a MIDI message with the LFO2 modulation amount
-            self._midi_send_function(midi_cc=self.mod_cc, value=self._wheel_value)
+            self._midi_send_function(midi_cc=self.mod_cc, value=self.wheel)
 
         def on_osc_velocity_message(self, address, *args):
             val = args[0]
+
+            # Update the protected variable so we don't trigger an OSC message
             self._velocity_value = val
-            # print(f'{address}: {val}')
 
             # Send a MIDI message to the Nymphes to set the mod source to Velocity
             self._midi_send_function(midi_cc=30, value=2)
 
             # Send a MIDI message with the Velocity modulation amount
-            self._midi_send_function(midi_cc=self.mod_cc, value=self._velocity_value)
+            self._midi_send_function(midi_cc=self.mod_cc, value=self.velocity)
 
         def on_osc_aftertouch_message(self, address, *args):
             val = args[0]
+
+            # Update the protected variable so we don't trigger an OSC message
             self._aftertouch_value = val
-            # print(f'{address}: {val}')
 
             # Send a MIDI message to the Nymphes to set the mod source to Aftertouch
             self._midi_send_function(midi_cc=30, value=3)
 
             # Send a MIDI message with the Aftertouch modulation amount
-            self._midi_send_function(midi_cc=self.mod_cc, value=self._aftertouch_value)
+            self._midi_send_function(midi_cc=self.mod_cc, value=self.aftertouch)
             
         def on_midi_message(self, midi_message):
             # Determine whether we should respond to the MIDI message
@@ -369,52 +367,20 @@ class ControlParameter_Modulated:
 
                 # Set the correct amount based on the current modulation source
                 if self._curr_mod_source == 0:
-                    # Update the modulation amount
-                    self._lfo2_value = midi_message.value
-
-                    # Build an OSC message
-                    msg = OscMessageBuilder(address=self.base_osc_address + "/mod/lfo2")
-                    msg.add_arg(self._lfo2_value)
-                    msg = msg.build()
-
-                    # Send it
-                    self._osc_send_function(msg)
+                    # Update the modulation amount and trigger an OSC message
+                    self.lfo2 = midi_message.value
 
                 elif self._curr_mod_source == 1:
-                    # Update the modulation amount
-                    self._wheel_value = midi_message.value
-
-                    # Build an OSC message
-                    msg = OscMessageBuilder(address=self.base_osc_address + "/mod/wheel")
-                    msg.add_arg(self._wheel_value)
-                    msg = msg.build()
-
-                    # Send it
-                    self._osc_send_function(msg)
+                    # Update the modulation amount and trigger an OSC message
+                    self.wheel = midi_message.value
 
                 elif self._curr_mod_source == 2:
-                    # Update the modulation amount
-                    self._velocity_value = midi_message.value
-
-                    # Build an OSC message
-                    msg = OscMessageBuilder(address=self.base_osc_address + "/mod/velocity")
-                    msg.add_arg(self._velocity_value)
-                    msg = msg.build()
-
-                    # Send it
-                    self._osc_send_function(msg)
+                    # Update the modulation amount and trigger an OSC message
+                    self.velocity = midi_message.value
 
                 elif self._curr_mod_source == 3:
-                    # Update the modulation amount
-                    self._aftertouch_value = midi_message.value
-
-                    # Build an OSC message
-                    msg = OscMessageBuilder(address=self.base_osc_address + "/mod/aftertouch")
-                    msg.add_arg(self._aftertouch_value)
-                    msg = msg.build()
-
-                    # Send it
-                    self._osc_send_function(msg)
+                    # Update the modulation amount and trigger an OSC message
+                    self.aftertouch = midi_message.value
 
                 return True
 
