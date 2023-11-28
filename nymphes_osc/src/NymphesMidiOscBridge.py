@@ -1,7 +1,11 @@
+import threading
+import socket
+from zeroconf import ServiceInfo, Zeroconf
+from pathlib import Path
 from pythonosc.udp_client import SimpleUDPClient
 from pythonosc.dispatcher import Dispatcher
 from pythonosc.osc_server import BlockingOSCUDPServer
-import threading
+from pythonosc.osc_message_builder import OscMessageBuilder
 import mido
 import mido.backends.rtmidi
 from rtmidi import InvalidPortError
@@ -20,16 +24,12 @@ from nymphes_osc.src.parameter_classes.ControlParameter_ModSource import Control
 from nymphes_osc.src.parameter_classes.ControlParameter_Legato import ControlParameter_Legato
 from nymphes_osc.src import sysex_handling
 from nymphes_osc.src.preset_pb2 import preset, lfo_speed_mode, lfo_sync_mode, voice_mode
-from pythonosc.osc_message_builder import OscMessageBuilder
-from pathlib import Path
-import socket
-from zeroconf import ServiceInfo, Zeroconf
 
 
 class NymphesMidiOscBridge:
     """
-    A class used for OSC control of all of the control parameters of the Dreadbox Nymphes synthesizer.
-    We communicate with a Pure Data patch via OSC. The patch communicates with the Nymphes via MIDI.
+    An OSC server that handles MIDI communication with the Dreadbox Nymphes synthesizer.
+    Enables OSC clients to control all aspects of the Nymphes' MIDI-controllable functionality.
     """
 
     def __init__(self, midi_channel, osc_in_host, osc_in_port):
