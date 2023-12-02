@@ -512,7 +512,7 @@ class NymphesMidiOscBridge:
         for osc_client in self._osc_clients_dict.values():
             osc_client.send(msg)
 
-        print(f'send_osc_to_clients: {address}, {[str(arg) + " " for arg in args]}')
+        #print(f'send_osc_to_clients: {address}, {[str(arg) + " " for arg in args]}')
 
     #
     # OSC Message Handling Methods
