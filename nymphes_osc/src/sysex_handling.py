@@ -457,35 +457,40 @@ def load_preset_file(file_path):
     text_format.Parse(file_text, p)
     return p
 
-def sysex_data_from_preset_object(preset_object, preset_import_type, user_or_factory, bank_number, preset_number):
+def sysex_data_from_preset_object(preset_object, preset_import_type, preset_type, bank_name, preset_number):
     """
     Generates sysex data that can be used to create a sysex MIDI message to send a preset
     to the Nymphes.
     Arguments:
         preset_object: a preset object
-        preset_import_type (int) 0: non persistent preset load, 1: persistent preset import
-        user_or_factory (int) 0: user preset, 1: factory preset
-        bank_number (int): 1 to 7
+        preset_import_type (str) ['non-persistent', 'persistent']
+        preset_type (str) ['user', 'factory']
+        bank_name (str): ['A', 'B', 'C', 'D', 'E', 'F', 'G']
         preset_number (int): 1 to 7
 
     Returns: A list of bytes
     """
+    import_types = ['non-persistent', 'persistent']
+    preset_types = ['user', 'factory']
+    bank_names = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+    preset_nums = [1, 2, 3, 4, 5, 6, 7]
+
     # Validate arguments
     #
     if preset_object is None or not isinstance(preset_object, preset):
         raise Exception(f'preset_object invalid: {preset_object}')
 
-    if preset_import_type not in [0, 1]:
-        raise Exception(f'preset_import_type invalid (should be 0 or 1): {preset_import_type}')
+    if preset_import_type not in import_types:
+        raise Exception(f'preset_import_type invalid: {preset_import_type}')
 
-    if user_or_factory not in [0, 1]:
-        raise Exception(f'user_or_factory invalid (should be 0 or 1): {user_or_factory}')
+    if preset_type not in preset_types:
+        raise Exception(f'preset_type invalid: {preset_type}')
 
-    if bank_number not in [1, 2, 3, 4, 5, 6, 7]:
-        raise Exception(f'bank_number invalid (should be 1-7): {bank_number}')
+    if bank_name not in bank_names:
+        raise Exception(f'bank_name invalid (should be between "A" and "G"): {bank_name}')
     
-    if preset_number not in [1, 2, 3, 4, 5, 6, 7]:
-        raise Exception(f'preset_number invalid (should be 1-7): {preset_number}')
+    if preset_number not in preset_nums:
+        raise Exception(f'preset_number invalid (should be between 1 and 7): {preset_number}')
 
     sysex_data = []
 
@@ -501,17 +506,19 @@ def sysex_data_from_preset_object(preset_object, preset_import_type, user_or_fac
     # Preset Import Type
     # 0: Non-persistent preset load
     # 1: Persistent preset import
-    sysex_data.append(preset_import_type)
+    sysex_data.append(import_types.index(preset_import_type))
 
     # User or Factory Preset Type
     # 0: User
     # 1: Factory
-    sysex_data.append(user_or_factory)
+    sysex_data.append(preset_types.index(preset_type))
 
     # Bank Number
-    sysex_data.append(bank_number)
+    # An int between 1 and 7
+    sysex_data.append(bank_names.index(bank_name) + 1)
 
     # Preset Number
+    # An int between 1 and 7
     sysex_data.append(preset_number)
 
     # Serialize the preset_object to a list of protobuf bytes

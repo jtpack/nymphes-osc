@@ -150,7 +150,7 @@ class NymphesMidiOscBridge:
         self._dispatcher.map('/disconnect_midi_controller_input', self._on_osc_message_disconnect_midi_controller_input)
         self._dispatcher.map('/connect_midi_controller_output', self._on_osc_message_connect_midi_controller_output)
         self._dispatcher.map('/disconnect_midi_controller_output', self._on_osc_message_disconnect_midi_controller_output)
-
+        self._dispatcher.map('/pitch_filter_eg_sustain', self._on_osc_message_pitch_filter_eg_sustain)
         # Start the OSC Server
         self._start_osc_server()
 
@@ -370,25 +370,43 @@ class NymphesMidiOscBridge:
         self._nymphes_midi_program_change_send_function(
             program=(bank_names.index(bank_name) * 7) + preset_nums.index(preset_num))
 
+    def send_preset_to_nymphes(self, preset_object, preset_import_type, preset_type, bank_name, preset_number):
+        """
+        Send the supplied preset_object to Nymphes.
+
+        Arguments:
+        preset_object: a preset object
+        preset_import_type (str) ['non-persistent', 'persistent']
+        preset_type (str) ['user', 'factory']
+        bank_name (str): ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+        preset_number (int): 1 to 7
+
+        Returns: nothing
+        """
+
+        if self.nymphes_connected:
+            # Generate a list of bytes in the MIDI SYSEX format used by Nymphes
+            # for the preset_object
+            sysex_data = sysex_handling.sysex_data_from_preset_object(preset_object,
+                                                                      preset_import_type,
+                                                                      preset_type,
+                                                                      bank_name,
+                                                                      preset_number)
+
+            # Create a mido MIDI SYSEX message from it
+            msg = mido.Message('sysex', data=sysex_data)
+            self._nymphes_midi_port.send(msg)
+
     def load_preset_file(self, filepath):
         # Load the preset file into a preset object
         preset_object = sysex_handling.load_preset_file(filepath)
 
-        # Send it via sysex to the Nymphes
-        #
-        # Create MIDI sysex data from it
-        sysex_data = sysex_handling.sysex_data_from_preset_object(preset_object=preset_object,
-                                                                  preset_import_type=0,
-                                                                  user_or_factory=0,
-                                                                  bank_number=5,
-                                                                  preset_number=2)
-
-        # Create a sysex message
-        msg = mido.Message('sysex', data=sysex_data)
-
-        if self.nymphes_connected:
-            self._nymphes_midi_port.send(msg)
-            self._send_status_to_all_clients('Sent sysex message')
+        # Send it via SYSEX to Nymphes
+        self.send_preset_to_nymphes(preset_object=preset_object,
+                                    preset_import_type='non-persistent',
+                                    preset_type='user',
+                                    bank_name='A',
+                                    preset_number=1)
 
         # Update our OSC clients
         #
@@ -672,6 +690,30 @@ class NymphesMidiOscBridge:
 
             # Send the message
             self._nymphes_midi_port.send(msg)
+
+    def _on_osc_message_pitch_filter_eg_sustain(self, address, *args):
+        """
+        This is a test method
+        """
+        val = args[0]
+
+        # Update the current preset
+        if self.curr_nymphes_preset_dict_key is not None:
+            p = self.nymphes_presets_dict[self.curr_nymphes_preset_dict_key]
+
+            # Update the pitch-filter env's sustain
+            val_int = round(p.main.s1 / (1.0 / 1023.0), 0)
+            if val != val_int:
+                print(f'val: {val}')
+                p.main.s1 = float(val) / 1023.0
+
+                # Send the preset to the Nymphes
+                self.send_preset_to_nymphes(preset_object=p,
+                                            preset_import_type='non-persistent',
+                                            preset_type='user',
+                                            bank_name='A',
+                                            preset_number=1)
+
 
     #
     # MIDI Methods
