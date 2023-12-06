@@ -66,8 +66,8 @@ class NymphesMidiOscBridge:
 
         # Timer used for detecting MIDI ports
         #
-        self.midi_port_detect_timer_interval_sec = 0.5
-        self._midi_port_detect_timer = threading.Timer(self.midi_port_detect_timer_interval_sec, self._detect_all_midi_ports)
+        self._midi_port_detect_timer_interval_sec = 0.5
+        self._midi_port_detect_timer = threading.Timer(self._midi_port_detect_timer_interval_sec, self._detect_all_midi_ports)
 
         # Type of the Currently-Loaded Nymphes Preset
         # Possible values: 'user' or 'factory'
@@ -151,6 +151,8 @@ class NymphesMidiOscBridge:
         self._dispatcher.map('/connect_midi_controller_output', self._on_osc_message_connect_midi_controller_output)
         self._dispatcher.map('/disconnect_midi_controller_output', self._on_osc_message_disconnect_midi_controller_output)
         self._dispatcher.map('/pitch_filter_eg_sustain', self._on_osc_message_pitch_filter_eg_sustain)
+        self._dispatcher.map('/request_sysex_dump', self._on_osc_message_request_sysex_dump)
+
         # Start the OSC Server
         self._start_osc_server()
 
@@ -363,7 +365,7 @@ class NymphesMidiOscBridge:
             raise Exception(f'Invalid preset_num: {preset_num}')
 
         # Send a MIDI bank select message to let the Nymphes
-        # know whethr we will be loading a user or factory preset
+        # know whether we will be loading a user or factory preset
         self._nymphes_midi_cc_send_function(midi_cc=0, value=preset_types.index(preset_type))
 
         # Send a MIDI program change message to load the preset
@@ -714,6 +716,19 @@ class NymphesMidiOscBridge:
                                             bank_name='A',
                                             preset_number=1)
 
+    def _on_osc_message_request_sysex_dump(self, address, *args):
+        """
+        Request a full SYSEX dump of all presets from Nymphes.
+        """
+
+        if self.nymphes_connected:
+            # Create a dump request message
+            msg = mido.Message('sysex', data=[0x00, 0x21, 0x35, 0x00, 0x06, 0x02])
+
+            # Send the message
+            self._nymphes_midi_port.send(msg)
+
+            self.print('Sent dump request to Nymphes')
 
     #
     # MIDI Methods
@@ -729,7 +744,7 @@ class NymphesMidiOscBridge:
         self._detect_non_nymphes_midi_output_ports()
 
         # Schedule the next run of this function
-        self._midi_port_detect_timer = threading.Timer(self.midi_port_detect_timer_interval_sec, self._detect_all_midi_ports)
+        self._midi_port_detect_timer = threading.Timer(self._midi_port_detect_timer_interval_sec, self._detect_all_midi_ports)
         self._midi_port_detect_timer.start()
 
     def _detect_nymphes_midi_io_port(self):
