@@ -41,8 +41,8 @@ def main():
     # Stay running until manually killed
     #
     while True:
-        nymphes._receive_midi_messages()
-        time.sleep(0.001)
+        nymphes.update()
+        time.sleep(0.0001)
 
 
 def create_new_config_file(filepath):

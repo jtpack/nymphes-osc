@@ -7,3 +7,4 @@ build/
 nymphes_osc/config.txt
 nymphes_osc.egg-info/
 scratch.py
+curr_preset.txt
