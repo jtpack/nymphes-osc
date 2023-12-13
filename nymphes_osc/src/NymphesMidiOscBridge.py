@@ -24,6 +24,7 @@ class NymphesMidiOscBridge:
         # Create NymphesMidi object
         self._nymphes_midi = NymphesMidi(print_logs_enabled=True)
         self._nymphes_midi.nymphes_midi_channel = nymphes_midi_channel
+        self._nymphes_midi.register_for_notifications(self._on_nymphes_notification)
 
         # IP Address and Port for Incoming OSC Messages from Clients
         #
@@ -439,3 +440,9 @@ class NymphesMidiOscBridge:
 
         # Status update
         self._send_status_to_all_clients('Requested full preset SYSEX Dump')
+
+    def _on_nymphes_notification(self, name, value):
+        """
+        A notification has been received from the NymphesMIDI object.
+        """
+        print(f'>>>> {name}, {value}')

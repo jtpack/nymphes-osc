@@ -96,5 +96,6 @@ def get_local_ip_address():
 
     return '127.0.0.1'  # Default to localhost if no suitable IP address is found
 
+
 if __name__ == '__main__':
     main()
