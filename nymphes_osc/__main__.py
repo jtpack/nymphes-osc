@@ -34,7 +34,8 @@ def main():
     #
     # Create the Nymphes OSC Controller
     #
-    nymphes = NymphesMidiOscBridge(nymphes_midi_channel=int(midi['channel']), osc_in_host=in_host,
+    nymphes = NymphesMidiOscBridge(nymphes_midi_channel=int(midi['channel']),
+                                   osc_in_host=in_host,
                                    osc_in_port=int(osc['in_port']))
 
     #
