@@ -375,3 +375,5 @@ class NymphesMidiOscBridge:
         else:
             self._send_osc_to_all_clients(str(name), value)
 
+        print(f'Notification: {name}: {value}')
+
