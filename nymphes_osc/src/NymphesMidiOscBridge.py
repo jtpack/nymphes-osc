@@ -71,6 +71,10 @@ class NymphesMidiOscBridge:
         self._dispatcher.map('/request_sysex_dump', self._on_osc_message_request_sysex_dump)
         self._dispatcher.map('/set_param_int', self._on_osc_message_set_param_int)
         self._dispatcher.map('/set_param_float', self._on_osc_message_set_param_float)
+        self._dispatcher.map('/open_midi_input_port', self._on_osc_message_open_midi_input_port)
+        self._dispatcher.map('/close_midi_input_port', self._on_osc_message_close_midi_input_port)
+        self._dispatcher.map('/open_midi_output_port', self._on_osc_message_open_midi_output_port)
+        self._dispatcher.map('/close_midi_output_port', self._on_osc_message_close_midi_output_port)
 
         # Start the OSC Server
         self._start_osc_server()
@@ -356,24 +360,62 @@ class NymphesMidiOscBridge:
         """
         Set an integer-valued Nymphes parameter
         """
-        self._nymphes_midi.set_param_int(name=args[0], value=args[1])
+        self._nymphes_midi.set_param_int(args[0], args[1])
 
     def _on_osc_message_set_param_float(self, address, *args):
         """
         Set a float-valued Nymphes parameter
         """
-        self._nymphes_midi.set_param_float(name=args[0], value=args[1])
+        self._nymphes_midi.set_param_float(args[0], args[1])
+
+    def _on_osc_message_open_midi_input_port(self, address, *args):
+        """
+        Open a non-Nymphes MIDI input port using its name.
+        All received MIDI messages on this port will be passed through
+        to Nymphes.
+        """
+        self._nymphes_midi.open_midi_input_port(args[0])
+        
+    def _on_osc_message_close_midi_input_port(self, address, *args):
+        """
+        Close a non-Nymphes MIDI input port using its name.
+        """
+        self._nymphes_midi.close_midi_input_port(args[0])
+
+    def _on_osc_message_open_midi_output_port(self, address, *args):
+        """
+        Open a non-Nymphes MIDI output port using its name.
+        All messages received from Nymphes will be passed to the port.
+        """
+        self._nymphes_midi.open_midi_output_port(args[0])
+
+    def _on_osc_message_close_midi_output_port(self, address, *args):
+        """
+        Close a non-Nymphes MIDI output port using its name.
+        """
+        self._nymphes_midi.close_midi_output_port(args[0])
 
     def _on_nymphes_notification(self, name, value):
         """
         A notification has been received from the NymphesMIDI object.
         """
 
-        # Send it to the OSC clients
-        if isinstance(value, tuple):
-            self._send_osc_to_all_clients(str(name), *value)
+        if isinstance(name, MidiConnectionEvents):
+            self._send_osc_to_all_clients(name.value, value)
+
+        elif isinstance(name, PresetEvents):
+            if isinstance(value, tuple):
+                self._send_osc_to_all_clients(name.value, *value)
+            else:
+                self._send_osc_to_all_clients(name.value, value)
+
         else:
-            self._send_osc_to_all_clients(str(name), value)
+
+            # Send it to the OSC clients
+            if isinstance(value, tuple):
+                self._send_osc_to_all_clients(str(name), *value)
+            else:
+                self._send_osc_to_all_clients(str(name), value)
 
         print(f'Notification: {name}: {value}')
 
