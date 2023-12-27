@@ -12,6 +12,7 @@ from rtmidi import InvalidPortError
 from nymphes_osc.src import sysex_handling
 from nymphes_osc.src.preset_pb2 import preset, lfo_speed_mode, lfo_sync_mode, voice_mode
 from nymphes_midi.src.nymphes_midi_objects import NymphesMidi, PresetEvents, MidiConnectionEvents
+from nymphes_midi.src.NymphesPreset import NymphesPreset
 
 
 class NymphesMidiOscBridge:
@@ -69,12 +70,11 @@ class NymphesMidiOscBridge:
                              self._on_osc_message_unregister_client_with_ip_address,
                              needs_reply_address=True)
         self._dispatcher.map('/request_sysex_dump', self._on_osc_message_request_sysex_dump)
-        self._dispatcher.map('/set_param_int', self._on_osc_message_set_param_int)
-        self._dispatcher.map('/set_param_float', self._on_osc_message_set_param_float)
         self._dispatcher.map('/open_midi_input_port', self._on_osc_message_open_midi_input_port)
         self._dispatcher.map('/close_midi_input_port', self._on_osc_message_close_midi_input_port)
         self._dispatcher.map('/open_midi_output_port', self._on_osc_message_open_midi_output_port)
         self._dispatcher.map('/close_midi_output_port', self._on_osc_message_close_midi_output_port)
+        self._dispatcher.set_default_handler(self._on_other_osc_message)
 
         # Start the OSC Server
         self._start_osc_server()
@@ -133,14 +133,14 @@ class NymphesMidiOscBridge:
 
         # Send the client a list of detected non-nymphes MIDI input ports
         msg = OscMessageBuilder(address='/detected_midi_input_ports')
-        for port_name in self._nymphes_midi.non_nymphes_midi_input_port_names:
+        for port_name in self._nymphes_midi.detected_midi_input_ports:
             msg.add_arg(port_name)
         msg = msg.build()
         client.send(msg)
 
         # Send the client a list of detected non-nymphes MIDI output ports
         msg = OscMessageBuilder(address='/detected_midi_output_ports')
-        for port_name in self._nymphes_midi.non_nymphes_midi_output_port_names:
+        for port_name in self._nymphes_midi.detected_midi_output_ports:
             msg.add_arg(port_name)
         msg = msg.build()
         client.send(msg)
@@ -395,6 +395,30 @@ class NymphesMidiOscBridge:
         """
         self._nymphes_midi.close_midi_output_port(args[0])
 
+    def _on_other_osc_message(self, address, *args):
+        """
+        An OSC message has been received which does not match any of
+        the addresses we have mapped to specific functions.
+        This could be a message for setting a Nymphes parameter.
+        """
+        # Create a param name from the address by removing the leading slash
+        # and replacing other slashes with periods
+        param_name = address[1:].replace('/', '.')
+
+        # Check whether this is a valid parameter name
+        if param_name in NymphesPreset.all_param_names():
+            # Get the value
+            value = args[0]
+
+            if isinstance(value, int):
+                self._nymphes_midi.set_int_param(param_name, value)
+
+            elif isinstance(value, float):
+                self._nymphes_midi.set_float_param(param_name, value)
+
+            else:
+                raise Exception(f'Invalid value type: {type(value)}')
+
     def _on_nymphes_notification(self, name, value):
         """
         A notification has been received from the NymphesMIDI object.
@@ -409,13 +433,30 @@ class NymphesMidiOscBridge:
             else:
                 self._send_osc_to_all_clients(name.value, value)
 
-        else:
+        elif name == 'float_param':
+            # Get the parameter name and value
+            param_name, param_value = value
 
-            # Send it to the OSC clients
+            # Send OSC message to clients
+            # The address will start with a /, followed by the param name with periods
+            # replaced by /
+            # ie: for param_name osc.wave.value, the address will be /osc/wave/value
+            self._send_osc_to_all_clients(f'/{param_name.replace(".", "/")}', float(param_value))
+
+        elif name == 'int_param':
+            param_name, param_value = value
+
+            # Send OSC message to clients
+            # The address will start with a /, followed by the param name with periods
+            # replaced by /
+            # ie: for param_name osc.wave.value, the address will be /osc/wave/value
+            self._send_osc_to_all_clients(f'/{param_name.replace(".", "/")}', int(param_value))
+
+        else:
             if isinstance(value, tuple):
-                self._send_osc_to_all_clients(str(name), *value)
+                self._send_osc_to_all_clients(name, *value)
             else:
-                self._send_osc_to_all_clients(str(name), value)
+                self._send_osc_to_all_clients(name, value)
 
         print(f'Notification: {name}: {value}')
 
