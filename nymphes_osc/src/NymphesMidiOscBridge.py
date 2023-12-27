@@ -161,7 +161,9 @@ class NymphesMidiOscBridge:
             osc_client = self._osc_clients_dict.pop((ip_address_string, port))
 
             # Send osc notification to the client that has been removed
-            msg = OscMessageBuilder(address='/client_removed')
+            msg = OscMessageBuilder(address='/client_unregistered')
+            msg.add_arg(ip_address_string)
+            msg.add_arg(port)
             msg = msg.build()
             osc_client.send(msg)
 
@@ -243,6 +245,12 @@ class NymphesMidiOscBridge:
         We will use its detected IP address.
         """
         client_ip = client_address[0]
+
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            print('_on_osc_message_register_client: no arguments supplied')
+            return
+
         client_port = int(args[0])
 
         print(f"Received /register_client {client_port} from {client_ip}")
@@ -255,6 +263,12 @@ class NymphesMidiOscBridge:
         A client has requested to be registered, specifying both ip address and port.
         """
         sender_ip = client_address[0]
+
+        # Make sure arguments were supplied
+        if len(args) == 0:
+            print('_on_osc_message_register_client_with_ip_address: no arguments supplied')
+            return
+
         client_ip = str(args[0])
         client_port = int(args[1])
 
@@ -268,6 +282,12 @@ class NymphesMidiOscBridge:
         A client has requested to be removed. We use the sender's IP address.
         """
         client_ip = client_address[0]
+
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            print('_on_osc_message_unregister_client: no arguments supplied')
+            return
+
         client_port = int(args[0])
 
         print(f"Received /unregister_client {client_port} from {client_ip}")
@@ -279,6 +299,12 @@ class NymphesMidiOscBridge:
         A client has requested to be removed
         """
         sender_ip = client_address[0]
+
+        # Make sure arguments were supplied
+        if len(args) == 0:
+            print('_on_osc_message_register_client_on_osc_message_unregister_client_with_ip_address: no arguments supplied')
+            return
+
         client_ip = str(args[0])
         client_port = int(args[1])
 
@@ -294,18 +320,33 @@ class NymphesMidiOscBridge:
         2 = 'velocity'
         3 = 'aftertouch'
         """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            print('_on_osc_message_mod_source: no arguments supplied')
+            return
+
         self._nymphes_midi.set_param_int('mod_source', args[0])
 
     def _on_osc_message_load_preset(self, address, *args):
         """
         An OSC message has just been received to load a preset from memory
         """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            print('_on_osc_message_load_preset: no arguments supplied')
+            return
+
         self._nymphes_midi.load_preset(bank_name=args[0], preset_num=args[1], preset_type=args[2])
 
     def _on_osc_message_load_preset_file(self, address, *args):
         """
         An OSC message has just been received to load a preset file
         """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            print('_on_osc_message_load_preset_file: no arguments supplied')
+            return
+
         # Get the filepath
         filepath = str(args[0])
 
@@ -323,7 +364,12 @@ class NymphesMidiOscBridge:
         An OSC message has just been received to save the current
         preset as a preset file
         """
-        # Argument 0 is the filepath
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            print('_on_osc_message_save_preset_file: no arguments supplied')
+            return
+
+        # Get the filepath
         filepath = str(args[0])
 
         # Save the file
@@ -339,12 +385,22 @@ class NymphesMidiOscBridge:
         """
         An OSC client has just sent a message to send a MIDI Mod Wheel message.
         """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            print('_on_osc_message_mod_wheel: no arguments supplied')
+            return
+
         self._nymphes_midi.set_mod_wheel(args[0])
 
     def _on_osc_message_aftertouch(self, address, *args):
         """
         An OSC client has just sent a message to send a MIDI channel aftertouch message
         """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            print('_on_osc_message_aftertouch: no arguments supplied')
+            return
+
         self._nymphes_midi.set_channel_aftertouch(args[0])
 
     def _on_osc_message_request_sysex_dump(self, address, *args):
@@ -356,30 +412,28 @@ class NymphesMidiOscBridge:
         # Status update
         self._send_status_to_all_clients('Requested full preset SYSEX Dump')
 
-    def _on_osc_message_set_param_int(self, address, *args):
-        """
-        Set an integer-valued Nymphes parameter
-        """
-        self._nymphes_midi.set_param_int(args[0], args[1])
-
-    def _on_osc_message_set_param_float(self, address, *args):
-        """
-        Set a float-valued Nymphes parameter
-        """
-        self._nymphes_midi.set_param_float(args[0], args[1])
-
     def _on_osc_message_open_midi_input_port(self, address, *args):
         """
         Open a non-Nymphes MIDI input port using its name.
         All received MIDI messages on this port will be passed through
         to Nymphes.
         """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            print('_on_osc_message_open_midi_input_port: no arguments supplied')
+            return
+
         self._nymphes_midi.open_midi_input_port(args[0])
         
     def _on_osc_message_close_midi_input_port(self, address, *args):
         """
         Close a non-Nymphes MIDI input port using its name.
         """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            print('_on_osc_message_close_midi_input_port: no arguments supplied')
+            return
+
         self._nymphes_midi.close_midi_input_port(args[0])
 
     def _on_osc_message_open_midi_output_port(self, address, *args):
@@ -387,12 +441,22 @@ class NymphesMidiOscBridge:
         Open a non-Nymphes MIDI output port using its name.
         All messages received from Nymphes will be passed to the port.
         """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            print('_on_osc_message_open_midi_output_port: no arguments supplied')
+            return
+
         self._nymphes_midi.open_midi_output_port(args[0])
 
     def _on_osc_message_close_midi_output_port(self, address, *args):
         """
         Close a non-Nymphes MIDI output port using its name.
         """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            print('_on_osc_message_close_midi_output_port: no arguments supplied')
+            return
+
         self._nymphes_midi.close_midi_output_port(args[0])
 
     def _on_other_osc_message(self, address, *args):
@@ -407,6 +471,11 @@ class NymphesMidiOscBridge:
 
         # Check whether this is a valid parameter name
         if param_name in NymphesPreset.all_param_names():
+            # Make sure that and argument was supplied
+            if len(args) == 0:
+                print(f'_on_other_osc_message: {param_name}: no argument supplied')
+                return
+
             # Get the value
             value = args[0]
 
