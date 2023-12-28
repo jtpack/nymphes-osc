@@ -113,7 +113,7 @@ class NymphesMidiOscBridge:
         else:
             # We have already added this client.
             client = self._osc_clients_dict[(ip_address_string, port)]
-            self._send_status_to_all_clients(f'Client already added ({ip_address_string}:{client._port})')
+            self._send_status_to_all_clients(f'Client already registered ({ip_address_string}:{client._port})')
 
         # Send osc notification to the client
         msg = OscMessageBuilder(address='/client_registered')
@@ -122,21 +122,41 @@ class NymphesMidiOscBridge:
         msg = msg.build()
         client.send(msg)
 
-        # Notify the client whether or not the Nymphes is connected
-        msg = OscMessageBuilder(address='/nymphes_connected' if self._nymphes_midi.nymphes_connected else '/nymphes_disconnected')
-        msg = msg.build()
-        client.send(msg)
+        # Notify the client whether the Nymphes is connected
+        if self._nymphes_midi.nymphes_connected:
+            msg = OscMessageBuilder(address='/nymphes_connected')
+            msg.add_arg(self._nymphes_midi.nymphes_midi_port)
+            msg = msg.build()
+            client.send(msg)
+        else:
+            msg = OscMessageBuilder(address='/nymphes_disconnected')
+            msg = msg.build()
+            client.send(msg)
 
-        # Send the client a list of detected non-nymphes MIDI input ports
+        # Send the client a list of detected MIDI input ports
         msg = OscMessageBuilder(address='/detected_midi_input_ports')
         for port_name in self._nymphes_midi.detected_midi_input_ports:
             msg.add_arg(port_name)
         msg = msg.build()
         client.send(msg)
 
-        # Send the client a list of detected non-nymphes MIDI output ports
+        # Send the client a list of detected MIDI output ports
         msg = OscMessageBuilder(address='/detected_midi_output_ports')
         for port_name in self._nymphes_midi.detected_midi_output_ports:
+            msg.add_arg(port_name)
+        msg = msg.build()
+        client.send(msg)
+
+        # Send the client a list of connected MIDI input ports
+        msg = OscMessageBuilder(address='/connected_midi_input_ports')
+        for port_name in self._nymphes_midi.connected_midi_input_ports:
+            msg.add_arg(port_name)
+        msg = msg.build()
+        client.send(msg)
+
+        # Send the client a list of connected MIDI output ports
+        msg = OscMessageBuilder(address='/connected_midi_output_ports')
+        for port_name in self._nymphes_midi.connected_midi_output_ports:
             msg.add_arg(port_name)
         msg = msg.build()
         client.send(msg)

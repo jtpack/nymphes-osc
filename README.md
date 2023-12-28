@@ -796,7 +796,10 @@
 
 ### /nymphes_connected
 - Description: The Nymphes synthesizer has just been connected
-- Arguments: None
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the Nymphes MIDI Port
 
 ### /nymphes_disconnected
 - Description: The Nymphes synthesizer has just been disconnected
