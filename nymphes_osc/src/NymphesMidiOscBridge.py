@@ -204,14 +204,11 @@ class NymphesMidiOscBridge:
         Sends a string status message to OSC clients, using the address /status.
         Also prints the message to the console.
         """
-        # Make sure the message is a string
-        message = str(message)
-
         # Send to all clients
-        self._send_osc_to_all_clients('/status', message)
+        self._send_osc_to_all_clients('/status', str(message))
 
         # Print to the console
-        print(message)
+        print(f'>> Status: {message}')
 
     def _send_osc_to_all_clients(self, address, *args):
         """
@@ -332,7 +329,7 @@ class NymphesMidiOscBridge:
             print('_on_osc_message_load_preset: no arguments supplied')
             return
 
-        self._nymphes_midi.load_preset(bank_name=args[0], preset_num=args[1], preset_type=args[2])
+        self._nymphes_midi.load_preset(preset_type=args[0], bank_name=args[1], preset_num=args[2])
 
     def _on_osc_message_load_preset_file(self, address, *args):
         """
@@ -350,7 +347,7 @@ class NymphesMidiOscBridge:
         self._nymphes_midi.load_preset_file(filepath)
 
         # Send status update
-        self._send_status_to_all_clients(f'loaded preset file: {filepath}')
+        self._send_status_to_all_clients(f'Loaded preset file: {filepath}')
 
         # Send out OSC notification
         self._send_osc_to_all_clients('/loaded_preset_file', filepath)
@@ -488,24 +485,8 @@ class NymphesMidiOscBridge:
         """
         A notification has been received from the NymphesMIDI object.
         """
-
-        if isinstance(name, MidiConnectionEvents):
-            self._send_osc_to_all_clients(name.value, value)
-
-        elif isinstance(name, PresetEvents):
-            if isinstance(value, tuple):
-                self._send_osc_to_all_clients(name.value, *value)
-            else:
-                self._send_osc_to_all_clients(name.value, value)
-
-        elif name == 'velocity':
-            self._send_osc_to_all_clients(name, value)
-
-        elif name == 'aftertouch':
-            self._send_osc_to_all_clients(name, value)
-
-        elif name == 'mod_wheel':
-            self._send_osc_to_all_clients(name, value)
+        if name in ['velocity', 'aftertouch', 'mod_wheel']:
+            self._send_osc_to_all_clients(f'/{name}', value)
 
         elif name == 'float_param':
             # Get the parameter name and value
@@ -528,9 +509,9 @@ class NymphesMidiOscBridge:
 
         else:
             if isinstance(value, tuple):
-                self._send_osc_to_all_clients(name, *value)
+                self._send_osc_to_all_clients(f'/{name}', *value)
             else:
-                self._send_osc_to_all_clients(name, value)
+                self._send_osc_to_all_clients(f'/{name}', value)
 
         print(f'Notification: {name}: {value}')
 

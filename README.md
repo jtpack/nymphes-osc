@@ -617,16 +617,16 @@
 - Arguments:
   - 0
     - Type: String
+    - Description: Preset Type
+    - Possible Values: 'user' or 'factory'
+  - 1
+    - Type: String
     - Description: Preset Bank 
     - Possible Values: 'A' through 'G'
-  - 1
+  - 2
     - Type: Int
     - Description: Preset Number 
     - Possible Values: 1 through 7
-  - 2
-    - Type: String
-    - Description: Preset Type
-    - Possible Values: 'user' or 'factory'
  
 ### /load_preset_file
 - Description: Load a preset file from disk and send via SYSEX to Nymphes
@@ -643,16 +643,16 @@
     - Description: Filepath of preset to load
   - 1
     - Type: String
+    - Description: Preset Type
+    - Possible Values: 'user' or 'factory'
+  - 2
+    - Type: String
     - Description: Preset Bank 
     - Possible Values: 'A' through 'G'
-  - 2
+  - 3
     - Type: Int
     - Description: Preset Number 
     - Possible Values: 1 through 7
-  - 3
-    - Type: String
-    - Description: Preset Type
-    - Possible Values: 'user' or 'factory'
       
 ### /save_preset_file
 - Description: Save current settings to a preset file on disk
