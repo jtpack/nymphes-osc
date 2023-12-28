@@ -735,9 +735,9 @@
   - 0
     - Type: String
     - Description: Host name or IP address of client
-  - 1
-    - Type: Int
-    - Description: Port of client 
+    - 1
+      - Type: Int
+      - Description: Port of client 
 
 ### /mod_wheel
 - Description: A mod wheel MIDI Control Change Message (CC 1) has been received from a MIDI Input Port

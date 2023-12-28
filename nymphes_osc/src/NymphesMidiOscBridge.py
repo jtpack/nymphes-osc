@@ -1,18 +1,14 @@
 import threading
 import socket
 from zeroconf import ServiceInfo, Zeroconf
-from pathlib import Path
 from pythonosc.udp_client import SimpleUDPClient
 from pythonosc.dispatcher import Dispatcher
 from pythonosc.osc_server import BlockingOSCUDPServer
 from pythonosc.osc_message_builder import OscMessageBuilder
-import mido
-import mido.backends.rtmidi
-from rtmidi import InvalidPortError
-from nymphes_osc.src import sysex_handling
-from nymphes_osc.src.preset_pb2 import preset, lfo_speed_mode, lfo_sync_mode, voice_mode
-from nymphes_midi.src.nymphes_midi_objects import NymphesMidi, PresetEvents, MidiConnectionEvents
-from nymphes_midi.src.NymphesPreset import NymphesPreset
+from nymphes_midi.NymphesMidi import NymphesMidi
+from nymphes_midi.NymphesPreset import NymphesPreset
+from nymphes_midi.PresetEvents import PresetEvents
+from nymphes_midi.MidiConnectionEvents import MidiConnectionEvents
 
 
 class NymphesMidiOscBridge:
@@ -501,6 +497,15 @@ class NymphesMidiOscBridge:
                 self._send_osc_to_all_clients(name.value, *value)
             else:
                 self._send_osc_to_all_clients(name.value, value)
+
+        elif name == 'velocity':
+            self._send_osc_to_all_clients(name, value)
+
+        elif name == 'aftertouch':
+            self._send_osc_to_all_clients(name, value)
+
+        elif name == 'mod_wheel':
+            self._send_osc_to_all_clients(name, value)
 
         elif name == 'float_param':
             # Get the parameter name and value
