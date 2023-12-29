@@ -7,15 +7,14 @@
 ## OSC Client Handling
 
 ### /register_client
-- Description: Register an OSC client with the OSC server. Only registered OSC clients receive any messages from nymphes-osc. The sender's IP address will be detected and used as the client's IP address.
+- Description: Register an OSC client specifying the port. The sender's IP address will be detected and used as the client's IP address.
 - Arguments:
   - 0
     - Type: Int
     - Description: Port that host will be listening on
-    
-  
+
 ### /register_client_with_ip_address
-- Description: Register an OSC client, but specify the IP address to use.
+- Description: Register an OSC client, specifying the IP address and port.
 - Arguments:
   - 0
     - Type: String
@@ -24,16 +23,15 @@
     - Type: Int
     - Description: Port that host will be listening on
 
-
 ### /unregister_client
-- Description: Unregister a client. The client's IP address will be that of the sender.
+- Description: Unregister a client, specifying the port. The sender's IP address will be detected and used as the client's IP address.
 - Arguments:
   - 0
     - Type: Int
     - Description: Client port
   
 ### /unregister_client_with_ip_address
-- Description: Unregister a client, specifying the client's IP address rather than using that of the sender.
+- Description: Unregister a client, specifying the IP address and port.
 - Arguments:
   - 0
     - Type: String
@@ -661,6 +659,10 @@
     - Type: String
     - Description: Destination filepath
 
+### /request_sysex_dump
+- Description: Send a dump request to Nymphes via SYSEX
+- Arguments: None
+
 ## MIDI Port Control
 
 ### /open_midi_input_port
@@ -767,16 +769,16 @@
 - Arguments:
   - 0
     - Type: String
+    - Description: Type of preset
+      - 'user' or 'factory'
+  - 1
+    - Type: String
     - Description: Bank
       - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
-  - 1
+  - 2
     - Type: Int
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
-  - 2
-    - Type: String
-    - Description: Type of preset
-      - 'user' or 'factory'
 
 ### /loaded_preset_file
 - Description: A preset file has just been loaded
@@ -784,6 +786,25 @@
   - 0
     - Type: String
     - Description: Filepath of loaded preset
+
+### /loaded_preset_file_into_memory_slot
+- Description: A preset file has just been loaded, and its contents were written to a Nymphes memory slot.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Filepath of loaded preset
+  - 1
+    - Type: String
+    - Description: Type of preset
+      - 'user' or 'factory'
+  - 2
+    - Type: String
+    - Description: Bank
+      - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
+  - 3
+    - Type: Int
+    - Description: Preset Number
+      - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
 ### /saved_preset_file
 - Description: A preset file has just been saved
@@ -806,42 +827,70 @@
 - Arguments: None
 
 ### /midi_input_port_detected
-- Description: A new non-Nymphes MIDI input port has been detected. This does not mean that we have connected to it.
+- Description: A new MIDI input port has been detected
 - Arguments:
   - 0
     - Type: String
-    - Description: The name of the newly-detected MIDI input port 
-
-### /midi_output_port_detected
-- Description: A new non-Nymphes MIDI output port has been detected. This does not mean that we have connected to it.
-- Arguments:
-  - 0
-    - Type: String
-    - Description: The name of the newly-detected MIDI output port 
+    - Description: The name of the newly-detected MIDI input port
 
 ### /midi_input_port_no_longer_detected
-- Description: A previously-detected non-Nymphes MIDI input port is no longer detected.
+- Description: A previously-detected MIDI input port is no longer detected.
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the MIDI input port that is no longer detected 
 
-### /midi_output_port_no_longer_detected
-- Description: A previously-detected non-Nymphes MIDI output port is no longer detected.
+### /midi_input_port_opened
+- Description: A MIDI input port has been opened
 - Arguments:
   - 0
     - Type: String
-    - Description: The name of the MIDI output port that is no longer detected 
+    - Description: The name of the MIDI input port
+
+### /midi_input_port_closed
+- Description: A MIDI input port has been closed
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the MIDI input port
+
+### /midi_output_port_detected
+- Description: A new MIDI output port has been detected
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the newly-detected MIDI output port
+
+### /midi_output_port_no_longer_detected
+- Description: A previously-detected MIDI output port is no longer detected.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the MIDI output port that is no longer detected
+
+### /midi_output_port_opened
+- Description: A MIDI output port has been opened
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the MIDI output port
+
+### /midi_output_port_closed
+- Description: A MIDI output port has been closed
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the MIDI output port
 
 ### /detected_midi_input_ports
-- Description: A list of detected non-Nymphes MIDI input ports.
+- Description: A list of detected MIDI input ports.
   - This is automatically sent to a newly-connected OSC host.
   - It is also sent to all OSC hosts whenever the list of input ports changes.
 - Arguments: One String argument for the name of each detected input port
   - Note: If no input ports are detected, then the message will be sent but there will be no arguments
 
 ### /detected_midi_output_ports
-- Description: A list of detected non-Nymphes MIDI output ports.
+- Description: A list of detected MIDI output ports.
   - This is automatically sent to a newly-connected OSC host.
   - It is also sent to all OSC hosts whenever the list of output ports changes.
 - Arguments: One String argument for the name of each detected output port

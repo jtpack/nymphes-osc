@@ -25,7 +25,7 @@ class NymphesMidiOscBridge:
         self._print_logs_enabled = print_logs_enabled
 
         # Create NymphesMidi object
-        self._nymphes_midi = NymphesMidi(print_logs_enabled=True)
+        self._nymphes_midi = NymphesMidi(print_logs_enabled=False)
         self._nymphes_midi.nymphes_midi_channel = nymphes_midi_channel
         self._nymphes_midi.register_for_notifications(self._on_nymphes_notification)
 
@@ -51,29 +51,36 @@ class NymphesMidiOscBridge:
 
         # Register for non-Control Parameter OSC messages
         #
-        self._dispatcher.map('/mod_source', self._on_osc_message_mod_source)
-        self._dispatcher.map('/mod_wheel', self._on_osc_message_mod_wheel)
-        self._dispatcher.map('/aftertouch', self._on_osc_message_aftertouch)
+        self._dispatcher.map(
+            '/register_client',
+            self._on_osc_message_register_client,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/register_client_with_ip_address',
+            self._on_osc_message_register_client_with_ip_address
+        )
+        self._dispatcher.map(
+            '/unregister_client',
+            self._on_osc_message_unregister_client,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/unregister_client_with_ip_address',
+            self._on_osc_message_unregister_client_with_ip_address
+        )
         self._dispatcher.map('/load_preset', self._on_osc_message_load_preset)
         self._dispatcher.map('/load_preset_file', self._on_osc_message_load_preset_file)
+        self._dispatcher.map('/load_preset_file_to_memory_slot', self._on_osc_message_load_preset_file_to_memory_slot)
         self._dispatcher.map('/save_preset_file', self._on_osc_message_save_preset_file)
-        self._dispatcher.map('/register_client',
-                             self._on_osc_message_register_client,
-                             needs_reply_address=True)
-        self._dispatcher.map('/register_client_with_ip_address',
-                             self._on_osc_message_register_client_with_ip_address,
-                             needs_reply_address=True)
-        self._dispatcher.map('/unregister_client',
-                             self._on_osc_message_unregister_client,
-                             needs_reply_address=True)
-        self._dispatcher.map('/unregister_client_with_ip_address',
-                             self._on_osc_message_unregister_client_with_ip_address,
-                             needs_reply_address=True)
         self._dispatcher.map('/request_sysex_dump', self._on_osc_message_request_sysex_dump)
         self._dispatcher.map('/open_midi_input_port', self._on_osc_message_open_midi_input_port)
         self._dispatcher.map('/close_midi_input_port', self._on_osc_message_close_midi_input_port)
         self._dispatcher.map('/open_midi_output_port', self._on_osc_message_open_midi_output_port)
         self._dispatcher.map('/close_midi_output_port', self._on_osc_message_close_midi_output_port)
+        self._dispatcher.map('/set_nymphes_midi_channel', self._on_osc_message_set_nymphes_midi_channel)
+        self._dispatcher.map('/mod_wheel', self._on_osc_message_mod_wheel)
+        self._dispatcher.map('/aftertouch', self._on_osc_message_aftertouch)
         self._dispatcher.set_default_handler(self._on_other_osc_message)
 
         # Start the OSC Server
@@ -275,7 +282,12 @@ class NymphesMidiOscBridge:
         """
         A client has requested to be registered.
         We will use its detected IP address.
+        :param client_address: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
         """
+        # Get the client's IP address
         client_ip = client_address[0]
 
         # Make sure an argument was supplied
@@ -283,36 +295,52 @@ class NymphesMidiOscBridge:
             self._log_message('_on_osc_message_register_client: no arguments supplied')
             return
 
+        # Get the client's port
         client_port = int(args[0])
 
         self._log_message(f"Received /register_client {client_port} from {client_ip}")
 
-        # Add the client
-        self.register_osc_client(ip_address_string=client_ip, port=client_port)
+        # Register the client
+        try:
+            self.register_osc_client(ip_address_string=client_ip, port=client_port)
 
-    def _on_osc_message_register_client_with_ip_address(self, client_address, address, *args):
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to register client ({e})')
+
+    def _on_osc_message_register_client_with_ip_address(self, address, *args):
         """
         A client has requested to be registered, specifying both ip address and port.
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
         """
-        sender_ip = client_address[0]
-
         # Make sure arguments were supplied
         if len(args) == 0:
             self._log_message('_on_osc_message_register_client_with_ip_address: no arguments supplied')
             return
 
+        # Get the client's IP address and port
         client_ip = str(args[0])
         client_port = int(args[1])
 
         self._log_message(f"Received /register_client_with_ip_address {client_ip} {client_port} from {sender_ip}")
 
-        # Add the client
-        self.register_osc_client(ip_address_string=client_ip, port=client_port)
+        # Register the client
+        try:
+            self.register_osc_client(ip_address_string=client_ip, port=client_port)
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to register client ({e})')
 
     def _on_osc_message_unregister_client(self, client_address, address, *args):
         """
         A client has requested to be removed. We use the sender's IP address.
+        :param client_address: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
         """
+        # Get the client's IP address
         client_ip = client_address[0]
 
         # Make sure an argument was supplied
@@ -320,182 +348,279 @@ class NymphesMidiOscBridge:
             self._log_message('_on_osc_message_unregister_client: no arguments supplied')
             return
 
+        # Get the client's port
         client_port = int(args[0])
 
         self._log_message(f"Received /unregister_client {client_port} from {client_ip}")
 
-        self.unregister_osc_client(ip_address_string=client_ip, port=client_port)
+        # Unregister the client
+        try:
+            self.unregister_osc_client(ip_address_string=client_ip, port=client_port)
 
-    def _on_osc_message_unregister_client_with_ip_address(self, client_address, address, *args):
-        """
-        A client has requested to be removed
-        """
-        sender_ip = client_address[0]
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to unregister client ({e})')
 
+    def _on_osc_message_unregister_client_with_ip_address(self, address, *args):
+        """
+        A client has requested to be removed, specifying both its IP address and port.
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
         # Make sure arguments were supplied
         if len(args) == 0:
             self._log_message('_on_osc_message_register_client_on_osc_message_unregister_client_with_ip_address: no arguments supplied')
             return
 
+        # Get the client's IP address and port
         client_ip = str(args[0])
         client_port = int(args[1])
 
         self._log_message(f"Received /unregister_client {client_ip} {client_port} from {sender_ip}")
 
-        self.unregister_osc_client(ip_address_string=client_ip, port=client_port)
+        # Unregister the client
+        try:
+            self.unregister_osc_client(ip_address_string=client_ip, port=client_port)
 
-    def _on_osc_message_mod_source(self, address, *args):
-        """
-        An OSC client has just sent a message to set the mod source
-        0 = 'lfo2'
-        1 = 'wheel'
-        2 = 'velocity'
-        3 = 'aftertouch'
-        """
-        # Make sure an argument was supplied
-        if len(args) == 0:
-            self._log_message('_on_osc_message_mod_source: no arguments supplied')
-            return
-
-        self._nymphes_midi.set_param_int('mod_source', args[0])
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to unregister client ({e})')
 
     def _on_osc_message_load_preset(self, address, *args):
         """
         An OSC message has just been received to load a preset from memory
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
             self._log_message('_on_osc_message_load_preset: no arguments supplied')
             return
 
-        self._nymphes_midi.load_preset(preset_type=args[0], bank_name=args[1], preset_num=args[2])
+        try:
+            self._nymphes_midi.load_preset(
+                preset_type=args[0],
+                bank_name=args[1],
+                preset_num=args[2]
+            )
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to load preset ({e})')
 
     def _on_osc_message_load_preset_file(self, address, *args):
         """
         An OSC message has just been received to load a preset file
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
             self._log_message('_on_osc_message_load_preset_file: no arguments supplied')
             return
 
-        # Get the filepath
-        filepath = str(args[0])
+        # Load the file
+        try:
+            self._nymphes_midi.load_preset_file(filepath=args[0])
 
-        # Load it
-        self._nymphes_midi.load_preset_file(filepath)
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to load preset file ({e})')
 
-        # Send status update
-        self._send_status_to_all_clients(f'Loaded preset file: {filepath}')
+    def _on_osc_message_load_preset_file_to_memory_slot(self, address, *args):
+        """
+        An OSC message has just been received to load a preset file into
+        a Nymphes memory slot
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            self._log_message('_on_osc_message_load_preset_file_to_memory_slot: no arguments supplied')
+            return
 
-        # Send out OSC notification
-        self._send_osc_to_all_clients('/loaded_preset_file', filepath)
+        # Load the file
+        try:
+            self._nymphes_midi.load_preset_file_into_memory_slot(
+                filepath=args[0],
+                preset_type=args[1],
+                bank_name=args[2],
+                preset_number=args[3]
+            )
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to load preset file to Nymphes memory slot ({e})')
 
     def _on_osc_message_save_preset_file(self, address, *args):
         """
         An OSC message has just been received to save the current
-        preset as a preset file
+        preset as a preset file.
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
             self._log_message('_on_osc_message_save_preset_file: no arguments supplied')
             return
 
-        # Get the filepath
-        filepath = str(args[0])
-
         # Save the file
-        self._nymphes_midi.save_preset_file(filepath)
+        try:
+            self._nymphes_midi.save_preset_file(filepath=args[0])
 
-        # Status update
-        self._send_status_to_all_clients(f'saved preset file: {filepath}')
-
-        # Send out OSC notification
-        self._send_osc_to_all_clients('/saved_preset_file', str(filepath))
-
-    def _on_osc_message_mod_wheel(self, address, *args):
-        """
-        An OSC client has just sent a message to send a MIDI Mod Wheel message.
-        """
-        # Make sure an argument was supplied
-        if len(args) == 0:
-            self._log_message('_on_osc_message_mod_wheel: no arguments supplied')
-            return
-
-        self._nymphes_midi.set_mod_wheel(args[0])
-
-    def _on_osc_message_aftertouch(self, address, *args):
-        """
-        An OSC client has just sent a message to send a MIDI channel aftertouch message
-        """
-        # Make sure an argument was supplied
-        if len(args) == 0:
-            self._log_message('_on_osc_message_aftertouch: no arguments supplied')
-            return
-
-        self._nymphes_midi.set_channel_aftertouch(args[0])
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to save preset file ({e})')
 
     def _on_osc_message_request_sysex_dump(self, address, *args):
         """
         Request a full SYSEX dump of all presets from Nymphes.
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
         """
+        # Send the dump request
         self._nymphes_midi.send_sysex_dump_request()
-
-        # Status update
-        self._send_status_to_all_clients('Requested full preset SYSEX Dump')
 
     def _on_osc_message_open_midi_input_port(self, address, *args):
         """
-        Open a non-Nymphes MIDI input port using its name.
-        All received MIDI messages on this port will be passed through
-        to Nymphes.
+        Open a MIDI input port using its name
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
             self._log_message('_on_osc_message_open_midi_input_port: no arguments supplied')
             return
 
-        self._nymphes_midi.open_midi_input_port(args[0])
+        try:
+            # Open the port
+            self._nymphes_midi.open_midi_input_port(args[0])
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to open MIDI Input port ({e})')
         
     def _on_osc_message_close_midi_input_port(self, address, *args):
         """
-        Close a non-Nymphes MIDI input port using its name.
+        Close a MIDI input port using its name
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
             self._log_message('_on_osc_message_close_midi_input_port: no arguments supplied')
             return
 
-        self._nymphes_midi.close_midi_input_port(args[0])
+        try:
+            # Close the port
+            self._nymphes_midi.close_midi_input_port(args[0])
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to close MIDI Input port ({e})')
 
     def _on_osc_message_open_midi_output_port(self, address, *args):
         """
-        Open a non-Nymphes MIDI output port using its name.
-        All messages received from Nymphes will be passed to the port.
+        Open a MIDI output port using its name
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
             self._log_message('_on_osc_message_open_midi_output_port: no arguments supplied')
             return
 
-        self._nymphes_midi.open_midi_output_port(args[0])
+        try:
+            # Open the port
+            self._nymphes_midi.open_midi_output_port(args[0])
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to open MIDI Output port ({e})')
 
     def _on_osc_message_close_midi_output_port(self, address, *args):
         """
-        Close a non-Nymphes MIDI output port using its name.
+        Close a non-Nymphes MIDI output port using its name
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
             self._log_message('_on_osc_message_close_midi_output_port: no arguments supplied')
             return
 
-        self._nymphes_midi.close_midi_output_port(args[0])
+        try:
+            # Close the port
+            self._nymphes_midi.close_midi_output_port(args[0])
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to close MIDI Output port ({e})')
+
+    def _on_osc_message_set_nymphes_midi_channel(self, address, *args):
+        """
+        An OSC client has just sent a message to update the MIDI channel that
+        Nymphes uses.
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            self._log_message('_on_osc_message_set_nymphes_midi_channel: no arguments supplied')
+            return
+
+        # Set the channel
+        try:
+            self._nymphes_midi.nymphes_midi_channel = args[0]
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to set Nymphes MIDI channel ({e})')
+
+    def _on_osc_message_mod_wheel(self, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI Mod Wheel message.
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            self._log_message('_on_osc_message_mod_wheel: no arguments supplied')
+            return
+
+        try:
+            self._nymphes_midi.set_mod_wheel(args[0])
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to set mod wheel ({e})')
+
+    def _on_osc_message_aftertouch(self, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI channel aftertouch message
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            self._log_message('_on_osc_message_aftertouch: no arguments supplied')
+            return
+
+        try:
+            self._nymphes_midi.set_channel_aftertouch(args[0])
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to set aftertouch ({e})')
 
     def _on_other_osc_message(self, address, *args):
         """
         An OSC message has been received which does not match any of
         the addresses we have mapped to specific functions.
         This could be a message for setting a Nymphes parameter.
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
         """
         # Create a param name from the address by removing the leading slash
         # and replacing other slashes with periods
@@ -503,7 +628,11 @@ class NymphesMidiOscBridge:
 
         # Check whether this is a valid parameter name
         if param_name in NymphesPreset.all_param_names():
-            # Make sure that and argument was supplied
+            #
+            # The parameter name is valid
+            #
+
+            # Make sure that an argument was supplied
             if len(args) == 0:
                 self._log_message(f'_on_other_osc_message: {param_name}: no argument supplied')
                 return
@@ -512,17 +641,34 @@ class NymphesMidiOscBridge:
             value = args[0]
 
             if isinstance(value, int):
-                self._nymphes_midi.set_param(param_name, int_value=value)
+                try:
+                    self._nymphes_midi.set_param(param_name, int_value=value)
+
+                except Exception as e:
+                    self._send_status_to_all_clients(f'Failed to set parameter ({e})')
 
             elif isinstance(value, float):
-                self._nymphes_midi.set_param(param_name, float_value=value)
+                try:
+                    self._nymphes_midi.set_param(param_name, float_value=value)
+
+                except Exception as e:
+                    self._send_status_to_all_clients(f'Failed to set parameter ({e})')
 
             else:
-                raise Exception(f'Invalid value type: {type(value)}')
+                self._send_status_to_all_clients(f'Invalid value type for {param_name}: {type(value)}')
+
+        else:
+            #
+            # This is not a Nymphes parameter
+            #
+            self._send_status_to_all_clients(f'Unknown OSC message received ({address})')
 
     def _on_nymphes_notification(self, name, value):
         """
         A notification has been received from the NymphesMIDI object.
+        :param name: (str) The name of the notification.
+        :param value: The value. Its type varies by notification
+        :return:
         """
         if name in ['velocity', 'aftertouch', 'mod_wheel']:
             self._send_osc_to_all_clients(f'/{name}', value)
@@ -549,8 +695,11 @@ class NymphesMidiOscBridge:
         else:
             if isinstance(value, tuple):
                 self._send_osc_to_all_clients(f'/{name}', *value)
+
+            elif value is None:
+                self._send_osc_to_all_clients(f'/{name}')
+
             else:
                 self._send_osc_to_all_clients(f'/{name}', value)
 
         self._log_message(f'Notification: {name}: {value}')
-
