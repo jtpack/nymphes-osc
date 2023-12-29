@@ -36,7 +36,8 @@ def main():
     #
     nymphes = NymphesMidiOscBridge(nymphes_midi_channel=int(midi['channel']),
                                    osc_in_host=in_host,
-                                   osc_in_port=int(osc['in_port']))
+                                   osc_in_port=int(osc['in_port']),
+                                   print_logs_enabled=False)
 
     #
     # Stay running until manually killed

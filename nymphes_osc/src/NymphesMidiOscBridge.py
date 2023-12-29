@@ -19,7 +19,11 @@ class NymphesMidiOscBridge:
     MIDI-controllable functionality.
     """
 
-    def __init__(self, nymphes_midi_channel, osc_in_host, osc_in_port):
+    def __init__(self, nymphes_midi_channel, osc_in_host, osc_in_port, print_logs_enabled=False):
+        # If True, then log_message() will print to the console.
+        # If False, then it does nothing.
+        self._print_logs_enabled = print_logs_enabled
+
         # Create NymphesMidi object
         self._nymphes_midi = NymphesMidi(print_logs_enabled=True)
         self._nymphes_midi.nymphes_midi_channel = nymphes_midi_channel
@@ -74,6 +78,14 @@ class NymphesMidiOscBridge:
 
         # Start the OSC Server
         self._start_osc_server()
+
+    @property
+    def print_logs_enabled(self):
+        return self._print_logs_enabled
+
+    @print_logs_enabled.setter
+    def print_logs_enabled(self, enable):
+        self._print_logs_enabled = enable
 
     def update(self):
         """
@@ -187,7 +199,7 @@ class NymphesMidiOscBridge:
             self._send_status_to_all_clients(f'Removed client ({ip_address_string}:{port})')
 
         else:
-            print(f'{ip_address_string}:{port} was not a registered client')
+            self._log_message(f'{ip_address_string}:{port} was not a registered client')
 
     def _start_osc_server(self):
         # Create the OSC Server and start it on a background thread
@@ -213,7 +225,7 @@ class NymphesMidiOscBridge:
         self._zeroconf.register_service(info=self._mdns_service_info)
 
         self._send_status_to_all_clients(f'Started OSC Server at {self.in_host}:{self.in_port}')
-        print(f'Advertising as {self._mdns_service_info.server}')
+        self._send_status_to_all_clients(f'Advertising as {self._mdns_service_info.server}')
 
     #
     # OSC Methods
@@ -228,7 +240,7 @@ class NymphesMidiOscBridge:
         self._send_osc_to_all_clients('/status', str(message))
 
         # Print to the console
-        print(f'>> Status: {message}')
+        self._log_message(f'NymphesMidiOscBridge status: {message}')
 
     def _send_osc_to_all_clients(self, address, *args):
         """
@@ -246,7 +258,14 @@ class NymphesMidiOscBridge:
         for osc_client in self._osc_clients_dict.values():
             osc_client.send(msg)
 
-        #print(f'send_osc_to_clients: {address}, {[str(arg) + " " for arg in args]}')
+    def _log_message(self, message):
+        """
+        Print a message to the console if logging is enabled.
+        :param message: str
+        :return:
+        """
+        if self.print_logs_enabled:
+            print(f'NymphesMidiOscBridge log: {message}')
 
     #
     # OSC Message Handling Methods
@@ -261,12 +280,12 @@ class NymphesMidiOscBridge:
 
         # Make sure an argument was supplied
         if len(args) == 0:
-            print('_on_osc_message_register_client: no arguments supplied')
+            self._log_message('_on_osc_message_register_client: no arguments supplied')
             return
 
         client_port = int(args[0])
 
-        print(f"Received /register_client {client_port} from {client_ip}")
+        self._log_message(f"Received /register_client {client_port} from {client_ip}")
 
         # Add the client
         self.register_osc_client(ip_address_string=client_ip, port=client_port)
@@ -279,13 +298,13 @@ class NymphesMidiOscBridge:
 
         # Make sure arguments were supplied
         if len(args) == 0:
-            print('_on_osc_message_register_client_with_ip_address: no arguments supplied')
+            self._log_message('_on_osc_message_register_client_with_ip_address: no arguments supplied')
             return
 
         client_ip = str(args[0])
         client_port = int(args[1])
 
-        print(f"Received /register_client_with_ip_address {client_ip} {client_port} from {sender_ip}")
+        self._log_message(f"Received /register_client_with_ip_address {client_ip} {client_port} from {sender_ip}")
 
         # Add the client
         self.register_osc_client(ip_address_string=client_ip, port=client_port)
@@ -298,12 +317,12 @@ class NymphesMidiOscBridge:
 
         # Make sure an argument was supplied
         if len(args) == 0:
-            print('_on_osc_message_unregister_client: no arguments supplied')
+            self._log_message('_on_osc_message_unregister_client: no arguments supplied')
             return
 
         client_port = int(args[0])
 
-        print(f"Received /unregister_client {client_port} from {client_ip}")
+        self._log_message(f"Received /unregister_client {client_port} from {client_ip}")
 
         self.unregister_osc_client(ip_address_string=client_ip, port=client_port)
 
@@ -315,13 +334,13 @@ class NymphesMidiOscBridge:
 
         # Make sure arguments were supplied
         if len(args) == 0:
-            print('_on_osc_message_register_client_on_osc_message_unregister_client_with_ip_address: no arguments supplied')
+            self._log_message('_on_osc_message_register_client_on_osc_message_unregister_client_with_ip_address: no arguments supplied')
             return
 
         client_ip = str(args[0])
         client_port = int(args[1])
 
-        print(f"Received /unregister_client {client_ip} {client_port} from {sender_ip}")
+        self._log_message(f"Received /unregister_client {client_ip} {client_port} from {sender_ip}")
 
         self.unregister_osc_client(ip_address_string=client_ip, port=client_port)
 
@@ -335,7 +354,7 @@ class NymphesMidiOscBridge:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            print('_on_osc_message_mod_source: no arguments supplied')
+            self._log_message('_on_osc_message_mod_source: no arguments supplied')
             return
 
         self._nymphes_midi.set_param_int('mod_source', args[0])
@@ -346,7 +365,7 @@ class NymphesMidiOscBridge:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            print('_on_osc_message_load_preset: no arguments supplied')
+            self._log_message('_on_osc_message_load_preset: no arguments supplied')
             return
 
         self._nymphes_midi.load_preset(preset_type=args[0], bank_name=args[1], preset_num=args[2])
@@ -357,7 +376,7 @@ class NymphesMidiOscBridge:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            print('_on_osc_message_load_preset_file: no arguments supplied')
+            self._log_message('_on_osc_message_load_preset_file: no arguments supplied')
             return
 
         # Get the filepath
@@ -379,7 +398,7 @@ class NymphesMidiOscBridge:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            print('_on_osc_message_save_preset_file: no arguments supplied')
+            self._log_message('_on_osc_message_save_preset_file: no arguments supplied')
             return
 
         # Get the filepath
@@ -400,7 +419,7 @@ class NymphesMidiOscBridge:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            print('_on_osc_message_mod_wheel: no arguments supplied')
+            self._log_message('_on_osc_message_mod_wheel: no arguments supplied')
             return
 
         self._nymphes_midi.set_mod_wheel(args[0])
@@ -411,7 +430,7 @@ class NymphesMidiOscBridge:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            print('_on_osc_message_aftertouch: no arguments supplied')
+            self._log_message('_on_osc_message_aftertouch: no arguments supplied')
             return
 
         self._nymphes_midi.set_channel_aftertouch(args[0])
@@ -433,7 +452,7 @@ class NymphesMidiOscBridge:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            print('_on_osc_message_open_midi_input_port: no arguments supplied')
+            self._log_message('_on_osc_message_open_midi_input_port: no arguments supplied')
             return
 
         self._nymphes_midi.open_midi_input_port(args[0])
@@ -444,7 +463,7 @@ class NymphesMidiOscBridge:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            print('_on_osc_message_close_midi_input_port: no arguments supplied')
+            self._log_message('_on_osc_message_close_midi_input_port: no arguments supplied')
             return
 
         self._nymphes_midi.close_midi_input_port(args[0])
@@ -456,7 +475,7 @@ class NymphesMidiOscBridge:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            print('_on_osc_message_open_midi_output_port: no arguments supplied')
+            self._log_message('_on_osc_message_open_midi_output_port: no arguments supplied')
             return
 
         self._nymphes_midi.open_midi_output_port(args[0])
@@ -467,7 +486,7 @@ class NymphesMidiOscBridge:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            print('_on_osc_message_close_midi_output_port: no arguments supplied')
+            self._log_message('_on_osc_message_close_midi_output_port: no arguments supplied')
             return
 
         self._nymphes_midi.close_midi_output_port(args[0])
@@ -486,17 +505,17 @@ class NymphesMidiOscBridge:
         if param_name in NymphesPreset.all_param_names():
             # Make sure that and argument was supplied
             if len(args) == 0:
-                print(f'_on_other_osc_message: {param_name}: no argument supplied')
+                self._log_message(f'_on_other_osc_message: {param_name}: no argument supplied')
                 return
 
             # Get the value
             value = args[0]
 
             if isinstance(value, int):
-                self._nymphes_midi.set_int_param(param_name, value)
+                self._nymphes_midi.set_param(param_name, int_value=value)
 
             elif isinstance(value, float):
-                self._nymphes_midi.set_float_param(param_name, value)
+                self._nymphes_midi.set_param(param_name, float_value=value)
 
             else:
                 raise Exception(f'Invalid value type: {type(value)}')
@@ -533,5 +552,5 @@ class NymphesMidiOscBridge:
             else:
                 self._send_osc_to_all_clients(f'/{name}', value)
 
-        print(f'Notification: {name}: {value}')
+        self._log_message(f'Notification: {name}: {value}')
 
