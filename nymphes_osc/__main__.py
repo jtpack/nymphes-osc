@@ -1,42 +1,20 @@
-from nymphes_osc.src.NymphesMidiOscBridge import NymphesMidiOscBridge
-import configparser
+from nymphes_osc.NymphesMidiOscBridge import NymphesMidiOscBridge
 from pathlib import Path
 import time
 import netifaces
 
 
 def main():
-    #
-    # Get configuration from config file
-    #
-    config_file_path = 'config.txt'
-
-    # Create a configuration file if one doesn't exist
-    if not Path(config_file_path).exists():
-        create_new_config_file(config_file_path)
-
-    config = configparser.ConfigParser()
-    config.read(config_file_path)
-
-    midi = config['MIDI']
-    osc = config['OSC']
-
-    if config.has_option('OSC', 'in_host'):
-        # in_host has been specified in config.txt
-        in_host = osc["in_host"]
-        print(f'Using in_host from {config_file_path}: {in_host}')
-    else:
-        # in_host is not specified.
-        # We will try to automatically determine the local ip address
-        in_host = get_local_ip_address()
-        print(f'Using detected local ip address: {in_host}')
+    # Detect the local ip address
+    local_ip = get_local_ip_address()
+    print(f'Using detected local ip address: {local_ip}')
 
     #
     # Create the Nymphes OSC Controller
     #
-    nymphes = NymphesMidiOscBridge(nymphes_midi_channel=int(midi['channel']),
-                                   osc_in_host=in_host,
-                                   osc_in_port=int(osc['in_port']),
+    nymphes = NymphesMidiOscBridge(nymphes_midi_channel=1,
+                                   osc_in_host=local_ip,
+                                   osc_in_port=1237,
                                    print_logs_enabled=True)
 
     #

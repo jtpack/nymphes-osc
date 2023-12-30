@@ -1,19 +1,19 @@
-# Nymphes OSC Bridge
+# Nymphes MIDI to OSC Bridge
 
-### A software object that provides OSC control of the Dreadbox Nymphes MIDI synthesizer
+### A command line application that provides OSC control of the Dreadbox Nymphes synthesizer
 
-# OSC Messages Accepted from Clients
+# OSC Commands Reference
 
-## OSC Client Handling
+## OSC Client Registration
 
-### /register_client
+#### /register_client
 - Description: Register an OSC client specifying the port. The sender's IP address will be detected and used as the client's IP address.
 - Arguments:
   - 0
     - Type: Int
     - Description: Port that host will be listening on
 
-### /register_client_with_ip_address
+#### /register_client_with_ip_address
 - Description: Register an OSC client, specifying the IP address and port.
 - Arguments:
   - 0
@@ -23,14 +23,14 @@
     - Type: Int
     - Description: Port that host will be listening on
 
-### /unregister_client
+#### /unregister_client
 - Description: Unregister a client, specifying the port. The sender's IP address will be detected and used as the client's IP address.
 - Arguments:
   - 0
     - Type: Int
     - Description: Client port
   
-### /unregister_client_with_ip_address
+#### /unregister_client_with_ip_address
 - Description: Unregister a client, specifying the IP address and port.
 - Arguments:
   - 0
@@ -308,7 +308,7 @@
   - /hpf/cutoff/aftertouch
   - /hpf/cutoff/lfo2
 
-### Pitch-Filter Envelope
+### Pitch-Filter Envelope Settings
 
 #### Attack
 - Value Type: 
@@ -414,7 +414,7 @@
   - 0: Off
   - 1: On
 
-### LFO2
+### LFO2 Settings
 
 #### Rate
 - Value Type: 
@@ -474,7 +474,7 @@
   - 0: Off
   - 1: On
 
-### Reverb
+### Reverb Settings
 
 #### Size
 - Value Type: 
@@ -509,7 +509,7 @@
   - /reverb/filter/aftertouch
   - /reverb/filter/lfo2
 
-#### Mix
+### Mix Settings
 - Value Type: 
   - Float (0.0 to 1.0) 
   - Int (0 to 127)
@@ -610,8 +610,24 @@
 
 ## Preset Handling
 
-### /load_preset
-- Description: Load a preset from one of Nymphes' memory slots
+#### /recall_preset
+- Description: Recall a preset from one of Nymphes' memory slots
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Preset Type
+    - Possible Values: 'user' or 'factory'
+  - 1
+    - Type: String
+    - Description: Preset Bank 
+    - Possible Values: 'A' through 'G'
+  - 2
+    - Type: Int
+    - Description: Preset Number 
+    - Possible Values: 1 through 7
+
+#### /load_current_preset_into_nymphes_memory_slot
+- Description: Load the current settings into one of Nymphes' memory slots
 - Arguments:
   - 0
     - Type: String
@@ -626,15 +642,15 @@
     - Description: Preset Number 
     - Possible Values: 1 through 7
  
-### /load_preset_file
-- Description: Load a preset file from disk and send via SYSEX to Nymphes
+#### /load_file_into_current_preset
+- Description: Load a preset file from disk and send to Nymphes via SYSEX using a non-persistent import
 - Arguments:
   - 0
     - Type: String
     - Description: Filepath of preset to load
   
-### /load_preset_file_to_memory_slot
-- Description: Load a preset file from disk and send via SYSEX to Nymphes, overwriting a memory slot
+#### /load_file_into_nymphes_memory_slot
+- Description: Load a preset file from disk and send via SYSEX to Nymphes, writing to a memory slot
 - Arguments:
   - 0
     - Type: String
@@ -652,76 +668,107 @@
     - Description: Preset Number 
     - Possible Values: 1 through 7
       
-### /save_preset_file
+#### /save_current_preset_to_file
 - Description: Save current settings to a preset file on disk
 - Arguments:
   - 0
     - Type: String
     - Description: Destination filepath
 
-### /request_sysex_dump
-- Description: Send a dump request to Nymphes via SYSEX
+#### /save_nymphes_memory_slot_to_file
+- Description: Write the preset from the specified Nymphes memory slot to a preset file on disk
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Destination filepath
+  - 1
+    - Type: String
+    - Description: Preset Type
+    - Possible Values: 'user' or 'factory'
+  - 2
+    - Type: String
+    - Description: Preset Bank 
+    - Possible Values: 'A' through 'G'
+  - 3
+    - Type: Int
+    - Description: Preset Number 
+    - Possible Values: 1 through 7
+    - 
+#### /request_preset_dump
+- Description: Send a dump request to Nymphes via SYSEX. This causes Nymphes to send all of its presets via SYSEX messages
 - Arguments: None
 
 ## MIDI Port Control
 
-### /open_midi_input_port
-- Description: Open the specified MIDI Input Port. Messages received from connected MIDI Input Ports are will be interpreted by nymphes-midi and passed on to Nymphes.
+#### /connect_midi_input_port
+- Description: Connect the specified MIDI Input Port. Messages received from connected MIDI Input Ports are will be interpreted by nymphes-midi and passed on to Nymphes.
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the port (as reported by mido.get_input_names())
 
-### /close_midi_input_port
-- Description: Close the specified MIDI Input Port. Messages will no longer be received from the port.
+#### /disconnect_midi_input_port
+- Description: Disconnect the specified MIDI Input Port. Messages will no longer be received from the port.
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the port (as reported by mido.get_input_names())
 
-### /open_midi_output_port
-- Description: Open the specified MIDI Output Port. Messages from Nymphes and software clients will be passed on to connected MIDI Output Ports.
+#### /connect_midi_output_port
+- Description: Connect the specified MIDI Output Port. Messages from Nymphes and software clients will be passed on to connected MIDI Output Ports.
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the port (as reported by mido.get_output_names())
 
-### /close_midi_output_port
-- Description: Close the specified MIDI Output Port. Messages will no longer be sent to the port.
+#### /disconnect_midi_output_port
+- Description: Disconnect the specified MIDI Output Port. Messages will no longer be sent to the port.
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the port (as reported by mido.get_output_names())
 
-## Other Settings and Controls
+## Performance Controls
 
-### /set_nymphes_midi_channel
-- Description: Inform nymphes-osc of the MIDI channel that Nymphes is using
-- Arguments:
-  - 0
-    - Type: Int
-    - Range: 1 to 16
-    - Description: The MIDI channel
-  
-### /mod_wheel
+#### /mod_wheel
 - Description: Send a mod wheel MIDI Control Change message (CC 1) to Nymphes and connected MIDI Output Ports
 - Arguments:
   - 0
     - Type: Int
     - Range: 0 to 127
 
-### /aftertouch
+#### /aftertouch
 - Description: Send a channel aftertouch MIDI message to Nymphes and connected MIDI Output Ports
 - Arguments:
   - 0
     - Type: Int
     - Range: 0 to 127
 
-# Messages Sent to Clients
+#### /sustain_pedal
+- Description: Sustain Pedal status
+- Arguments:
+  - 0
+    - Type: Int
+    - Values:
+      - 0: Off
+      - 1: On
 
-## OSC Client Handling
+## Other Settings and Controls
 
-### /client_registered
+#### /set_nymphes_midi_channel
+- Description: Inform nymphes-osc of the MIDI channel that Nymphes is using
+- Arguments:
+  - 0
+    - Type: Int
+    - Range: 1 to 16
+    - Description: The MIDI channel
+
+
+# OSC Messages Sent to Clients
+
+## OSC Client Events
+
+#### /client_registered
 - Description: An OSC client has just been registered
 - Arguments:
   - 0
@@ -731,7 +778,7 @@
     - Type: Int
     - Description: Port that host is listening on
 
-### /client_unregistered
+#### /client_unregistered
 - Description: An OSC client has just been unregistered
 - Arguments:
   - 0
@@ -741,31 +788,10 @@
       - Type: Int
       - Description: Port of client 
 
-### /mod_wheel
-- Description: A mod wheel MIDI Control Change Message (CC 1) has been received from a MIDI Input Port
-- Arguments:
-  - 0
-    - Type: Int
-    - Range: 0 to 127
+## Preset Events
 
-### /aftertouch
-- Description: A channel aftertouch MIDI message has been received from a MIDI Input Port
-- Arguments:
-  - 0
-    - Type: Int
-    - Range: 0 to 127
-
-### /velocity
-- Description: The velocity value of the most recently-received MIDI note-on message. nymphes_osc will output this message whenever a new note_on message is received. We only send this OSC message. We do not respond to incoming messages of this type.
-- Arguments:
-  - 0
-    - Type: Int
-    - Range: 0 to 127
-
-## Preset Handling
-
-### /loaded_preset
-- Description: A program change message has just been received from the Nymphes, indicating that a preset was loaded from memory
+#### /recalled_preset
+- Description: A preset has just been recalled on Nymphes
 - Arguments:
   - 0
     - Type: String
@@ -780,15 +806,19 @@
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
-### /loaded_preset_file
-- Description: A preset file has just been loaded
+#### /received_current_preset_from_midi_input_port
+- Description: A non-persistent preset import has been received from a MIDI Input port. This sets the current preset's values.
+- Arguments: None
+
+#### /saved_current_preset_to_file
+- Description: The current preset settings have just been saved to a file
 - Arguments:
   - 0
     - Type: String
-    - Description: Filepath of loaded preset
+    - Description: Filepath of saved preset
 
-### /loaded_preset_file_into_memory_slot
-- Description: A preset file has just been loaded, and its contents were written to a Nymphes memory slot.
+#### /saved_memory_slot_to_file
+- Description: A preset in a memory slot has just been save to a file
 - Arguments:
   - 0
     - Type: String
@@ -806,105 +836,224 @@
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
-### /saved_preset_file
-- Description: A preset file has just been saved
+#### /loaded_file_into_current_preset
+- Description: A file has just been loaded into the current preset
 - Arguments:
   - 0
     - Type: String
-    - Description: Filepath of saved preset
+    - Description: Filepath of loaded preset
 
-## MIDI Port Messages
+#### /loaded_file_into_nymphes_memory_slot
+- Description: A file has just been loaded and written into a Nymphes memory slot.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Filepath of loaded preset
+  - 1
+    - Type: String
+    - Description: Type of preset
+      - 'user' or 'factory'
+  - 2
+    - Type: String
+    - Description: Bank
+      - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
+  - 3
+    - Type: Int
+    - Description: Preset Number
+      - Possible Values: 1, 2, 3, 4, 5, 6, 7
+ 
+#### /loaded_current_preset_into_nymphes_memory_slot
+- Description: The current preset settings have been written into a Nymphes memory slot.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Type of preset
+      - 'user' or 'factory'
+  - 1
+    - Type: String
+    - Description: Bank
+      - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
+  - 2
+    - Type: Int
+    - Description: Preset Number
+      - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
-### /nymphes_connected
+#### /requested_preset_dump
+- Description: A full preset dump has been requested from Nymphes
+- Arguments: None
+
+#### /received_preset_dump_from_nymphes
+- Description: Received a preset from Nymphes as a persistent import, so this is a preset dump
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Type of preset
+      - 'user' or 'factory'
+  - 1
+    - Type: String
+    - Description: Bank
+      - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
+  - 2
+    - Type: Int
+    - Description: Preset Number
+      - Possible Values: 1, 2, 3, 4, 5, 6, 7
+
+#### /loaded_preset_dump_from_midi_input_port_into_nymphes_memory_slot
+- Description: Received a persistent preset from a MIDI Input port and passed it on to Nymphes, writing it to a memory slot
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Type of preset
+      - 'user' or 'factory'
+  - 1
+    - Type: String
+    - Description: Bank
+      - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
+  - 2
+    - Type: Int
+    - Description: Preset Number
+      - Possible Values: 1, 2, 3, 4, 5, 6, 7
+
+## MIDI Port Events
+
+### Nymphes Connection
+
+#### /nymphes_connected
 - Description: The Nymphes synthesizer has just been connected
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the Nymphes MIDI Port
 
-### /nymphes_disconnected
+#### /nymphes_disconnected
 - Description: The Nymphes synthesizer has just been disconnected
 - Arguments: None
 
-### /midi_input_port_detected
+### MIDI Input Ports
+
+#### /midi_input_port_detected
 - Description: A new MIDI input port has been detected
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the newly-detected MIDI input port
 
-### /midi_input_port_no_longer_detected
+#### /midi_input_port_no_longer_detected
 - Description: A previously-detected MIDI input port is no longer detected.
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the MIDI input port that is no longer detected 
 
-### /midi_input_port_opened
-- Description: A MIDI input port has been opened
+#### /detected_midi_input_ports
+- Description: A list of detected MIDI input ports.
+  - This is automatically sent to a newly-connected OSC host
+- Arguments: One String argument for the name of each detected input port
+  - Note: If no input ports are detected, then the message will be sent but there will be no arguments
+
+#### /midi_input_port_connected
+- Description: A MIDI input port has been connected
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the MIDI input port
 
-### /midi_input_port_closed
-- Description: A MIDI input port has been closed
+#### /midi_input_port_disconnected
+- Description: A MIDI input port has been disconnected
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the MIDI input port
 
-### /midi_output_port_detected
+#### /connected_midi_input_ports
+- Description: A list of connected MIDI input ports
+  - This is automatically sent to a newly-registered OSC host
+- Arguments: One String argument for the name of each connected input port
+  - Note: If no input ports are connected, then the message will be sent but there will be no arguments
+
+### MIDI Output Ports
+
+#### /midi_output_port_detected
 - Description: A new MIDI output port has been detected
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the newly-detected MIDI output port
 
-### /midi_output_port_no_longer_detected
+#### /midi_output_port_no_longer_detected
 - Description: A previously-detected MIDI output port is no longer detected.
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the MIDI output port that is no longer detected
 
-### /midi_output_port_opened
-- Description: A MIDI output port has been opened
-- Arguments:
-  - 0
-    - Type: String
-    - Description: The name of the MIDI output port
-
-### /midi_output_port_closed
-- Description: A MIDI output port has been closed
-- Arguments:
-  - 0
-    - Type: String
-    - Description: The name of the MIDI output port
-
-### /detected_midi_input_ports
-- Description: A list of detected MIDI input ports.
-  - This is automatically sent to a newly-connected OSC host.
-  - It is also sent to all OSC hosts whenever the list of input ports changes.
-- Arguments: One String argument for the name of each detected input port
-  - Note: If no input ports are detected, then the message will be sent but there will be no arguments
-
-### /detected_midi_output_ports
+#### /detected_midi_output_ports
 - Description: A list of detected MIDI output ports.
-  - This is automatically sent to a newly-connected OSC host.
-  - It is also sent to all OSC hosts whenever the list of output ports changes.
+  - This is automatically sent to a newly-connected OSC host
 - Arguments: One String argument for the name of each detected output port
   - Note: If no output ports are detected, then the message will be sent but there will be no arguments
 
+#### /midi_output_port_connected
+- Description: A MIDI output port has been connected
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the MIDI output port
+
+#### /midi_output_port_disconnected
+- Description: A MIDI output port has been disconnected
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the MIDI output port
+
+#### /connected_midi_output_ports
+- Description: A list of connected MIDI output ports
+  - This is automatically sent to a newly-registered OSC host
+- Arguments: One String argument for the name of each connected output port
+  - Note: If no output ports are connected, then the message will be sent but there will be no arguments
+
+## Performance Controls
+
+#### /mod_wheel
+- Description: A mod wheel MIDI Control Change Message (CC 1) has been received from a MIDI Input Port
+- Arguments:
+  - 0
+    - Type: Int
+    - Range: 0 to 127
+
+#### /aftertouch
+- Description: A channel aftertouch MIDI message has been received from a MIDI Input Port
+- Arguments:
+  - 0
+    - Type: Int
+    - Range: 0 to 127
+
+#### /velocity
+- Description: The velocity value of the most recently-received MIDI note-on message. nymphes_osc will output this message whenever a new note_on message is received. We only send this OSC message. We do not respond to incoming messages of this type.
+- Arguments:
+  - 0
+    - Type: Int
+    - Range: 0 to 127
+
+#### /sustain_pedal
+- Description: Sustain Pedal status
+- Arguments:
+  - 0
+    - Type: Int
+    - Values:
+      - 0: Off
+      - 1: On
+
 ## Other Messages
 
-### /status
+#### /status
 - Description: A general status message. These messages mirror those output on the console of the machine running the nymphes_osc application
 - Arguments:
   - 0
     - Type: String
 
-### /nymphes_midi_channel_changed
+#### /nymphes_midi_channel_changed
 - Description: The MIDI channel that Nymphes uses changed
 - Arguments:
   - 0

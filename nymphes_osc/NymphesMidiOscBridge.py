@@ -69,18 +69,21 @@ class NymphesMidiOscBridge:
             '/unregister_client_with_ip_address',
             self._on_osc_message_unregister_client_with_ip_address
         )
-        self._dispatcher.map('/load_preset', self._on_osc_message_load_preset)
-        self._dispatcher.map('/load_preset_file', self._on_osc_message_load_preset_file)
-        self._dispatcher.map('/load_preset_file_to_memory_slot', self._on_osc_message_load_preset_file_to_memory_slot)
-        self._dispatcher.map('/save_preset_file', self._on_osc_message_save_preset_file)
-        self._dispatcher.map('/request_sysex_dump', self._on_osc_message_request_sysex_dump)
-        self._dispatcher.map('/open_midi_input_port', self._on_osc_message_open_midi_input_port)
-        self._dispatcher.map('/close_midi_input_port', self._on_osc_message_close_midi_input_port)
-        self._dispatcher.map('/open_midi_output_port', self._on_osc_message_open_midi_output_port)
-        self._dispatcher.map('/close_midi_output_port', self._on_osc_message_close_midi_output_port)
+        self._dispatcher.map('/recall_preset', self._on_osc_message_recall_preset)
+        self._dispatcher.map('/load_current_preset_into_nymphes_memory_slot', self._on_osc_message_load_current_preset_into_nymphes_memory_slot)
+        self._dispatcher.map('/load_file_into_current_preset', self._on_osc_message_load_file_into_current_preset)
+        self._dispatcher.map('/load_file_into_nymphes_memory_slot', self._on_osc_message_load_file_into_nymphes_memory_slot)
+        self._dispatcher.map('/save_current_preset_to_file', self._on_osc_message_save_current_preset_to_file)
+        self._dispatcher.map('/save_nymphes_memory_slot_to_file', self._on_osc_message_save_nymphes_memory_slot_to_file)
+        self._dispatcher.map('/request_preset_dump', self._on_osc_message_request_preset_dump)
+        self._dispatcher.map('/connect_midi_input_port', self._on_osc_message_connect_midi_input_port)
+        self._dispatcher.map('/disconnect_midi_input_port', self._on_osc_message_disconnect_midi_input_port)
+        self._dispatcher.map('/connect_midi_output_port', self._on_osc_message_connect_midi_output_port)
+        self._dispatcher.map('/disconnect_midi_output_port', self._on_osc_message_disconnect_midi_output_port)
         self._dispatcher.map('/set_nymphes_midi_channel', self._on_osc_message_set_nymphes_midi_channel)
         self._dispatcher.map('/mod_wheel', self._on_osc_message_mod_wheel)
         self._dispatcher.map('/aftertouch', self._on_osc_message_aftertouch)
+        self._dispatcher.map('/sustain_pedal', self._on_osc_message_sustain_pedal)
         self._dispatcher.set_default_handler(self._on_other_osc_message)
 
         # Start the OSC Server
@@ -385,29 +388,29 @@ class NymphesMidiOscBridge:
         except Exception as e:
             self._send_status_to_all_clients(f'Failed to unregister client ({e})')
 
-    def _on_osc_message_load_preset(self, address, *args):
+    def _on_osc_message_recall_preset(self, address, *args):
         """
-        An OSC message has just been received to load a preset from memory
+        An OSC message has just been received to recall a preset from memory
         :param address: (str) The OSC address of the message
         :param *args: The OSC message's arguments
         :return:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self._log_message('_on_osc_message_load_preset: no arguments supplied')
+            self._log_message('_on_osc_message_recall_preset: no arguments supplied')
             return
 
         try:
-            self._nymphes_midi.load_preset(
+            self._nymphes_midi.recall_preset(
                 preset_type=args[0],
                 bank_name=args[1],
                 preset_num=args[2]
             )
 
         except Exception as e:
-            self._send_status_to_all_clients(f'Failed to load preset ({e})')
+            self._send_status_to_all_clients(f'Failed to recall preset ({e})')
 
-    def _on_osc_message_load_preset_file(self, address, *args):
+    def _on_osc_message_load_file_into_current_preset(self, address, *args):
         """
         An OSC message has just been received to load a preset file
         :param address: (str) The OSC address of the message
@@ -416,19 +419,43 @@ class NymphesMidiOscBridge:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self._log_message('_on_osc_message_load_preset_file: no arguments supplied')
+            self._log_message('_on_osc_message_load_file_into_current_preset: no arguments supplied')
             return
 
         # Load the file
         try:
-            self._nymphes_midi.load_preset_file(filepath=args[0])
+            self._nymphes_midi.load_file_into_current_preset(filepath=args[0])
 
         except Exception as e:
-            self._send_status_to_all_clients(f'Failed to load preset file ({e})')
+            self._send_status_to_all_clients(f'Failed to load file into current preset({e})')
 
-    def _on_osc_message_load_preset_file_to_memory_slot(self, address, *args):
+    def _on_osc_message_load_current_preset_into_nymphes_memory_slot(self, address, *args):
         """
-        An OSC message has just been received to load a preset file into
+        An OSC message has just been received to load the current preset settings
+        into a Nymphes memory slot
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            self._log_message('_on_osc_message_load_current_preset_into_nymphes_memory_slot: no arguments supplied')
+            return
+
+        # Load the file
+        try:
+            self._nymphes_midi.load_current_preset_into_nymphes_memory_slot(
+                preset_type=args[0],
+                bank_name=args[1],
+                preset_number=args[2]
+            )
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to load current preset into Nymphes memory slot ({e})')
+
+    def _on_osc_message_load_file_into_nymphes_memory_slot(self, address, *args):
+        """
+        An OSC message has just been received to load a file into
         a Nymphes memory slot
         :param address: (str) The OSC address of the message
         :param *args: The OSC message's arguments
@@ -436,12 +463,12 @@ class NymphesMidiOscBridge:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self._log_message('_on_osc_message_load_preset_file_to_memory_slot: no arguments supplied')
+            self._log_message('_on_osc_message_load_file_into_nymphes_memory_slot: no arguments supplied')
             return
 
         # Load the file
         try:
-            self._nymphes_midi.load_preset_file_into_memory_slot(
+            self._nymphes_midi.load_file_into_nymphes_memory_slot(
                 filepath=args[0],
                 preset_type=args[1],
                 bank_name=args[2],
@@ -449,113 +476,138 @@ class NymphesMidiOscBridge:
             )
 
         except Exception as e:
-            self._send_status_to_all_clients(f'Failed to load preset file to Nymphes memory slot ({e})')
+            self._send_status_to_all_clients(f'Failed to load file into Nymphes memory slot ({e})')
 
-    def _on_osc_message_save_preset_file(self, address, *args):
+    def _on_osc_message_save_current_preset_to_file(self, address, *args):
         """
         An OSC message has just been received to save the current
-        preset as a preset file.
+        preset as a file on disk.
         :param address: (str) The OSC address of the message
         :param *args: The OSC message's arguments
         :return:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self._log_message('_on_osc_message_save_preset_file: no arguments supplied')
+            self._log_message('_on_osc_message_save_current_preset_to_file: no arguments supplied')
             return
 
         # Save the file
         try:
-            self._nymphes_midi.save_preset_file(filepath=args[0])
+            self._nymphes_midi.save_current_preset_to_file(filepath=args[0])
 
         except Exception as e:
-            self._send_status_to_all_clients(f'Failed to save preset file ({e})')
+            self._send_status_to_all_clients(f'Failed to save current preset to file ({e})')
 
-    def _on_osc_message_request_sysex_dump(self, address, *args):
+    def _on_osc_message_save_nymphes_memory_slot_to_file(self, address, *args):
         """
-        Request a full SYSEX dump of all presets from Nymphes.
+        An OSC message has been received to save a preset in a Nymphes memory
+        slot to a file on disk.
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            self._log_message('_on_osc_message_save_current_preset_to_file: no arguments supplied')
+            return
+
+        # Save the file
+        try:
+            self._nymphes_midi.save_nymphes_memory_slot_to_file(
+                filepath=args[0],
+                preset_type=args[1],
+                bank_name=args[2],
+                preset_number=args[3]
+            )
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to save preset from Nymphes memory slot to file ({e})')
+
+    def _on_osc_message_request_preset_dump(self, address, *args):
+        """
+        Request a full preset dump of all presets from Nymphes.
         :param address: (str) The OSC address of the message
         :param *args: The OSC message's arguments
         :return:
         """
         # Send the dump request
-        self._nymphes_midi.send_sysex_dump_request()
+        self._nymphes_midi.request_preset_dump()
 
-    def _on_osc_message_open_midi_input_port(self, address, *args):
+    def _on_osc_message_connect_midi_input_port(self, address, *args):
         """
-        Open a MIDI input port using its name
+        Connect a MIDI input port using its name
         :param address: (str) The OSC address of the message
         :param *args: The OSC message's arguments
         :return:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self._log_message('_on_osc_message_open_midi_input_port: no arguments supplied')
+            self._log_message('_on_osc_message_connect_midi_input_port: no arguments supplied')
             return
 
         try:
-            # Open the port
-            self._nymphes_midi.open_midi_input_port(args[0])
+            # Connect the port
+            self._nymphes_midi.connect_midi_input_port(args[0])
 
         except Exception as e:
-            self._send_status_to_all_clients(f'Failed to open MIDI Input port ({e})')
+            self._send_status_to_all_clients(f'Failed to connect MIDI Input port ({e})')
         
-    def _on_osc_message_close_midi_input_port(self, address, *args):
+    def _on_osc_message_disconnect_midi_input_port(self, address, *args):
         """
-        Close a MIDI input port using its name
+        Disconnect a MIDI input port using its name
         :param address: (str) The OSC address of the message
         :param *args: The OSC message's arguments
         :return:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self._log_message('_on_osc_message_close_midi_input_port: no arguments supplied')
+            self._log_message('_on_osc_message_disconnect_midi_input_port: no arguments supplied')
             return
 
         try:
-            # Close the port
-            self._nymphes_midi.close_midi_input_port(args[0])
+            # Disconnect the port
+            self._nymphes_midi.disconnect_midi_input_port(args[0])
 
         except Exception as e:
-            self._send_status_to_all_clients(f'Failed to close MIDI Input port ({e})')
+            self._send_status_to_all_clients(f'Failed to disconnect MIDI Input port ({e})')
 
-    def _on_osc_message_open_midi_output_port(self, address, *args):
+    def _on_osc_message_connect_midi_output_port(self, address, *args):
         """
-        Open a MIDI output port using its name
+        Connect a MIDI output port using its name
         :param address: (str) The OSC address of the message
         :param *args: The OSC message's arguments
         :return:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self._log_message('_on_osc_message_open_midi_output_port: no arguments supplied')
+            self._log_message('_on_osc_message_connect_midi_output_port: no arguments supplied')
             return
 
         try:
-            # Open the port
-            self._nymphes_midi.open_midi_output_port(args[0])
+            # Connect the port
+            self._nymphes_midi.connect_midi_output_port(args[0])
 
         except Exception as e:
-            self._send_status_to_all_clients(f'Failed to open MIDI Output port ({e})')
+            self._send_status_to_all_clients(f'Failed to connect MIDI Output port ({e})')
 
-    def _on_osc_message_close_midi_output_port(self, address, *args):
+    def _on_osc_message_disconnect_midi_output_port(self, address, *args):
         """
-        Close a non-Nymphes MIDI output port using its name
+        Disconnect a non-Nymphes MIDI output port using its name
         :param address: (str) The OSC address of the message
         :param *args: The OSC message's arguments
         :return:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self._log_message('_on_osc_message_close_midi_output_port: no arguments supplied')
+            self._log_message('_on_osc_message_disconnect_midi_output_port: no arguments supplied')
             return
 
         try:
-            # Close the port
-            self._nymphes_midi.close_midi_output_port(args[0])
+            # Disconnect the port
+            self._nymphes_midi.disconnect_midi_output_port(args[0])
 
         except Exception as e:
-            self._send_status_to_all_clients(f'Failed to close MIDI Output port ({e})')
+            self._send_status_to_all_clients(f'Failed to disconnect MIDI Output port ({e})')
 
     def _on_osc_message_set_nymphes_midi_channel(self, address, *args):
         """
@@ -612,6 +664,25 @@ class NymphesMidiOscBridge:
 
         except Exception as e:
             self._send_status_to_all_clients(f'Failed to set aftertouch ({e})')
+            
+    def _on_osc_message_sustain_pedal(self, address, *args):
+        """
+        An OSC client has just sent a message to send a Sustain Pedal
+        MIDI CC message.
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            self._log_message('_on_osc_message_sustain_pedal: no arguments supplied')
+            return
+
+        try:
+            self._nymphes_midi.set_sustain_pedal(args[0])
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to set sustain_pedal ({e})')
 
     def _on_other_osc_message(self, address, *args):
         """
