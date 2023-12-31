@@ -40,6 +40,126 @@
     - Type: Int
     - Description: Client port
 
+## Preset Handling
+
+#### /recall_preset
+- Description: Recall a preset from one of Nymphes' memory slots
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Preset Type
+    - Possible Values: 'user' or 'factory'
+  - 1
+    - Type: String
+    - Description: Preset Bank 
+    - Possible Values: 'A' through 'G'
+  - 2
+    - Type: Int
+    - Description: Preset Number 
+    - Possible Values: 1 through 7
+
+#### /load_current_preset_into_nymphes_memory_slot
+- Description: Load the current settings into one of Nymphes' memory slots
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Preset Type
+    - Possible Values: 'user' or 'factory'
+  - 1
+    - Type: String
+    - Description: Preset Bank 
+    - Possible Values: 'A' through 'G'
+  - 2
+    - Type: Int
+    - Description: Preset Number 
+    - Possible Values: 1 through 7
+ 
+#### /load_file_into_current_preset
+- Description: Load a preset file from disk and send to Nymphes via SYSEX using a non-persistent import
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Filepath of preset to load
+  
+#### /load_file_into_nymphes_memory_slot
+- Description: Load a preset file from disk and send via SYSEX to Nymphes, writing to a memory slot
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Filepath of preset to load
+  - 1
+    - Type: String
+    - Description: Preset Type
+    - Possible Values: 'user' or 'factory'
+  - 2
+    - Type: String
+    - Description: Preset Bank 
+    - Possible Values: 'A' through 'G'
+  - 3
+    - Type: Int
+    - Description: Preset Number 
+    - Possible Values: 1 through 7
+      
+#### /save_current_preset_to_file
+- Description: Save current settings to a preset file on disk
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Destination filepath
+
+#### /save_nymphes_memory_slot_to_file
+- Description: Write the preset from the specified Nymphes memory slot to a preset file on disk
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Destination filepath
+  - 1
+    - Type: String
+    - Description: Preset Type
+    - Possible Values: 'user' or 'factory'
+  - 2
+    - Type: String
+    - Description: Preset Bank 
+    - Possible Values: 'A' through 'G'
+  - 3
+    - Type: Int
+    - Description: Preset Number 
+    - Possible Values: 1 through 7
+    - 
+#### /request_preset_dump
+- Description: Send a dump request to Nymphes via SYSEX. This causes Nymphes to send all of its presets via SYSEX messages
+- Arguments: None
+
+## MIDI Port Control
+
+#### /connect_midi_input_port
+- Description: Connect the specified MIDI Input Port. Messages received from connected MIDI Input Ports are will be interpreted by nymphes-midi and passed on to Nymphes.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the port (as reported by mido.get_input_names())
+
+#### /disconnect_midi_input_port
+- Description: Disconnect the specified MIDI Input Port. Messages will no longer be received from the port.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the port (as reported by mido.get_input_names())
+
+#### /connect_midi_output_port
+- Description: Connect the specified MIDI Output Port. Messages from Nymphes and software clients will be passed on to connected MIDI Output Ports.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the port (as reported by mido.get_output_names())
+
+#### /disconnect_midi_output_port
+- Description: Disconnect the specified MIDI Output Port. Messages will no longer be sent to the port.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the port (as reported by mido.get_output_names())
+
 ## Setting Nymphes Parameters
 
 ### Oscillator Settings
@@ -607,126 +727,6 @@
   - /chord_8/semi_3
   - /chord_8/semi_4
   - /chord_8/semi_5
-
-## Preset Handling
-
-#### /recall_preset
-- Description: Recall a preset from one of Nymphes' memory slots
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Preset Type
-    - Possible Values: 'user' or 'factory'
-  - 1
-    - Type: String
-    - Description: Preset Bank 
-    - Possible Values: 'A' through 'G'
-  - 2
-    - Type: Int
-    - Description: Preset Number 
-    - Possible Values: 1 through 7
-
-#### /load_current_preset_into_nymphes_memory_slot
-- Description: Load the current settings into one of Nymphes' memory slots
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Preset Type
-    - Possible Values: 'user' or 'factory'
-  - 1
-    - Type: String
-    - Description: Preset Bank 
-    - Possible Values: 'A' through 'G'
-  - 2
-    - Type: Int
-    - Description: Preset Number 
-    - Possible Values: 1 through 7
- 
-#### /load_file_into_current_preset
-- Description: Load a preset file from disk and send to Nymphes via SYSEX using a non-persistent import
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Filepath of preset to load
-  
-#### /load_file_into_nymphes_memory_slot
-- Description: Load a preset file from disk and send via SYSEX to Nymphes, writing to a memory slot
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Filepath of preset to load
-  - 1
-    - Type: String
-    - Description: Preset Type
-    - Possible Values: 'user' or 'factory'
-  - 2
-    - Type: String
-    - Description: Preset Bank 
-    - Possible Values: 'A' through 'G'
-  - 3
-    - Type: Int
-    - Description: Preset Number 
-    - Possible Values: 1 through 7
-      
-#### /save_current_preset_to_file
-- Description: Save current settings to a preset file on disk
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Destination filepath
-
-#### /save_nymphes_memory_slot_to_file
-- Description: Write the preset from the specified Nymphes memory slot to a preset file on disk
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Destination filepath
-  - 1
-    - Type: String
-    - Description: Preset Type
-    - Possible Values: 'user' or 'factory'
-  - 2
-    - Type: String
-    - Description: Preset Bank 
-    - Possible Values: 'A' through 'G'
-  - 3
-    - Type: Int
-    - Description: Preset Number 
-    - Possible Values: 1 through 7
-    - 
-#### /request_preset_dump
-- Description: Send a dump request to Nymphes via SYSEX. This causes Nymphes to send all of its presets via SYSEX messages
-- Arguments: None
-
-## MIDI Port Control
-
-#### /connect_midi_input_port
-- Description: Connect the specified MIDI Input Port. Messages received from connected MIDI Input Ports are will be interpreted by nymphes-midi and passed on to Nymphes.
-- Arguments:
-  - 0
-    - Type: String
-    - Description: The name of the port (as reported by mido.get_input_names())
-
-#### /disconnect_midi_input_port
-- Description: Disconnect the specified MIDI Input Port. Messages will no longer be received from the port.
-- Arguments:
-  - 0
-    - Type: String
-    - Description: The name of the port (as reported by mido.get_input_names())
-
-#### /connect_midi_output_port
-- Description: Connect the specified MIDI Output Port. Messages from Nymphes and software clients will be passed on to connected MIDI Output Ports.
-- Arguments:
-  - 0
-    - Type: String
-    - Description: The name of the port (as reported by mido.get_output_names())
-
-#### /disconnect_midi_output_port
-- Description: Disconnect the specified MIDI Output Port. Messages will no longer be sent to the port.
-- Arguments:
-  - 0
-    - Type: String
-    - Description: The name of the port (as reported by mido.get_output_names())
 
 ## Performance Controls
 

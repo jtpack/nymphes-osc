@@ -25,7 +25,7 @@ class NymphesMidiOscBridge:
         self._print_logs_enabled = print_logs_enabled
 
         # Create NymphesMidi object
-        self._nymphes_midi = NymphesMidi(print_logs_enabled=False)
+        self._nymphes_midi = NymphesMidi(print_logs_enabled=True)
         self._nymphes_midi.nymphes_midi_channel = nymphes_midi_channel
         self._nymphes_midi.register_for_notifications(self._on_nymphes_notification)
 
@@ -75,6 +75,7 @@ class NymphesMidiOscBridge:
         self._dispatcher.map('/load_file_into_nymphes_memory_slot', self._on_osc_message_load_file_into_nymphes_memory_slot)
         self._dispatcher.map('/save_current_preset_to_file', self._on_osc_message_save_current_preset_to_file)
         self._dispatcher.map('/save_nymphes_memory_slot_to_file', self._on_osc_message_save_nymphes_memory_slot_to_file)
+        self._dispatcher.map('/load_default_preset', self._on_osc_message_load_default_preset)
         self._dispatcher.map('/request_preset_dump', self._on_osc_message_request_preset_dump)
         self._dispatcher.map('/connect_midi_input_port', self._on_osc_message_connect_midi_input_port)
         self._dispatcher.map('/disconnect_midi_input_port', self._on_osc_message_disconnect_midi_input_port)
@@ -522,6 +523,19 @@ class NymphesMidiOscBridge:
 
         except Exception as e:
             self._send_status_to_all_clients(f'Failed to save preset from Nymphes memory slot to file ({e})')
+
+    def _on_osc_message_load_default_preset(self, address, *args):
+        """
+        Load the default preset (default.txt)
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        try:
+            self._nymphes_midi.load_default_preset()
+
+        except Exception as e:
+            self._send_status_to_all_clients(f'Failed to load default preset ({e})')
 
     def _on_osc_message_request_preset_dump(self, address, *args):
         """
