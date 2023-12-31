@@ -9,6 +9,7 @@ from nymphes_midi.NymphesMidi import NymphesMidi
 from nymphes_midi.NymphesPreset import NymphesPreset
 from nymphes_midi.PresetEvents import PresetEvents
 from nymphes_midi.MidiConnectionEvents import MidiConnectionEvents
+import netifaces
 
 
 class NymphesMidiOscBridge:
@@ -19,20 +20,49 @@ class NymphesMidiOscBridge:
     MIDI-controllable functionality.
     """
 
-    def __init__(self, nymphes_midi_channel, osc_in_host, osc_in_port, print_logs_enabled=False):
+    def __init__(
+            self,
+            nymphes_midi_channel=1,
+            osc_in_port=1237,
+            osc_in_host=None,
+            logging_enabled=False,
+            log_params_and_performance_controls=False
+    ):
+        # Create NymphesMidi object
+        self._nymphes_midi = NymphesMidi(
+            notification_callback_function=self._on_nymphes_notification,
+            logging_enabled=False,
+            log_params_and_performance_controls=False
+        )
+
+        # The MIDI channel Nymphes is set to use.
+        # This is an int with a range of 1 to 16.
+        self._nymphes_midi.nymphes_midi_channel = nymphes_midi_channel
+
+        # The port that the OSC server is listening on for incoming
+        # messages
+        self.in_port = osc_in_port
+
+        # The hostname or IP that the OSC server is listening on for
+        # incoming messages
+        self.in_host = osc_in_host
+
+        #
+        # If None was supplied for the host, then use the local
+        # IP address.
+        #
+
+        if self.in_host is None:
+            self.in_host = self._get_local_ip_address()
+
         # If True, then log_message() will print to the console.
         # If False, then it does nothing.
-        self._print_logs_enabled = print_logs_enabled
+        self._logging_enabled = logging_enabled
 
-        # Create NymphesMidi object
-        self._nymphes_midi = NymphesMidi(print_logs_enabled=True)
-        self._nymphes_midi.nymphes_midi_channel = nymphes_midi_channel
-        self._nymphes_midi.register_for_notifications(self._on_nymphes_notification)
-
-        # IP Address and Port for Incoming OSC Messages from Clients
-        #
-        self.in_host = osc_in_host
-        self.in_port = osc_in_port
+        # If True, and if logs are enabled, then notifications
+        # for Nymphes parameter values and MIDI performance
+        # controls will be logged as well.
+        self._log_params_and_performance_controls = log_params_and_performance_controls
 
         # The OSC Server, which receives OSC messages on a background thread
         #
@@ -91,12 +121,12 @@ class NymphesMidiOscBridge:
         self._start_osc_server()
 
     @property
-    def print_logs_enabled(self):
-        return self._print_logs_enabled
+    def logging_enabled(self):
+        return self._logging_enabled
 
-    @print_logs_enabled.setter
-    def print_logs_enabled(self, enable):
-        self._print_logs_enabled = enable
+    @logging_enabled.setter
+    def logging_enabled(self, enable):
+        self._logging_enabled = enable
 
     def update(self):
         """
@@ -275,7 +305,7 @@ class NymphesMidiOscBridge:
         :param message: str
         :return:
         """
-        if self.print_logs_enabled:
+        if self.logging_enabled:
             print(f'NymphesMidiOscBridge log: {message}')
 
     #
@@ -755,10 +785,21 @@ class NymphesMidiOscBridge:
         :param value: The value. Its type varies by notification
         :return:
         """
-        if name in ['velocity', 'aftertouch', 'mod_wheel']:
+        if name in ['velocity', 'aftertouch', 'mod_wheel', 'sustain_pedal']:
+            #
+            # This is a notification for a MIDI performance control
+            #
             self._send_osc_to_all_clients(f'/{name}', value)
 
+            # Log the notification, if enabled
+            if self._log_params_and_performance_controls:
+                self._log_message(f'{name}: {value}')
+
         elif name == 'float_param':
+            #
+            # This is a float preset parameter value.
+            #
+
             # Get the parameter name and value
             param_name, param_value = value
 
@@ -767,6 +808,10 @@ class NymphesMidiOscBridge:
             # replaced by /
             # ie: for param_name osc.wave.value, the address will be /osc/wave/value
             self._send_osc_to_all_clients(f'/{param_name.replace(".", "/")}', float(param_value))
+
+            # Log the notification, if enabled
+            if self._log_params_and_performance_controls:
+                self._log_message(f'{name}: {value}')
 
         elif name == 'int_param':
             param_name, param_value = value
@@ -777,14 +822,74 @@ class NymphesMidiOscBridge:
             # ie: for param_name osc.wave.value, the address will be /osc/wave/value
             self._send_osc_to_all_clients(f'/{param_name.replace(".", "/")}', int(param_value))
 
-        else:
+            # Log the notification, if enabled
+            if self._log_params_and_performance_controls:
+                self._log_message(f'{name}: {value}')
+
+        elif name in PresetEvents.all_values():
             if isinstance(value, tuple):
                 self._send_osc_to_all_clients(f'/{name}', *value)
+
+                # Log the notification
+                self._log_message(f'{name}: {value}')
 
             elif value is None:
                 self._send_osc_to_all_clients(f'/{name}')
 
+                # Log the notification
+                self._log_message(f'{name}')
+
             else:
                 self._send_osc_to_all_clients(f'/{name}', value)
 
-        self._log_message(f'Notification: {name}: {value}')
+                # Log the notification
+                self._log_message(f'{name}: {value}')
+
+        else:
+            if isinstance(value, tuple):
+                self._send_osc_to_all_clients(f'/{name}', *value)
+
+                # Log the notification
+                self._log_message(f'{name}: {value}')
+
+            elif value is None:
+                self._send_osc_to_all_clients(f'/{name}')
+
+                # Log the notification
+                self._log_message(f'{name}')
+
+            else:
+                self._send_osc_to_all_clients(f'/{name}', value)
+
+                # Log the notification
+                self._log_message(f'{name}: {value}')
+
+    def _get_local_ip_address(self):
+        """
+        Return the local IP address as a string.
+        If no address other than 127.0.0.1 can be found, then
+        return 127.0.0.1
+        """
+        # Get a list of all network interfaces
+        interfaces = netifaces.interfaces()
+
+        for iface in interfaces:
+            try:
+                # Get the addresses associated with the interface
+                addresses = netifaces.ifaddresses(iface)
+
+                # Extract the IPv4 addresses (if available)
+                if netifaces.AF_INET in addresses:
+                    ip_info = addresses[netifaces.AF_INET][0]
+                    ip_address = ip_info['addr']
+                    if ip_address != '127.0.0.1':
+                        return ip_address
+
+                    else:
+                        return '127.0.0.1'
+
+            except Exception as e:
+                self._log_message(f'Failed to detect local IP address ({e})')
+
+                # Default to localhost
+                return '127.0.0.1'
