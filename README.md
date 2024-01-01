@@ -763,7 +763,6 @@
     - Range: 1 to 16
     - Description: The MIDI channel
 
-
 # OSC Messages Sent to Clients
 
 ## OSC Client Events
