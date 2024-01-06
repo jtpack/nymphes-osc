@@ -4,27 +4,34 @@
 
 # Installation
 
-1. Clone the repository
+## 1. Clone the repository
    - `cd ~`
    - `git clone git@github.com:jtpack/nymphes-osc.git`
-2. Enter the nymphes-osc directory
-   - `cd nymphes-osc`
-3. Create a virtual environment and activate it
-   - Mac OS / Linux
-     - python3 -m venv venv
-     - venv/bin/activate
-   - Windows
-     - py -3 -m venv venv
-     - venv\scripts\activate
-4. Install Dependencies
-   - nymphes-midi
-     - Clone the repository
-       - `cd ~`
-       - `git clone git@github.com:jtpack/nymphes-midi.git`
-     - Go back to the nymphes-osc directory
-       - `cd ~/nymphes-osc`
-     - Install nymphes-midi
-       - 
+
+## 2. Create a virtual environment and activate it
+- `cd ~/nymphes-osc`
+
+#### Mac OS / Linux:
+- `python3 -m venv venv`
+- `venv/bin/activate`
+
+#### Windows:
+- `py -3 -m venv venv`
+- `venv\scripts\activate`
+
+## 3. Install Dependencies
+
+### nymphes-midi
+- Clone the repository to your home directory
+  - `cd ~`
+  - `git clone git@github.com:jtpack/nymphes-midi.git`
+- Go back to the nymphes-osc directory
+  - `cd ~/nymphes-osc`
+- Install nymphes-midi in your virtual environment as an editable package
+  - `pip install -e ~/nymphes-midi`
+
+## 4. Run nymphes-osc
+- `python -m nymphes_osc`
 
 # OSC Commands Reference
 
