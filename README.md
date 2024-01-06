@@ -2,6 +2,30 @@
 
 ### A command line application that provides OSC control of the Dreadbox Nymphes synthesizer
 
+# Installation
+
+1. Clone the repository
+   - `cd ~`
+   - `git clone git@github.com:jtpack/nymphes-osc.git`
+2. Enter the nymphes-osc directory
+   - `cd nymphes-osc`
+3. Create a virtual environment and activate it
+   - Mac OS / Linux
+     - python3 -m venv venv
+     - venv/bin/activate
+   - Windows
+     - py -3 -m venv venv
+     - venv\scripts\activate
+4. Install Dependencies
+   - nymphes-midi
+     - Clone the repository
+       - `cd ~`
+       - `git clone git@github.com:jtpack/nymphes-midi.git`
+     - Go back to the nymphes-osc directory
+       - `cd ~/nymphes-osc`
+     - Install nymphes-midi
+       - 
+
 # OSC Commands Reference
 
 ## OSC Client Registration
