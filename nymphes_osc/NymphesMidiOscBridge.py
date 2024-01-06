@@ -14,6 +14,12 @@ import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
+# Create logs directory if necessary
+logs_directory_path = Path(Path(__file__).resolve().parent / 'logs/')
+if not logs_directory_path.exists():
+    logs_directory_path.mkdir()
+
+
 # Get the root logger
 root_logger = logging.getLogger()
 

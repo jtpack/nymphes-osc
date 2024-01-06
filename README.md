@@ -29,8 +29,12 @@
   - `cd ~/nymphes-osc`
 - Install nymphes-midi in your virtual environment as an editable package
   - `pip install -e ~/nymphes-midi`
+    - _Note: On Windows you may need to replace ~ with the full path to your home directory_
 
-## 4. Run nymphes-osc
+## 4. Install nymphes-osc itself
+  - `pip install -e .`
+
+## 5. Run nymphes-osc
 - `python -m nymphes_osc`
 
 # OSC Commands Reference
