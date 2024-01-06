@@ -19,7 +19,6 @@ logs_directory_path = Path(Path(__file__).resolve().parent / 'logs/')
 if not logs_directory_path.exists():
     logs_directory_path.mkdir()
 
-
 # Get the root logger
 root_logger = logging.getLogger()
 
@@ -31,7 +30,7 @@ log_formatter = logging.Formatter(
 
 # Handler for logging to files
 file_handler = RotatingFileHandler(
-    Path(__file__).resolve().parent / 'logs/log.txt',
+    logs_directory_path / 'log.txt',
     maxBytes=1024,
     backupCount=3
 )
