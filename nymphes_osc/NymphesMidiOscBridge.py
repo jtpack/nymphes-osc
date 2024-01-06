@@ -167,6 +167,16 @@ class NymphesMidiOscBridge:
             needs_reply_address=True
         )
         self._dispatcher.map(
+            '/connect_nymphes',
+            self._on_osc_message_connect_nymphes,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/disconnect_nymphes',
+            self._on_osc_message_disconnect_nymphes,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
             '/connect_midi_input',
             self._on_osc_message_connect_midi_input,
             needs_reply_address=True
@@ -762,6 +772,57 @@ class NymphesMidiOscBridge:
         except Exception as e:
             # Send status update and log it
             status = f'Failed to connect MIDI Input port ({e})'
+            self._send_status_to_osc_clients(status)
+            logger.warning(status)
+
+    def _on_osc_message_connect_nymphes(self, sender_ip, address, *args):
+        """
+        Connect to Nymphes using the supplied MIDI input and output port names.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            input_port_name = args[0]
+            output_port_name = args[1]
+
+            logger.info(f'Received {address} {input_port_name} {output_port_name} from {sender_ip[0]}')
+
+            # Connect to the MIDI ports
+            self._nymphes_midi.connect_nymphes(
+                input_port_name=input_port_name,
+                output_port_name=output_port_name
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to connect Nymphes ({e})'
+            self._send_status_to_osc_clients(status)
+            logger.warning(status)
+
+    def _on_osc_message_disconnect_nymphes(self, sender_ip, address, *args):
+        """
+        Disconnect from Nymphes MIDI ports
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        try:
+            logger.info(f'Received {address} from {sender_ip[0]}')
+
+            # Disconnect Nymphes ports
+            self._nymphes_midi.disconnect_nymphes()
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to disconnect Nymphes ({e})'
             self._send_status_to_osc_clients(status)
             logger.warning(status)
 

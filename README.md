@@ -167,6 +167,20 @@
 
 ## MIDI Port Control
 
+#### /connect_nymphes
+- Description: Connect to Nymphes using the specified MIDI Input and Output Ports
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the MIDI Input port for Nymphes (as reported by mido.get_input_names())
+  - 1
+    - Type: String
+    - Description: The name of the MIDI Output port for Nymphes (as reported by mido.get_output_names())
+
+#### /disconnect_nymphes
+- Description: Disconnect from Nymphes MIDI ports
+- Arguments: None
+
 #### /connect_midi_input_port
 - Description: Connect the specified MIDI Input Port. Messages received from connected MIDI Input Ports are will be interpreted by nymphes-midi and passed on to Nymphes.
 - Arguments:
