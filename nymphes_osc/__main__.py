@@ -1,3 +1,5 @@
+import logging
+
 from nymphes_osc.NymphesMidiOscBridge import NymphesMidiOscBridge
 import time
 import argparse
@@ -42,6 +44,11 @@ def main():
 
     args = parser.parse_args()
 
+    if args.debug:
+        logging_level = logging.DEBUG
+    else:
+        logging_level = logging.INFO
+
     #
     # Create the Nymphes OSC Controller
     #
@@ -49,7 +56,7 @@ def main():
         nymphes_midi_channel=args.midi_channel,
         port=args.port,
         host=args.host,
-        log_debug_messages=args.debug
+        logging_level=logging_level
     )
 
     #

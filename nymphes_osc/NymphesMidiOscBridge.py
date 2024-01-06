@@ -19,30 +19,26 @@ root_logger = logging.getLogger()
 
 # Formatter for logs
 log_formatter = logging.Formatter(
-    '%(asctime)s.%(msecs)03d - %(levelname)s - %(message)s',
+    'NymphesMidiOscBridge %(asctime)s.%(msecs)03d - %(levelname)s - %(message)s',
     datefmt='%Y-%d-%m %H:%M:%S'
 )
 
-
-# Get the parent folder of this python file
-curr_dir = Path(__file__).resolve().parent
-
 # Handler for logging to files
 file_handler = RotatingFileHandler(
-    curr_dir / 'logs/log.txt',
+    Path(__file__).resolve().parent / 'logs/log.txt',
     maxBytes=1024,
     backupCount=3
 )
 file_handler.setFormatter(log_formatter)
-root_logger.addHandler(file_handler)
 
 # Handler for logging to the console
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(log_formatter)
-root_logger.addHandler(console_handler)
 
 # Get the logger for this module
 logger = logging.getLogger(__name__)
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
 
 
 class NymphesMidiOscBridge:
@@ -53,13 +49,10 @@ class NymphesMidiOscBridge:
     MIDI-controllable functionality.
     """
 
-    def __init__(self, nymphes_midi_channel, port, host, log_debug_messages=False):
+    def __init__(self, nymphes_midi_channel, port, host, logging_level=logging.INFO):
 
         # Set logger level
-        if log_debug_messages:
-            logger.setLevel(logging.DEBUG)
-        else:
-            logger.setLevel(logging.INFO)
+        logger.setLevel(logging_level)
 
         logger.debug(f'nymphes_midi_channel: {nymphes_midi_channel}')
         logger.debug(f'port: {port}')
@@ -68,8 +61,7 @@ class NymphesMidiOscBridge:
         # Create NymphesMidi object
         self._nymphes_midi = NymphesMidi(
             notification_callback_function=self._on_nymphes_notification,
-            logging_enabled=False,
-            log_params_and_performance_controls=False
+            log_level=logging.CRITICAL
         )
 
         # The MIDI channel Nymphes is set to use.
