@@ -13,7 +13,7 @@
 
 #### Mac OS / Linux:
 - `python3 -m venv venv`
-- `venv/bin/activate`
+- `source venv/bin/activate`
 
 #### Windows:
 - `py -3 -m venv venv`
