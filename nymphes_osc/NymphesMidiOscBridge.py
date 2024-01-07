@@ -66,7 +66,7 @@ class NymphesMidiOscBridge:
         # Create NymphesMidi object
         self._nymphes_midi = NymphesMidi(
             notification_callback_function=self._on_nymphes_notification,
-            log_level=logging.DEBUG
+            log_level=logging.CRITICAL
         )
 
         # The MIDI channel Nymphes is set to use.
