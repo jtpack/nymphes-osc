@@ -1,6 +1,6 @@
 import logging
 
-from nymphes_osc.NymphesMidiOscBridge import NymphesMidiOscBridge
+from nymphes_osc.NymphesOSC import NymphesOSC
 import time
 import argparse
 
@@ -37,33 +37,42 @@ def main():
     )
 
     parser.add_argument(
-        '-d', '--debug',
+        '--mdns_name',
+        default=None,
+        help='Optional. If supplied, then use mDNS to advertise on the network with this name'
+    )
+
+    parser.add_argument(
+        '--debug_osc',
         action='store_true',
-        help='Optional. Enables logging of debug messages.'
+        help='Optional. Enables logging of debug messages from NymphesOscBridge.'
+    )
+
+    parser.add_argument(
+        '--debug_midi',
+        action='store_true',
+        help='Optional. Enables logging of debug messages from NymphesMidi.'
     )
 
     args = parser.parse_args()
 
-    if args.debug:
-        logging_level = logging.DEBUG
-    else:
-        logging_level = logging.INFO
-
     #
     # Create the Nymphes OSC Controller
     #
-    nymphes = NymphesMidiOscBridge(
+    nymphes_osc = NymphesOSC(
         nymphes_midi_channel=args.midi_channel,
         port=args.port,
         host=args.host,
-        logging_level=logging_level
+        mdns_name=args.mdns_name,
+        nymphes_osc_log_level=logging.DEBUG if args.debug_osc else logging.INFO,
+        nymphes_midi_log_level=logging.DEBUG if args.debug_midi else logging.WARNING
     )
 
     #
-    # Stay running until manually killed
+    # Stay running until manually stopped
     #
     while True:
-        nymphes.update()
+        nymphes_osc.update()
         time.sleep(0.0001)
 
 

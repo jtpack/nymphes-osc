@@ -5,10 +5,10 @@ from pythonosc.udp_client import SimpleUDPClient
 from pythonosc.dispatcher import Dispatcher
 from pythonosc.osc_server import BlockingOSCUDPServer
 from pythonosc.osc_message_builder import OscMessageBuilder
-from nymphes_midi.NymphesMidi import NymphesMidi
-from nymphes_midi.NymphesPreset import NymphesPreset
-from nymphes_midi.PresetEvents import PresetEvents
-from nymphes_midi.MidiConnectionEvents import MidiConnectionEvents
+from nymphes_osc.NymphesMIDI import NymphesMIDI
+from nymphes_osc.NymphesPreset import NymphesPreset
+from nymphes_osc.PresetEvents import PresetEvents
+from nymphes_osc.MidiConnectionEvents import MidiConnectionEvents
 import netifaces
 import logging
 from logging.handlers import RotatingFileHandler
@@ -24,13 +24,13 @@ root_logger = logging.getLogger()
 
 # Formatter for logs
 log_formatter = logging.Formatter(
-    'NymphesMidiOscBridge %(asctime)s.%(msecs)03d - %(levelname)s - %(message)s',
+    '%(asctime)s.%(msecs)03d - NymphesOSC  - %(levelname)s - %(message)s',
     datefmt='%Y-%d-%m %H:%M:%S'
 )
 
 # Handler for logging to files
 file_handler = RotatingFileHandler(
-    logs_directory_path / 'log.txt',
+    logs_directory_path / 'nymphes_osc_log.txt',
     maxBytes=1024,
     backupCount=3
 )
@@ -46,27 +46,31 @@ logger.addHandler(file_handler)
 logger.addHandler(console_handler)
 
 
-class NymphesMidiOscBridge:
+class NymphesOSC:
     """
-    An OSC server that uses nymphes-midi to handle MIDI communication with
+    An OSC server that uses NymphesMidi to handle MIDI communication with
     the Dreadbox Nymphes synthesizer.
     Enables OSC clients to control all aspects of the Nymphes'
     MIDI-controllable functionality.
     """
 
-    def __init__(self, nymphes_midi_channel, port, host, logging_level=logging.INFO):
+    def __init__(self, nymphes_midi_channel, port, host, mdns_name=None,
+                 nymphes_osc_log_level=logging.INFO, nymphes_midi_log_level=logging.CRITICAL):
 
         # Set logger level
-        logger.setLevel(logging_level)
+        logger.setLevel(nymphes_osc_log_level)
 
         logger.debug(f'nymphes_midi_channel: {nymphes_midi_channel}')
         logger.debug(f'port: {port}')
         logger.debug(f'host: {host}')
+        logger.debug(f'mdns_name: {mdns_name}')
+        logger.debug(f'nymphes_osc_log_level: {nymphes_osc_log_level}')
+        logger.debug(f'nymphes_midi_log_level: {nymphes_midi_log_level}')
 
         # Create NymphesMidi object
-        self._nymphes_midi = NymphesMidi(
+        self._nymphes_midi = NymphesMIDI(
             notification_callback_function=self._on_nymphes_notification,
-            log_level=logging.CRITICAL
+            log_level=nymphes_midi_log_level
         )
 
         # The MIDI channel Nymphes is set to use.
@@ -88,6 +92,11 @@ class NymphesMidiOscBridge:
 
         if self.in_host is None:
             self.in_host = self._get_local_ip_address()
+
+        #
+        # mDNS Advertising
+        #
+        self._mdns_name = mdns_name
 
         # The OSC Server, which receives OSC messages on a background thread
         #
@@ -353,31 +362,36 @@ class NymphesMidiOscBridge:
         self._osc_server_thread = threading.Thread(target=self._osc_server.serve_forever)
         self._osc_server_thread.start()
 
-        # Advertise OSC Server on the network using mDNS
-        #
-        self._mdns_service_info = ServiceInfo(
-            type_="_osc._udp.local.",
-            name="nymphes-osc._osc._udp.local.",
-            addresses=[socket.inet_aton(self.in_host)],
-            port=self.in_port,
-            weight=0,
-            priority=0,
-            properties={},
-            server="nymphes-osc.local."
-        )
-
-        self._zeroconf = Zeroconf()
-        self._zeroconf.register_service(info=self._mdns_service_info)
-
         # Send status update and log it
         status = f'Started OSC Server at {self.in_host}:{self.in_port}'
         self._send_status_to_osc_clients(status)
         logger.info(status)
 
-        # Send status update and log it
-        status = f'Advertising as {self._mdns_service_info.server}'
-        self._send_status_to_osc_clients(status)
-        logger.info(status)
+        if self._mdns_name is not None:
+            try:
+                # Advertise OSC Server on the network using mDNS
+                #
+                self._mdns_service_info = ServiceInfo(
+                    type_="_osc._udp.local.",
+                    name=f"{self._mdns_name}._osc._udp.local.",
+                    addresses=[socket.inet_aton(self.in_host)],
+                    port=self.in_port,
+                    weight=0,
+                    priority=0,
+                    properties={},
+                    server=f"{self._mdns_name}.local."
+                )
+
+                self._zeroconf = Zeroconf()
+                self._zeroconf.register_service(info=self._mdns_service_info)
+
+                # Send status update and log it
+                status = f'Advertising as {self._mdns_service_info.server}'
+                self._send_status_to_osc_clients(status)
+                logger.info(status)
+
+            except Exception as e:
+                logger.warning(f'Failed to register mDNS server as {self._mdns_name} ({e})')
 
     #
     # OSC Methods
