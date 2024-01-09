@@ -1425,7 +1425,7 @@ class NymphesMIDI:
 
                     # Send a notification that the current preset parameters
                     # were received from a MIDI input port
-                    self.add_notification(PresetEvents.received_current_preset_from_midi_input_port.value)
+                    self.add_notification(PresetEvents.received_current_preset_sysex_from_midi_input_port.value)
 
                     # Send notifications for all preset parameters
                     for param_name in NymphesPreset.all_param_names():

@@ -3,7 +3,7 @@ from enum import Enum
 
 class PresetEvents(Enum):
     recalled_preset = 'recalled_preset'
-    received_current_preset_from_midi_input_port = 'received_current_preset_from_midi_input_port'
+    received_current_preset_sysex_from_midi_input_port = 'received_current_preset_sysex_from_midi_input_port'
 
     saved_current_preset_to_file = 'saved_current_preset_to_file'
     saved_memory_slot_to_file = 'saved_memory_slot_to_file'
@@ -25,7 +25,7 @@ class PresetEvents(Enum):
         """
         return [
             PresetEvents.recalled_preset.value,
-            PresetEvents.received_current_preset_from_midi_input_port.value,
+            PresetEvents.received_current_preset_sysex_from_midi_input_port.value,
 
             PresetEvents.saved_current_preset_to_file.value,
             PresetEvents.saved_memory_slot_to_file.value,

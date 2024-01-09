@@ -25,12 +25,12 @@ root_logger = logging.getLogger()
 # Formatter for logs
 log_formatter = logging.Formatter(
     '%(asctime)s.%(msecs)03d - NymphesOSC  - %(levelname)s - %(message)s',
-    datefmt='%Y-%d-%m %H:%M:%S'
+    datefmt='%Y-%m-%d %H:%M:%S'
 )
 
 # Handler for logging to files
 file_handler = RotatingFileHandler(
-    logs_directory_path / 'nymphes_osc_log.txt',
+    logs_directory_path / 'nymphes_osc.txt',
     maxBytes=1024,
     backupCount=3
 )
@@ -289,7 +289,8 @@ class NymphesOSC:
         # Notify the client whether the Nymphes is connected
         if self._nymphes_midi.nymphes_connected:
             msg = OscMessageBuilder(address='/nymphes_connected')
-            msg.add_arg(self._nymphes_midi.nymphes_midi_port)
+            msg.add_arg(self._nymphes_midi.nymphes_midi_ports[0])
+            msg.add_arg(self._nymphes_midi.nymphes_midi_ports[1])
             msg = msg.build()
             client.send(msg)
         else:
@@ -1204,7 +1205,8 @@ class NymphesOSC:
         """
         Return the local IP address as a string.
         If no address other than 127.0.0.1 can be found, then
-        return 127.0.0.1
+        return '127.0.0.1'
+        :return: str
         """
         # Get a list of all network interfaces
         interfaces = netifaces.interfaces()

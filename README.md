@@ -842,9 +842,24 @@
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
-#### /received_current_preset_from_midi_input_port
-- Description: A non-persistent preset import has been received from a MIDI Input port. This sets the current preset's values.
-- Arguments: None
+#### /received_current_preset_sysex_from_midi_input_port
+- Description: A non-persistent preset import has been received from a MIDI Input port via SYSEX. This sets the current preset's values.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Name of the MIDI input port
+  - 1
+    - Type: String
+    - Description: Type of preset
+      - 'user' or 'factory'
+  - 2
+    - Type: String
+    - Description: Bank
+      - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
+  - 3
+    - Type: Int
+    - Description: Preset Number
+      - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
 #### /saved_current_preset_to_file
 - Description: The current preset settings have just been saved to a file
@@ -939,13 +954,16 @@
 - Arguments:
   - 0
     - Type: String
+    - Description: Name of the MIDI input port
+  - 1
+    - Type: String
     - Description: Type of preset
       - 'user' or 'factory'
-  - 1
+  - 2
     - Type: String
     - Description: Bank
       - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
-  - 2
+  - 3
     - Type: Int
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
@@ -959,7 +977,10 @@
 - Arguments:
   - 0
     - Type: String
-    - Description: The name of the Nymphes MIDI Port
+    - Description: The name of the MIDI input port for messages from Nymphes
+  - 1
+    - Type: String
+    - Description: The name of the MIDI output port for messages to Nymphes
 
 #### /nymphes_disconnected
 - Description: The Nymphes synthesizer has just been disconnected
@@ -981,7 +1002,7 @@
     - Type: String
     - Description: The name of the MIDI input port that is no longer detected 
 
-#### /detected_midi_input_ports
+#### /detected_midi_inputs
 - Description: A list of detected MIDI input ports.
   - This is automatically sent to a newly-connected OSC host
 - Arguments: One String argument for the name of each detected input port
@@ -1001,7 +1022,7 @@
     - Type: String
     - Description: The name of the MIDI input port
 
-#### /connected_midi_input_ports
+#### /connected_midi_inputs
 - Description: A list of connected MIDI input ports
   - This is automatically sent to a newly-registered OSC host
 - Arguments: One String argument for the name of each connected input port
@@ -1023,7 +1044,7 @@
     - Type: String
     - Description: The name of the MIDI output port that is no longer detected
 
-#### /detected_midi_output_ports
+#### /detected_midi_outputs
 - Description: A list of detected MIDI output ports.
   - This is automatically sent to a newly-connected OSC host
 - Arguments: One String argument for the name of each detected output port
@@ -1043,7 +1064,7 @@
     - Type: String
     - Description: The name of the MIDI output port
 
-#### /connected_midi_output_ports
+#### /connected_midi_outputs
 - Description: A list of connected MIDI output ports
   - This is automatically sent to a newly-registered OSC host
 - Arguments: One String argument for the name of each connected output port
