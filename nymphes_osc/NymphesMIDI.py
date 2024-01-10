@@ -410,6 +410,31 @@ class NymphesMIDI:
             self._detect_midi_input_ports()
             self._detect_midi_output_ports()
 
+            if not self.nymphes_connected:
+                # Get the first MIDI input port with nymphes in
+                # its name
+                nymphes_input_port_name = None
+                for port_name in self._detected_midi_inputs:
+                    if 'nymphes' in port_name.lower():
+                        nymphes_input_port_name = port_name
+                        break
+
+                # Get the first MIDI output port with nymphes in
+                # its name
+                nymphes_output_port_name = None
+                for port_name in self._detected_midi_outputs:
+                    if 'nymphes' in port_name.lower():
+                        nymphes_output_port_name = port_name
+                        break
+
+                if nymphes_input_port_name is not None and nymphes_output_port_name is not None:
+                    # Try to connect to the ports
+                    logger.info(f'Trying to auto-connect to Nymphes ports {nymphes_input_port_name} {nymphes_output_port_name}')
+                    self.connect_nymphes(
+                        input_port_name=nymphes_input_port_name,
+                        output_port_name=nymphes_output_port_name
+                    )
+
             # Store the current time
             self._midi_port_scan_last_timestamp = time.time()
 

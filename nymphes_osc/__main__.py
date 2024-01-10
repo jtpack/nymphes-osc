@@ -59,15 +59,17 @@ def main():
     )
 
     parser.add_argument(
-        '--debug_osc',
-        action='store_true',
-        help='Optional. Enables logging of debug messages from NymphesOscBridge.'
+        '--osc_log_level',
+        default='WARNING',
+        choices={'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'},
+        help='Optional. Sets the log level for NymphesOSC'
     )
 
     parser.add_argument(
-        '--debug_midi',
-        action='store_true',
-        help='Optional. Enables logging of debug messages from NymphesMidi.'
+        '--midi_log_level',
+        default='WARNING',
+        choices={'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'},
+        help='Optional. Sets the log level for NymphesMIDI'
     )
 
     args = parser.parse_args()
@@ -75,15 +77,9 @@ def main():
     #
     # Create the Nymphes OSC Controller
     #
-    nymphes_osc = NymphesOSC(
-        nymphes_midi_channel=args.midi_channel,
-        server_host=args.server_host,
-        server_port=args.server_port,
-        client_host=args.client_host,
-        client_port=args.client_port,
-        mdns_name=args.mdns_name,
-        nymphes_osc_log_level=logging.DEBUG if args.debug_osc else logging.INFO,
-        nymphes_midi_log_level=logging.DEBUG if args.debug_midi else logging.WARNING)
+    nymphes_osc = NymphesOSC(nymphes_midi_channel=args.midi_channel, server_port=args.server_port,
+                             server_host=args.server_host, client_port=args.client_port, client_host=args.client_host,
+                             mdns_name=args.mdns_name)
 
     #
     # Stay running until manually stopped
@@ -91,6 +87,20 @@ def main():
     while True:
         nymphes_osc.update()
         time.sleep(0.0001)
+
+def log_level_for_name(name):
+    if name == 'CRITICAL':
+        return logging.CRITICAL
+    elif name == 'ERROR':
+        return logging.ERROR
+    elif name == 'WARNING':
+        return logging.WARNING
+    elif name == 'INFO':
+        return logging.INFO
+    elif name == 'DEBUG':
+        return logging.DEBUG
+    else:
+        raise Exception(f'Invalid log level: {name}')
 
 
 if __name__ == '__main__':

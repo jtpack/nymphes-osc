@@ -62,12 +62,11 @@ class NymphesOSC:
             client_port=None,
             client_host=None,
             mdns_name=None,
-            nymphes_osc_log_level=logging.INFO,
-            nymphes_midi_log_level=logging.CRITICAL
-    ):
+            osc_log_level=logging.WARNING,
+            midi_log_level=logging.WARNING):
 
         # Set logger level
-        logger.setLevel(nymphes_osc_log_level)
+        logger.setLevel(osc_log_level)
 
         logger.info(f'nymphes_midi_channel: {nymphes_midi_channel}')
         logger.info(f'server_port: {server_port}')
@@ -75,13 +74,13 @@ class NymphesOSC:
         logger.info(f'client_port: {client_port}')
         logger.info(f'client_host: {client_host}')
         logger.info(f'mdns_name: {mdns_name}')
-        logger.info(f'nymphes_osc_log_level: {nymphes_osc_log_level}')
-        logger.info(f'nymphes_midi_log_level: {nymphes_midi_log_level}')
+        logger.info(f'nymphes_osc_log_level: {osc_log_level}')
+        logger.info(f'nymphes_midi_log_level: {midi_log_level}')
 
         # Create NymphesMidi object
         self._nymphes_midi = NymphesMIDI(
             notification_callback_function=self._on_nymphes_notification,
-            log_level=nymphes_midi_log_level
+            log_level=midi_log_level
         )
 
         # The MIDI channel Nymphes is set to use.
