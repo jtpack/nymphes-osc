@@ -949,7 +949,7 @@
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
-#### /loaded_preset_dump_from_midi_input_port_into_nymphes_memory_slot
+#### /loaded_preset_dump_from_midi_input_into_nymphes_memory_slot
 - Description: Received a persistent preset from a MIDI Input port and passed it on to Nymphes, writing it to a memory slot
 - Arguments:
   - 0
@@ -988,14 +988,14 @@
 
 ### MIDI Input Ports
 
-#### /midi_input_port_detected
+#### /midi_input_detected
 - Description: A new MIDI input port has been detected
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the newly-detected MIDI input port
 
-#### /midi_input_port_no_longer_detected
+#### /midi_input_no_longer_detected
 - Description: A previously-detected MIDI input port is no longer detected.
 - Arguments:
   - 0
@@ -1008,14 +1008,14 @@
 - Arguments: One String argument for the name of each detected input port
   - Note: If no input ports are detected, then the message will be sent but there will be no arguments
 
-#### /midi_input_port_connected
+#### /midi_input_connected
 - Description: A MIDI input port has been connected
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the MIDI input port
 
-#### /midi_input_port_disconnected
+#### /midi_input_disconnected
 - Description: A MIDI input port has been disconnected
 - Arguments:
   - 0
@@ -1030,14 +1030,14 @@
 
 ### MIDI Output Ports
 
-#### /midi_output_port_detected
+#### /midi_output_detected
 - Description: A new MIDI output port has been detected
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the newly-detected MIDI output port
 
-#### /midi_output_port_no_longer_detected
+#### /midi_output_no_longer_detected
 - Description: A previously-detected MIDI output port is no longer detected.
 - Arguments:
   - 0
@@ -1050,14 +1050,14 @@
 - Arguments: One String argument for the name of each detected output port
   - Note: If no output ports are detected, then the message will be sent but there will be no arguments
 
-#### /midi_output_port_connected
+#### /midi_output_connected
 - Description: A MIDI output port has been connected
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the MIDI output port
 
-#### /midi_output_port_disconnected
+#### /midi_output_disconnected
 - Description: A MIDI output port has been disconnected
 - Arguments:
   - 0

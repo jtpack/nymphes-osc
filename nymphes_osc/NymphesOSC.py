@@ -54,18 +54,29 @@ class NymphesOSC:
     MIDI-controllable functionality.
     """
 
-    def __init__(self, nymphes_midi_channel, port, host, mdns_name=None,
-                 nymphes_osc_log_level=logging.INFO, nymphes_midi_log_level=logging.CRITICAL):
+    def __init__(
+            self,
+            nymphes_midi_channel=1,
+            server_port=1237,
+            server_host=None,
+            client_port=None,
+            client_host=None,
+            mdns_name=None,
+            nymphes_osc_log_level=logging.INFO,
+            nymphes_midi_log_level=logging.CRITICAL
+    ):
 
         # Set logger level
         logger.setLevel(nymphes_osc_log_level)
 
-        logger.debug(f'nymphes_midi_channel: {nymphes_midi_channel}')
-        logger.debug(f'port: {port}')
-        logger.debug(f'host: {host}')
-        logger.debug(f'mdns_name: {mdns_name}')
-        logger.debug(f'nymphes_osc_log_level: {nymphes_osc_log_level}')
-        logger.debug(f'nymphes_midi_log_level: {nymphes_midi_log_level}')
+        logger.info(f'nymphes_midi_channel: {nymphes_midi_channel}')
+        logger.info(f'server_port: {server_port}')
+        logger.info(f'server_host: {server_host}')
+        logger.info(f'client_port: {client_port}')
+        logger.info(f'client_host: {client_host}')
+        logger.info(f'mdns_name: {mdns_name}')
+        logger.info(f'nymphes_osc_log_level: {nymphes_osc_log_level}')
+        logger.info(f'nymphes_midi_log_level: {nymphes_midi_log_level}')
 
         # Create NymphesMidi object
         self._nymphes_midi = NymphesMIDI(
@@ -79,11 +90,11 @@ class NymphesOSC:
 
         # The port that the OSC server is listening on for incoming
         # messages
-        self.in_port = port
+        self.in_port = server_port
 
         # The hostname or IP that the OSC server is listening on for
         # incoming messages
-        self.in_host = host
+        self.in_host = server_host
 
         #
         # If None was supplied for the host, then use the local
@@ -233,6 +244,10 @@ class NymphesOSC:
         # Start the OSC Server
         self._start_osc_server()
 
+        # Register initial client, if it was supplied
+        if client_host is not None and client_port is not None:
+            self.register_osc_client(host=client_host, port=client_port)
+
     def update(self):
         """
         This method should be called regularly to enable MIDI message reception
@@ -240,7 +255,7 @@ class NymphesOSC:
         """
         self._nymphes_midi.update()
 
-    def register_osc_client(self, ip_address_string, port):
+    def register_osc_client(self, host, port):
         """
         Add a new client to send OSC messages to.
         If the client has already been added previously, we don't add it again.
@@ -250,8 +265,8 @@ class NymphesOSC:
         up.
         """
         # Validate ip_address_string
-        if not isinstance(ip_address_string, str):
-            raise Exception(f'ip_address_string should be a string: {ip_address_string}')
+        if not isinstance(host, str):
+            raise Exception(f'ip_address_string should be a string: {host}')
 
         # Validate port
         try:
@@ -259,29 +274,29 @@ class NymphesOSC:
         except ValueError:
             raise Exception(f'port could not be interpreted as an integer: {port}')
 
-        if (ip_address_string, port) not in self._osc_clients_dict.keys():
+        if (host, port) not in self._osc_clients_dict.keys():
             # This is a new client.
-            client = SimpleUDPClient(ip_address_string, port)
+            client = SimpleUDPClient(host, port)
 
             # Store the client
-            self._osc_clients_dict[(ip_address_string, port)] = client
+            self._osc_clients_dict[(host, port)] = client
 
             # Send status update and log it
-            status = f'Registered client ({ip_address_string}:{port})'
+            status = f'Registered client ({host}:{port})'
             self._send_status_to_osc_clients(status)
             logger.info(status)
         else:
             # We have already added this client.
-            client = self._osc_clients_dict[(ip_address_string, port)]
+            client = self._osc_clients_dict[(host, port)]
 
             # Send status update and log it
-            status = f'Client already registered ({ip_address_string}:{client._port})'
+            status = f'Client already registered ({host}:{client._port})'
             self._send_status_to_osc_clients(status)
             logger.info(status)
 
         # Send osc notification to the client
         msg = OscMessageBuilder(address='/client_registered')
-        msg.add_arg(ip_address_string)
+        msg.add_arg(host)
         msg.add_arg(port)
         msg = msg.build()
         client.send(msg)
@@ -447,7 +462,7 @@ class NymphesOSC:
 
         # Register the client
         try:
-            self.register_osc_client(ip_address_string=sender_ip[0], port=client_port)
+            self.register_osc_client(host=sender_ip[0], port=client_port)
 
         except Exception as e:
             # Send status update and log it
@@ -475,7 +490,7 @@ class NymphesOSC:
 
             logger.info(f"Received {address} {client_ip} {client_port} from {sender_ip[0]}")
 
-            self.register_osc_client(ip_address_string=client_ip, port=client_port)
+            self.register_osc_client(host=client_ip, port=client_port)
 
         except Exception as e:
             # Send status update and log it
