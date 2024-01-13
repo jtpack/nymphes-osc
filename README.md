@@ -224,7 +224,7 @@
   - /osc/pulsewidth/lfo2
 
 #### Voice Mode
-- Address: /osc/voice_mode
+- Address: /osc/voice_mode/value
 - Value Type: Int
     - 0: Polyphonic
       - 6 note polyphony
@@ -246,7 +246,7 @@
       - 1 voice per note
 
 #### Legato
-- Address: /osc/legato
+- Address: /osc/legato/value
 - Value Type: Int
   - 0: Off
   - 1: On
@@ -393,7 +393,7 @@
 - Value Type: 
   - Float (0.0 to 1.0) 
   - Int (0 to 127)
-- Address: /mix/level
+- Address: /mix/level/value
 
 ### LPF Settings
 
@@ -558,7 +558,7 @@
   - /lfo1/fade/lfo2
 
 #### Type
-- Address: /lfo1/type
+- Address: /lfo1/type/value
 - Value Type: Int
   - 0: BPM
   - 1: Low
@@ -566,7 +566,7 @@
   - 3: Track
 
 #### Key Sync
-- Address: /lfo1/key_sync
+- Address: /lfo1/key_sync/value
 - Value Type: int
   - 0: Off
   - 1: On
@@ -618,7 +618,7 @@
   - /lfo2/fade/lfo2
 
 #### Type
-- Address: /lfo2/type
+- Address: /lfo2/type/value
 - Value Type: Int
   - 0: BPM
   - 1: Low
@@ -626,7 +626,7 @@
   - 3: Track
 
 #### Key Sync
-- Address: /lfo2/key_sync
+- Address: /lfo2/key_sync/value
 - Value Type: int
   - 0: Off
   - 1: On
@@ -681,89 +681,89 @@
 - Value Type:
   - Int (0 to 127)
 - Addresses:
-  - /chord_1/root
-  - /chord_1/semi_1
-  - /chord_1/semi_2
-  - /chord_1/semi_3
-  - /chord_1/semi_4
-  - /chord_1/semi_5
+  - /chord_1/root/value
+  - /chord_1/semi_1/value
+  - /chord_1/semi_2/value
+  - /chord_1/semi_3/value
+  - /chord_1/semi_4/value
+  - /chord_1/semi_5/value
 
 ### Chord 2 Settings
 - Value Type:
   - Int (0 to 127)
 - Addresses:
-  - /chord_2/root
-  - /chord_2/semi_1
-  - /chord_2/semi_2
-  - /chord_2/semi_3
-  - /chord_2/semi_4
-  - /chord_2/semi_5
+  - /chord_2/root/value
+  - /chord_2/semi_1/value
+  - /chord_2/semi_2/value
+  - /chord_2/semi_3/value
+  - /chord_2/semi_4/value
+  - /chord_2/semi_5/value
 
 ### Chord 3 Settings
 - Value Type:
   - Int (0 to 127)
 - Addresses:
-  - /chord_3/root
-  - /chord_3/semi_1
-  - /chord_3/semi_2
-  - /chord_3/semi_3
-  - /chord_3/semi_4
-  - /chord_3/semi_5
+  - /chord_3/root/value
+  - /chord_3/semi_1/value
+  - /chord_3/semi_2/value
+  - /chord_3/semi_3/value
+  - /chord_3/semi_4/value
+  - /chord_3/semi_5/value
 
 ### Chord 4 Settings
 - Value Type:
   - Int (0 to 127)
 - Addresses:
-  - /chord_4/root
-  - /chord_4/semi_1
-  - /chord_4/semi_2
-  - /chord_4/semi_3
-  - /chord_4/semi_4
-  - /chord_4/semi_5
+  - /chord_4/root/value
+  - /chord_4/semi_1/value
+  - /chord_4/semi_2/value
+  - /chord_4/semi_3/value
+  - /chord_4/semi_4/value
+  - /chord_4/semi_5/value
 
 ### Chord 5 Settings
 - Value Type:
   - Int (0 to 127)
 - Addresses:
-  - /chord_5/root
-  - /chord_5/semi_1
-  - /chord_5/semi_2
-  - /chord_5/semi_3
-  - /chord_5/semi_4
-  - /chord_5/semi_5
+  - /chord_5/root/value
+  - /chord_5/semi_1/value
+  - /chord_5/semi_2/value
+  - /chord_5/semi_3/value
+  - /chord_5/semi_4/value
+  - /chord_5/semi_5/value
 
 ### Chord 6 Settings
 - Value Type:
   - Int (0 to 127)
 - Addresses:
-  - /chord_6/root
-  - /chord_6/semi_1
-  - /chord_6/semi_2
-  - /chord_6/semi_3
-  - /chord_6/semi_4
-  - /chord_6/semi_5
+  - /chord_6/root/value
+  - /chord_6/semi_1/value
+  - /chord_6/semi_2/value
+  - /chord_6/semi_3/value
+  - /chord_6/semi_4/value
+  - /chord_6/semi_5/value
 
 ### Chord 7 Settings
 - Value Type:
   - Int (0 to 127)
 - Addresses:
-  - /chord_7/root
-  - /chord_7/semi_1
-  - /chord_7/semi_2
-  - /chord_7/semi_3
-  - /chord_7/semi_4
-  - /chord_7/semi_5
+  - /chord_7/root/value
+  - /chord_7/semi_1/value
+  - /chord_7/semi_2/value
+  - /chord_7/semi_3/value
+  - /chord_7/semi_4/value
+  - /chord_7/semi_5/value
 
 ### Chord 8 Settings
 - Value Type:
   - Int (0 to 127)
 - Addresses:
-  - /chord_8/root
-  - /chord_8/semi_1
-  - /chord_8/semi_2
-  - /chord_8/semi_3
-  - /chord_8/semi_4
-  - /chord_8/semi_5
+  - /chord_8/root/value
+  - /chord_8/semi_1/value
+  - /chord_8/semi_2/value
+  - /chord_8/semi_3/value
+  - /chord_8/semi_4/value
+  - /chord_8/semi_5/value
 
 ## Performance Controls
 
