@@ -7,7 +7,7 @@ import csv
 class NymphesPreset:
 
     _csv_header_string = 'Nymphes Preset v1.0.0'
-    float_precision_num_decimals = 4
+    float_precision_num_decimals = 2
 
     _preset_params_map = {
         #
@@ -21,7 +21,7 @@ class NymphesPreset:
              'preset_name': 'main.wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'osc.wave.lfo2':
@@ -30,7 +30,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'osc.wave.mod_wheel':
@@ -39,7 +39,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'osc.wave.velocity':
@@ -48,7 +48,7 @@ class NymphesPreset:
              'preset_name': 'velo.wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'osc.wave.aftertouch':
@@ -57,7 +57,7 @@ class NymphesPreset:
              'preset_name': 'after.wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Pulsewidth
@@ -67,7 +67,7 @@ class NymphesPreset:
              'preset_name': 'main.pw',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'osc.pulsewidth.lfo2':
@@ -76,7 +76,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.pw',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'osc.pulsewidth.mod_wheel':
@@ -85,7 +85,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.pw',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'osc.pulsewidth.velocity':
@@ -94,7 +94,7 @@ class NymphesPreset:
              'preset_name': 'velo.pw',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'osc.pulsewidth.aftertouch':
@@ -103,7 +103,7 @@ class NymphesPreset:
              'preset_name': 'after.pw',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'osc.voice_mode.value':
@@ -135,7 +135,7 @@ class NymphesPreset:
              'preset_name': 'main.lvl',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'mix.osc.lfo2':
@@ -144,7 +144,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.lvl',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'mix.osc.mod_wheel':
@@ -153,7 +153,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.lvl',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'mix.osc.velocity':
@@ -162,7 +162,7 @@ class NymphesPreset:
              'preset_name': 'velo.lvl',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'mix.osc.aftertouch':
@@ -171,7 +171,7 @@ class NymphesPreset:
              'preset_name': 'after.lvl',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Sub-Oscillator Level
@@ -181,7 +181,7 @@ class NymphesPreset:
              'preset_name': 'main.sub',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'mix.sub.lfo2':
@@ -190,7 +190,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.sub',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'mix.sub.mod_wheel':
@@ -199,7 +199,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.sub',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'mix.sub.velocity':
@@ -208,7 +208,7 @@ class NymphesPreset:
              'preset_name': 'velo.sub',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'mix.sub.aftertouch':
@@ -217,7 +217,7 @@ class NymphesPreset:
              'preset_name': 'after.sub',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Noise Level
@@ -227,7 +227,7 @@ class NymphesPreset:
              'preset_name': 'main.noise',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'mix.noise.lfo2':
@@ -236,7 +236,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.noise',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'mix.noise.mod_wheel':
@@ -245,7 +245,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.noise',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'mix.noise.velocity':
@@ -254,7 +254,7 @@ class NymphesPreset:
              'preset_name': 'velo.noise',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'mix.noise.aftertouch':
@@ -263,7 +263,7 @@ class NymphesPreset:
              'preset_name': 'after.noise',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'mix.level.value':
@@ -272,7 +272,7 @@ class NymphesPreset:
              'preset_name': 'amp_level',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         #
@@ -286,7 +286,7 @@ class NymphesPreset:
              'preset_name': 'main.glide',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.glide.lfo2':
@@ -295,7 +295,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.glide',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.glide.mod_wheel':
@@ -304,7 +304,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.glide',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.glide.velocity':
@@ -313,7 +313,7 @@ class NymphesPreset:
              'preset_name': 'velo.glide',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.glide.aftertouch':
@@ -322,7 +322,7 @@ class NymphesPreset:
              'preset_name': 'after.glide',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Detune
@@ -332,7 +332,7 @@ class NymphesPreset:
              'preset_name': 'main.dtune',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.detune.lfo2':
@@ -341,7 +341,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.dtune',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.detune.mod_wheel':
@@ -350,7 +350,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.dtune',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.detune.velocity':
@@ -359,7 +359,7 @@ class NymphesPreset:
              'preset_name': 'velo.dtune',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.detune.aftertouch':
@@ -368,7 +368,7 @@ class NymphesPreset:
              'preset_name': 'after.dtune',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Chord Selector
@@ -378,7 +378,7 @@ class NymphesPreset:
              'preset_name': 'main.chord',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.chord.lfo2':
@@ -387,7 +387,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.chord',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.chord.mod_wheel':
@@ -396,7 +396,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.chord',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.chord.velocity':
@@ -405,7 +405,7 @@ class NymphesPreset:
              'preset_name': 'velo.chord',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.chord.aftertouch':
@@ -414,7 +414,7 @@ class NymphesPreset:
              'preset_name': 'after.chord',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Pitch Envelope
@@ -424,7 +424,7 @@ class NymphesPreset:
              'preset_name': 'main.osc_eg',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.eg.lfo2':
@@ -433,7 +433,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.osc_eg',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.eg.mod_wheel':
@@ -442,7 +442,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.osc_eg',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.eg.velocity':
@@ -451,7 +451,7 @@ class NymphesPreset:
              'preset_name': 'velo.osc_eg',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.eg.aftertouch':
@@ -460,7 +460,7 @@ class NymphesPreset:
              'preset_name': 'after.osc_eg',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Pitch LFO1
@@ -470,7 +470,7 @@ class NymphesPreset:
              'preset_name': 'main.osc_lfo',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.lfo1.lfo2':
@@ -479,7 +479,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.osc_lfo',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.lfo1.mod_wheel':
@@ -488,7 +488,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.osc_lfo',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.lfo1.velocity':
@@ -497,7 +497,7 @@ class NymphesPreset:
              'preset_name': 'velo.osc_lfo',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'pitch.lfo1.aftertouch':
@@ -506,7 +506,7 @@ class NymphesPreset:
              'preset_name': 'after.osc_lfo',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         #
@@ -520,7 +520,7 @@ class NymphesPreset:
              'preset_name': 'main.cut',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.cutoff.lfo2':
@@ -529,7 +529,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.cut',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.cutoff.mod_wheel':
@@ -538,7 +538,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.cut',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.cutoff.velocity':
@@ -547,7 +547,7 @@ class NymphesPreset:
              'preset_name': 'velo.cut',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.cutoff.aftertouch':
@@ -556,7 +556,7 @@ class NymphesPreset:
              'preset_name': 'after.cut',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Resonance
@@ -566,7 +566,7 @@ class NymphesPreset:
              'preset_name': 'main.reson',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.resonance.lfo2':
@@ -575,7 +575,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.reson',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.resonance.mod_wheel':
@@ -584,7 +584,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.reson',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.resonance.velocity':
@@ -593,7 +593,7 @@ class NymphesPreset:
              'preset_name': 'velo.reson',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.resonance.aftertouch':
@@ -602,7 +602,7 @@ class NymphesPreset:
              'preset_name': 'after.reson',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Tracking
@@ -612,7 +612,7 @@ class NymphesPreset:
              'preset_name': 'main.track',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.tracking.lfo2':
@@ -621,7 +621,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.track',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.tracking.mod_wheel':
@@ -630,7 +630,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.track',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.tracking.velocity':
@@ -639,7 +639,7 @@ class NymphesPreset:
              'preset_name': 'velo.track',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.tracking.aftertouch':
@@ -648,7 +648,7 @@ class NymphesPreset:
              'preset_name': 'after.track',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # LPF Envelope
@@ -658,7 +658,7 @@ class NymphesPreset:
              'preset_name': 'main.cut_eg',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.eg.lfo2':
@@ -667,7 +667,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.cut_eg',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.eg.mod_wheel':
@@ -676,7 +676,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.cut_eg',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.eg.velocity':
@@ -685,7 +685,7 @@ class NymphesPreset:
              'preset_name': 'velo.cut_eg',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.eg.aftertouch':
@@ -694,7 +694,7 @@ class NymphesPreset:
              'preset_name': 'after.cut_eg',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # LPF LFO1
@@ -704,7 +704,7 @@ class NymphesPreset:
              'preset_name': 'main.cut_lfo',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.lfo1.lfo2':
@@ -713,7 +713,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.cut_lfo',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.lfo1.mod_wheel':
@@ -722,7 +722,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.cut_lfo',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.lfo1.velocity':
@@ -731,7 +731,7 @@ class NymphesPreset:
              'preset_name': 'velo.cut_lfo',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lpf.lfo1.aftertouch':
@@ -740,7 +740,7 @@ class NymphesPreset:
              'preset_name': 'after.cut_lfo',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         #
@@ -754,7 +754,7 @@ class NymphesPreset:
              'preset_name': 'main.hpf',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'hpf.cutoff.lfo2':
@@ -763,7 +763,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.hpf',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'hpf.cutoff.mod_wheel':
@@ -772,7 +772,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.hpf',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'hpf.cutoff.velocity':
@@ -781,7 +781,7 @@ class NymphesPreset:
              'preset_name': 'velo.hpf',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'hpf.cutoff.aftertouch':
@@ -790,7 +790,7 @@ class NymphesPreset:
              'preset_name': 'after.hpf',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         #
@@ -804,7 +804,7 @@ class NymphesPreset:
              'preset_name': 'main.a1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.attack.lfo2':
@@ -813,7 +813,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.a1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.attack.mod_wheel':
@@ -822,7 +822,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.a1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.attack.velocity':
@@ -831,7 +831,7 @@ class NymphesPreset:
              'preset_name': 'velo.a1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.attack.aftertouch':
@@ -840,7 +840,7 @@ class NymphesPreset:
              'preset_name': 'after.a1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Decay
@@ -850,7 +850,7 @@ class NymphesPreset:
              'preset_name': 'main.d1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.decay.lfo2':
@@ -859,7 +859,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.d1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.decay.mod_wheel':
@@ -868,7 +868,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.d1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.decay.velocity':
@@ -877,7 +877,7 @@ class NymphesPreset:
              'preset_name': 'velo.d1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.decay.aftertouch':
@@ -886,7 +886,7 @@ class NymphesPreset:
              'preset_name': 'after.d1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Sustain
@@ -896,7 +896,7 @@ class NymphesPreset:
              'preset_name': 'main.s1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.sustain.lfo2':
@@ -905,7 +905,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.s1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.sustain.mod_wheel':
@@ -914,7 +914,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.s1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.sustain.velocity':
@@ -923,7 +923,7 @@ class NymphesPreset:
              'preset_name': 'velo.s1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.sustain.aftertouch':
@@ -932,7 +932,7 @@ class NymphesPreset:
              'preset_name': 'after.s1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Release
@@ -942,7 +942,7 @@ class NymphesPreset:
              'preset_name': 'main.r1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.release.lfo2':
@@ -951,7 +951,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.r1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.release.mod_wheel':
@@ -960,7 +960,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.r1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.release.velocity':
@@ -969,7 +969,7 @@ class NymphesPreset:
              'preset_name': 'velo.r1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'filter_eg.release.aftertouch':
@@ -978,7 +978,7 @@ class NymphesPreset:
              'preset_name': 'after.r1',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         #
@@ -992,7 +992,7 @@ class NymphesPreset:
              'preset_name': 'main.a2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.attack.lfo2':
@@ -1001,7 +1001,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.a2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.attack.mod_wheel':
@@ -1010,7 +1010,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.a2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.attack.velocity':
@@ -1019,7 +1019,7 @@ class NymphesPreset:
              'preset_name': 'velo.a2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.attack.aftertouch':
@@ -1028,7 +1028,7 @@ class NymphesPreset:
              'preset_name': 'after.a2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Decay
@@ -1038,7 +1038,7 @@ class NymphesPreset:
              'preset_name': 'main.d2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.decay.lfo2':
@@ -1047,7 +1047,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.d2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.decay.mod_wheel':
@@ -1056,7 +1056,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.d2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.decay.velocity':
@@ -1065,7 +1065,7 @@ class NymphesPreset:
              'preset_name': 'velo.d2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.decay.aftertouch':
@@ -1074,7 +1074,7 @@ class NymphesPreset:
              'preset_name': 'after.d2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Sustain
@@ -1084,7 +1084,7 @@ class NymphesPreset:
              'preset_name': 'main.s2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.sustain.lfo2':
@@ -1093,7 +1093,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.s2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.sustain.mod_wheel':
@@ -1102,7 +1102,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.s2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.sustain.velocity':
@@ -1111,7 +1111,7 @@ class NymphesPreset:
              'preset_name': 'velo.s2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.sustain.aftertouch':
@@ -1120,7 +1120,7 @@ class NymphesPreset:
              'preset_name': 'after.s2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Release
@@ -1130,7 +1130,7 @@ class NymphesPreset:
              'preset_name': 'main.r2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.release.lfo2':
@@ -1139,7 +1139,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.r2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.release.mod_wheel':
@@ -1148,7 +1148,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.r2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.release.velocity':
@@ -1157,7 +1157,7 @@ class NymphesPreset:
              'preset_name': 'velo.r2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'amp_eg.release.aftertouch':
@@ -1166,7 +1166,7 @@ class NymphesPreset:
              'preset_name': 'after.r2',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         #
@@ -1180,7 +1180,7 @@ class NymphesPreset:
              'preset_name': 'main.lfo_rate',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.rate.lfo2':
@@ -1189,7 +1189,7 @@ class NymphesPreset:
              'preset_name': 'extra_lfo_2.lfo_1_rate',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.rate.mod_wheel':
@@ -1198,7 +1198,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.lfo_rate',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.rate.velocity':
@@ -1207,7 +1207,7 @@ class NymphesPreset:
              'preset_name': 'velo.lfo_rate',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.rate.aftertouch':
@@ -1216,7 +1216,7 @@ class NymphesPreset:
              'preset_name': 'after.lfo_rate',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Waveform
@@ -1226,7 +1226,7 @@ class NymphesPreset:
              'preset_name': 'main.lfo_wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.wave.lfo2':
@@ -1235,7 +1235,7 @@ class NymphesPreset:
              'preset_name': 'extra_lfo_2.lfo_1_wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.wave.mod_wheel':
@@ -1244,7 +1244,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.lfo_wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.wave.velocity':
@@ -1253,7 +1253,7 @@ class NymphesPreset:
              'preset_name': 'velo.lfo_wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.wave.aftertouch':
@@ -1262,7 +1262,7 @@ class NymphesPreset:
              'preset_name': 'after.lfo_wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Delay
@@ -1272,7 +1272,7 @@ class NymphesPreset:
              'preset_name': 'main.lfo_delay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.delay.lfo2':
@@ -1281,7 +1281,7 @@ class NymphesPreset:
              'preset_name': 'extra_lfo_2.lfo_1_delay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.delay.mod_wheel':
@@ -1290,7 +1290,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.lfo_delay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.delay.velocity':
@@ -1299,7 +1299,7 @@ class NymphesPreset:
              'preset_name': 'velo.lfo_delay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.delay.aftertouch':
@@ -1308,7 +1308,7 @@ class NymphesPreset:
              'preset_name': 'after.lfo_delay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Fade
@@ -1318,7 +1318,7 @@ class NymphesPreset:
              'preset_name': 'main.lfo_fade',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.fade.lfo2':
@@ -1327,7 +1327,7 @@ class NymphesPreset:
              'preset_name': 'extra_lfo_2.lfo_1_fade',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.fade.mod_wheel':
@@ -1336,7 +1336,7 @@ class NymphesPreset:
              'preset_name': 'mod_w.lfo_fade',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.fade.velocity':
@@ -1345,7 +1345,7 @@ class NymphesPreset:
              'preset_name': 'velo.lfo_fade',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo1.fade.aftertouch':
@@ -1354,7 +1354,7 @@ class NymphesPreset:
              'preset_name': 'after.lfo_fade',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Type
@@ -1388,7 +1388,7 @@ class NymphesPreset:
              'preset_name': 'lfo_2.lfo_rate',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.rate.lfo2':
@@ -1397,7 +1397,7 @@ class NymphesPreset:
              'preset_name': 'extra_lfo_2.lfo_2_rate',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.rate.mod_wheel':
@@ -1406,7 +1406,7 @@ class NymphesPreset:
              'preset_name': 'extra_mod_w.lfo_2_rate',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.rate.velocity':
@@ -1415,7 +1415,7 @@ class NymphesPreset:
              'preset_name': 'extra_velo.lfo_2_rate',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.rate.aftertouch':
@@ -1424,7 +1424,7 @@ class NymphesPreset:
              'preset_name': 'extra_after.lfo_2_rate',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Waveform
@@ -1434,7 +1434,7 @@ class NymphesPreset:
              'preset_name': 'main.lfo_wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.wave.lfo2':
@@ -1443,7 +1443,7 @@ class NymphesPreset:
              'preset_name': 'extra_lfo_2.lfo_2_wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.wave.mod_wheel':
@@ -1452,7 +1452,7 @@ class NymphesPreset:
              'preset_name': 'extra_mod_w.lfo_2_wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.wave.velocity':
@@ -1461,7 +1461,7 @@ class NymphesPreset:
              'preset_name': 'extra_velo.lfo_2_wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.wave.aftertouch':
@@ -1470,7 +1470,7 @@ class NymphesPreset:
              'preset_name': 'extra_after.lfo_2_wave',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Delay
@@ -1480,7 +1480,7 @@ class NymphesPreset:
              'preset_name': 'main.lfo_delay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.delay.lfo2':
@@ -1489,7 +1489,7 @@ class NymphesPreset:
              'preset_name': 'extra_lfo_2.lfo_2_delay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.delay.mod_wheel':
@@ -1498,7 +1498,7 @@ class NymphesPreset:
              'preset_name': 'extra_mod_w.lfo_2_delay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.delay.velocity':
@@ -1507,7 +1507,7 @@ class NymphesPreset:
              'preset_name': 'extra_velo.lfo_2_delay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.delay.aftertouch':
@@ -1516,7 +1516,7 @@ class NymphesPreset:
              'preset_name': 'extra_after.lfo_2_delay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Fade
@@ -1526,7 +1526,7 @@ class NymphesPreset:
              'preset_name': 'main.lfo_fade',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.fade.lfo2':
@@ -1535,7 +1535,7 @@ class NymphesPreset:
              'preset_name': 'extra_lfo_2.lfo_2_fade',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.fade.mod_wheel':
@@ -1544,7 +1544,7 @@ class NymphesPreset:
              'preset_name': 'extra_mod_w.lfo_2_fade',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.fade.velocity':
@@ -1553,7 +1553,7 @@ class NymphesPreset:
              'preset_name': 'extra_velo.lfo_2_fade',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'lfo2.fade.aftertouch':
@@ -1562,7 +1562,7 @@ class NymphesPreset:
              'preset_name': 'extra_after.lfo_2_fade',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Type
@@ -1596,7 +1596,7 @@ class NymphesPreset:
              'preset_name': 'reverb.size',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.size.lfo2':
@@ -1605,7 +1605,7 @@ class NymphesPreset:
              'preset_name': 'extra_lfo_2.reverb_size',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.size.mod_wheel':
@@ -1614,7 +1614,7 @@ class NymphesPreset:
              'preset_name': 'extra_mod_w.reverb_size',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.size.velocity':
@@ -1623,7 +1623,7 @@ class NymphesPreset:
              'preset_name': 'extra_velo.reverb_size',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.size.aftertouch':
@@ -1632,7 +1632,7 @@ class NymphesPreset:
              'preset_name': 'extra_after.reverb_size',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Decay
@@ -1642,7 +1642,7 @@ class NymphesPreset:
              'preset_name': 'reverb.decay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.decay.lfo2':
@@ -1651,7 +1651,7 @@ class NymphesPreset:
              'preset_name': 'extra_lfo_2.reverb_decay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.decay.mod_wheel':
@@ -1660,7 +1660,7 @@ class NymphesPreset:
              'preset_name': 'extra_mod_w.reverb_decay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.decay.velocity':
@@ -1669,7 +1669,7 @@ class NymphesPreset:
              'preset_name': 'extra_velo.reverb_decay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.decay.aftertouch':
@@ -1678,7 +1678,7 @@ class NymphesPreset:
              'preset_name': 'extra_after.reverb_decay',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Filter
@@ -1688,7 +1688,7 @@ class NymphesPreset:
              'preset_name': 'reverb.filter',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.filter.lfo2':
@@ -1697,7 +1697,7 @@ class NymphesPreset:
              'preset_name': 'extra_lfo_2.reverb_filter',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.filter.mod_wheel':
@@ -1706,7 +1706,7 @@ class NymphesPreset:
              'preset_name': 'extra_mod_w.reverb_filter',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.filter.velocity':
@@ -1715,7 +1715,7 @@ class NymphesPreset:
              'preset_name': 'extra_velo.reverb_filter',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.filter.aftertouch':
@@ -1724,7 +1724,7 @@ class NymphesPreset:
              'preset_name': 'extra_after.reverb_filter',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         # Mix
@@ -1734,7 +1734,7 @@ class NymphesPreset:
              'preset_name': 'reverb.mix',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.mix.lfo2':
@@ -1743,7 +1743,7 @@ class NymphesPreset:
              'preset_name': 'extra_lfo_2.reverb_mix',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.mix.mod_wheel':
@@ -1752,7 +1752,7 @@ class NymphesPreset:
              'preset_name': 'extra_mod_w.reverb_mix',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.mix.velocity':
@@ -1761,7 +1761,7 @@ class NymphesPreset:
              'preset_name': 'extra_velo.reverb_mix',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         'reverb.mix.aftertouch':
@@ -1770,7 +1770,7 @@ class NymphesPreset:
              'preset_name': 'extra_after.reverb_mix',
              'type': float,
              'min': 0.0,
-             'max': 1.0
+             'max': 127.0
              },
 
         #
@@ -2671,6 +2671,10 @@ class NymphesPreset:
         # Get the preset_param_name for this parameter
         preset_param_name = self._protobuf_preset_name_for_param_name(param_name)
 
+        # Divide the value by 127.0 because the underlying protobuf preset
+        # object uses 0.0 to 1.0 for float values
+        value /= 127.0
+
         # Set the value in the preset
         return self._set_protobuf_preset_value(self._protobuf_preset, preset_param_name, value)
 
@@ -2727,6 +2731,9 @@ class NymphesPreset:
 
         # Get the value from the protobuf preset
         value = self._get_protobuf_preset_value(self._protobuf_preset, protobuf_preset_name)
+
+        # Multiply by 127.0
+        value *= 127.0
 
         # Round and then return it
         return round(value, self.float_precision_num_decimals)

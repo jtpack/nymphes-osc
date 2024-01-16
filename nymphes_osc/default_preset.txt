@@ -3,8 +3,8 @@ preset_import_type, None
 preset_type, None
 bank_name, None
 preset_number, None
-float_precision_num_decimals, 4
-osc.wave.value, 0.3453
+float_precision_num_decimals, 2
+osc.wave.value, 43.8531
 osc.wave.lfo2, 0.0
 osc.wave.wheel, 0.0
 osc.wave.velocity, 0.0
@@ -16,7 +16,7 @@ osc.pulsewidth.velocity, 0.0
 osc.pulsewidth.aftertouch, 0.0
 osc.voice_mode, 0
 osc.legato, 0
-mix.osc.value, 1.0
+mix.osc.value, 127.0
 mix.osc.lfo2, 0.0
 mix.osc.wheel, 0.0
 mix.osc.velocity, 0.0
@@ -31,7 +31,7 @@ mix.noise.lfo2, 0.0
 mix.noise.wheel, 0.0
 mix.noise.velocity, 0.0
 mix.noise.aftertouch, 0.0
-mix.level, 1.0
+mix.level, 127.0
 pitch.glide.value, 0.0
 pitch.glide.lfo2, 0.0
 pitch.glide.wheel, 0.0
@@ -57,7 +57,7 @@ pitch.lfo1.lfo2, 0.0
 pitch.lfo1.wheel, 0.0
 pitch.lfo1.velocity, 0.0
 pitch.lfo1.aftertouch, 0.0
-lpf.cutoff.value, 1.0
+lpf.cutoff.value, 127.0
 lpf.cutoff.lfo2, 0.0
 lpf.cutoff.wheel, 0.0
 lpf.cutoff.velocity, 0.0
@@ -117,12 +117,12 @@ amp_eg.decay.lfo2, 0.0
 amp_eg.decay.wheel, 0.0
 amp_eg.decay.velocity, 0.0
 amp_eg.decay.aftertouch, 0.0
-amp_eg.sustain.value, 1.0
+amp_eg.sustain.value, 127.0
 amp_eg.sustain.lfo2, 0.0
 amp_eg.sustain.wheel, 0.0
 amp_eg.sustain.velocity, 0.0
 amp_eg.sustain.aftertouch, 0.0
-amp_eg.release.value, 0.5
+amp_eg.release.value, 63.5
 amp_eg.release.lfo2, 0.0
 amp_eg.release.wheel, 0.0
 amp_eg.release.velocity, 0.0

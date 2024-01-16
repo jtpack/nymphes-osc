@@ -1021,7 +1021,7 @@ class NymphesMIDI:
 
         :param param_name: str
         :param int_value: int between 0 and the parameter's max (never greater than 127)
-        :param float_value: float between 0.0 and 1.0
+        :param float_value: float between 0.0 and 127.0
         :return:
         """
         # If there is no current preset, then don't do anything

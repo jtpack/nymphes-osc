@@ -203,7 +203,7 @@
 
 #### Wave Shape
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /osc/wave/value
@@ -214,7 +214,7 @@
 
 #### Pulsewidth
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /osc/pulsewidth/value  
@@ -255,7 +255,7 @@
 
 #### Detune
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /pitch/detune/value   
@@ -266,7 +266,7 @@
 
 #### Chord Selector
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /pitch/chord/value
@@ -277,7 +277,7 @@
 
 #### Pitch EG Depth
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /pitch/eg/value
@@ -288,7 +288,7 @@
 
 #### Pitch LFO1 Depth
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /pitch/lfo1/value
@@ -299,7 +299,7 @@
 
 #### Glide
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /pitch/glide/value   
@@ -312,7 +312,7 @@
 
 #### Attack
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /amp_eg/attack/value   
@@ -323,7 +323,7 @@
 
 #### Decay
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /amp_eg/decay/value   
@@ -334,7 +334,7 @@
 
 #### Sustain
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /amp_eg/sustain/value   
@@ -345,7 +345,7 @@
 
 #### Release
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /amp_eg/release/value   
@@ -358,7 +358,7 @@
 
 #### Oscillator Level
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /mix/osc/value   
@@ -369,7 +369,7 @@
 
 #### Sub Level
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /mix/sub/value   
@@ -380,7 +380,7 @@
 
 #### Noise Level
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /mix/noise/value   
@@ -391,7 +391,7 @@
 
 #### Main Level
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Address: /mix/level/value
 
@@ -399,7 +399,7 @@
 
 #### Cutoff
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /lpf/cutoff/value   
@@ -410,7 +410,7 @@
 
 #### Resonance
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /lpf/resonance/value   
@@ -421,7 +421,7 @@
 
 #### Tracking
 - - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /lpf/tracking/value   
@@ -432,7 +432,7 @@
 
 #### Envelope Depth
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /lpf/eg/value   
@@ -443,7 +443,7 @@
 
 #### LFO1 Depth
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /lpf/lfo1/value   
@@ -456,7 +456,7 @@
 
 #### Cutoff
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /hpf/cutoff/value   
@@ -465,11 +465,11 @@
   - /hpf/cutoff/aftertouch
   - /hpf/cutoff/lfo2
 
-### Pitch-Filter Envelope Settings
+### Filter Envelope Settings
 
 #### Attack
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /filter_eg/attack/value   
@@ -480,7 +480,7 @@
 
 #### Decay
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /filter_eg/decay/value   
@@ -491,7 +491,7 @@
 
 #### Sustain
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /filter_eg/sustain/value   
@@ -502,7 +502,7 @@
 
 #### Release
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /filter_eg/release/value   
@@ -515,7 +515,7 @@
 
 #### Rate
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /lfo1/rate/value   
@@ -526,7 +526,7 @@
 
 #### Wave
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /lfo1/wave/value   
@@ -537,7 +537,7 @@
 
 #### Delay
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /lfo1/delay/value   
@@ -548,7 +548,7 @@
 
 #### Fade
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /lfo1/fade/value   
@@ -575,7 +575,7 @@
 
 #### Rate
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /lfo2/rate/value   
@@ -586,7 +586,7 @@
 
 #### Wave
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /lfo2/wave/value   
@@ -597,7 +597,7 @@
 
 #### Delay
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /lfo2/delay/value   
@@ -608,7 +608,7 @@
 
 #### Fade
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /lfo2/fade/value   
@@ -635,7 +635,7 @@
 
 #### Size
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /reverb/size/value   
@@ -646,7 +646,7 @@
 
 #### Decay
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /reverb/decay/value   
@@ -657,7 +657,7 @@
 
 #### Filter
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /reverb/filter/value   
@@ -668,7 +668,7 @@
 
 ### Mix Settings
 - Value Type: 
-  - Float (0.0 to 1.0) 
+  - Float (0.0 to 127.0) 
   - Int (0 to 127)
 - Addresses:
   - /reverb/mix/value   
