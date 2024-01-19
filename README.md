@@ -153,6 +153,10 @@
 - Description: Send a dump request to Nymphes via SYSEX. This causes Nymphes to send all of its presets via SYSEX messages
 - Arguments: None
 
+#### /load_default_preset
+- Description: Load the default preset (default_preset.txt) into the current preset. This is the same preset that is automatically loaded when Nymphes first connects.
+- Arguments: None
+
 ## MIDI Port Control
 
 #### /connect_nymphes

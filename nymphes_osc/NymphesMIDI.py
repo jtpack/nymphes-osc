@@ -358,6 +358,7 @@ class NymphesMIDI:
         elif param_type == float:
             type_string = 'float_param'
             value = self.curr_preset_object.get_float(param_name)
+            print(f'NymphesMidi: {param_name}: {value}')
 
         self.add_notification(type_string, (param_name, value))
 
