@@ -25,6 +25,7 @@ def main():
     parser.add_argument(
         '--server_port',
         type=int,
+        default=1237,
         help='Optional. The port to use when listening for incoming OSC messages. Defaults to 1237.'
     )
 
@@ -60,7 +61,7 @@ def main():
 
     parser.add_argument(
         '--osc_log_level',
-        default='WARNING',
+        default='INFO',
         choices={'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'},
         help='Optional. Sets the log level for NymphesOSC'
     )
@@ -77,9 +78,16 @@ def main():
     #
     # Create the Nymphes OSC Controller
     #
-    nymphes_osc = NymphesOSC(nymphes_midi_channel=args.midi_channel, server_port=args.server_port,
-                             server_host=args.server_host, client_port=args.client_port, client_host=args.client_host,
-                             mdns_name=args.mdns_name)
+    nymphes_osc = NymphesOSC(
+        nymphes_midi_channel=args.midi_channel,
+        server_port=args.server_port,
+        server_host=args.server_host,
+        client_port=args.client_port,
+        client_host=args.client_host,
+        mdns_name=args.mdns_name,
+        osc_log_level=log_level_for_name(args.osc_log_level),
+        midi_log_level=log_level_for_name(args.midi_log_level)
+    )
 
     #
     # Stay running until manually stopped
