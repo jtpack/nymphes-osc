@@ -1781,7 +1781,7 @@ class NymphesPreset:
         'chord_1.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_1.root.value',
+             'preset_name': 'chord_1.root',
              'type': int,
              'min': 0,
              'max': 127
@@ -1836,7 +1836,7 @@ class NymphesPreset:
         'chord_2.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_2.root.value',
+             'preset_name': 'chord_2.root',
              'type': int,
              'min': 0,
              'max': 127
@@ -1891,7 +1891,7 @@ class NymphesPreset:
         'chord_3.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_3.root.value',
+             'preset_name': 'chord_3.root',
              'type': int,
              'min': 0,
              'max': 127
@@ -1946,7 +1946,7 @@ class NymphesPreset:
         'chord_4.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_4.root.value',
+             'preset_name': 'chord_4.root',
              'type': int,
              'min': 0,
              'max': 127
@@ -2001,7 +2001,7 @@ class NymphesPreset:
         'chord_5.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_5.root.value',
+             'preset_name': 'chord_5.root',
              'type': int,
              'min': 0,
              'max': 127
@@ -2056,7 +2056,7 @@ class NymphesPreset:
         'chord_6.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_6.root.value',
+             'preset_name': 'chord_6.root',
              'type': int,
              'min': 0,
              'max': 127
@@ -2111,7 +2111,7 @@ class NymphesPreset:
         'chord_7.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_7.root.value',
+             'preset_name': 'chord_7.root',
              'type': int,
              'min': 0,
              'max': 127
@@ -2166,7 +2166,7 @@ class NymphesPreset:
         'chord_8.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_8.root.value',
+             'preset_name': 'chord_8.root',
              'type': int,
              'min': 0,
              'max': 127
