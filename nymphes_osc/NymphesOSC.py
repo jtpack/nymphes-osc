@@ -394,7 +394,7 @@ class NymphesOSC:
                     weight=0,
                     priority=0,
                     properties={},
-                    server=f"{self._mdns_name}.local."
+                    server=f'{self._mdns_name}.local'
                 )
 
                 self._zeroconf = Zeroconf()
@@ -407,6 +407,22 @@ class NymphesOSC:
 
             except Exception as e:
                 logger.warning(f'Failed to register mDNS server as {self._mdns_name} ({e})')
+
+    def stop_osc_server(self):
+        if self._osc_server is not None:
+            self._osc_server.shutdown()
+            self._osc_server.server_close()
+            self._osc_server = None
+            self._osc_server_thread.join()
+            self._osc_server_thread = None
+            logger.info("OSC Server Stopped")
+
+        if self._zeroconf is not None:
+            self._zeroconf.unregister_service(self._mdns_service_info)
+            self._zeroconf.close()
+            logger.info("mdns Closed")
+
+
 
     #
     # OSC Methods

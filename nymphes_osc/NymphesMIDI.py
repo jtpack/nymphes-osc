@@ -207,7 +207,7 @@ class NymphesMIDI:
         # changed, or for int parameters with no associated MIDI CC
         # (ie: chord settings).
         self._preset_snapshot_needed = False
-        self._preset_snapshot_timer_interval_sec = 0.001
+        self._preset_snapshot_timer_interval_sec = 0.1
         self._preset_snapshot_last_timestamp = None
 
         # A queue for notifying clients when things change.

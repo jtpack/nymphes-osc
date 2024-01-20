@@ -47,7 +47,7 @@ def main():
     )
 
     parser.add_argument(
-        '-m', '--midi_channel',
+        '--midi_channel',
         type=int,
         default=1,
         help='Optional. MIDI Channel that Nymphes is set to use. 1 to 16. Defaults to 1.'
@@ -92,9 +92,14 @@ def main():
     #
     # Stay running until manually stopped
     #
-    while True:
-        nymphes_osc.update()
-        time.sleep(0.0001)
+    try:
+        while True:
+            nymphes_osc.update()
+            time.sleep(0.0001)
+    except KeyboardInterrupt:
+        print('KeyboardInterrupt received.')
+        nymphes_osc.stop_osc_server()
+
 
 def log_level_for_name(name):
     if name == 'CRITICAL':
@@ -113,3 +118,5 @@ def log_level_for_name(name):
 
 if __name__ == '__main__':
     main()
+
+
