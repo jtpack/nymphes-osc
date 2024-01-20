@@ -113,7 +113,7 @@ class NymphesMIDI:
         self._connected_midi_output_port_objects = []
 
         # MIDI Message Receive Timer
-        self._midi_message_receive_interval_sec = 0.001
+        self._midi_message_receive_interval_sec = 0.0001
         self._midi_message_receive_last_timestamp = None
 
         # MIDI Message Send Queues
