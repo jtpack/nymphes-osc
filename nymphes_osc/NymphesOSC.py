@@ -31,7 +31,7 @@ log_formatter = logging.Formatter(
 # Handler for logging to files
 file_handler = RotatingFileHandler(
     logs_directory_path / 'nymphes_osc.txt',
-    maxBytes=1024,
+    maxBytes=1024*1024*2,
     backupCount=3
 )
 file_handler.setFormatter(log_formatter)

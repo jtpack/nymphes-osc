@@ -22,13 +22,13 @@ root_logger = logging.getLogger()
 # Formatter for logs
 log_formatter = logging.Formatter(
     '%(asctime)s.%(msecs)03d - NymphesMIDI - %(levelname)s - %(message)s',
-    datefmt='%Y-%d-%m %H:%M:%S'
+    datefmt='%Y-%m-%d %H:%M:%S'
 )
 
 # Handler for logging to files
 file_handler = RotatingFileHandler(
     logs_directory_path / 'nymphes_midi_log.txt',
-    maxBytes=1024,
+    maxBytes=1024*1024*2,
     backupCount=3
 )
 file_handler.setFormatter(log_formatter)
