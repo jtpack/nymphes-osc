@@ -3452,7 +3452,7 @@ class NymphesPreset:
                     param_type = NymphesPreset.type_for_param_name(name)
 
                     if param_type == float:
-                        value = float(value)
+                        value = float(value) / 127.0
 
                     elif param_type == int:
                         value = int(value)

@@ -61,15 +61,15 @@ def main():
 
     parser.add_argument(
         '--osc_log_level',
-        default='INFO',
-        choices={'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'},
+        default='info',
+        choices={'critical', 'error', 'warning', 'info', 'debug'},
         help='Optional. Sets the log level for NymphesOSC'
     )
 
     parser.add_argument(
         '--midi_log_level',
-        default='WARNING',
-        choices={'CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG'},
+        default='warning',
+        choices={'critical', 'error', 'warning', 'info', 'debug'},
         help='Optional. Sets the log level for NymphesMIDI'
     )
 
@@ -102,15 +102,15 @@ def main():
 
 
 def log_level_for_name(name):
-    if name == 'CRITICAL':
+    if name == 'critical':
         return logging.CRITICAL
-    elif name == 'ERROR':
+    elif name == 'error':
         return logging.ERROR
-    elif name == 'WARNING':
+    elif name == 'warning':
         return logging.WARNING
-    elif name == 'INFO':
+    elif name == 'info':
         return logging.INFO
-    elif name == 'DEBUG':
+    elif name == 'debug':
         return logging.DEBUG
     else:
         raise Exception(f'Invalid log level: {name}')
