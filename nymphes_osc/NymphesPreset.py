@@ -2735,8 +2735,6 @@ class NymphesPreset:
         # Multiply by 127.0
         value *= 127.0
 
-        print(f'{param_name}: {value}')
-
         # Round and then return it
         return round(value, self.float_precision_num_decimals)
 

@@ -358,7 +358,6 @@ class NymphesMIDI:
         elif param_type == float:
             type_string = 'float_param'
             value = self.curr_preset_object.get_float(param_name)
-            print(f'NymphesMidi: {param_name}: {value}')
 
         self.add_notification(type_string, (param_name, value))
 
@@ -908,8 +907,7 @@ class NymphesMIDI:
             self._preset_snapshot_needed = True
 
             # Send notifications for all parameters in the preset
-            for param_name in NymphesPreset.all_param_names():
-                self.add_curr_preset_param_notification(param_name)
+            self.send_current_preset_notifications()
 
     def load_default_preset(self):
         """
@@ -931,8 +929,7 @@ class NymphesMIDI:
             self._preset_snapshot_needed = True
 
             # Send notifications for all parameters in the preset
-            for param_name in NymphesPreset.all_param_names():
-                self.add_curr_preset_param_notification(param_name)
+            self.send_current_preset_notifications()
 
     def save_current_preset_to_file(self, filepath):
         """
@@ -1929,3 +1926,10 @@ class NymphesMIDI:
         self._waiting_for_preset_data_from_nymphes_until_timestamp = None
 
         logger.debug('No longer waiting for preset data from Nymphes')
+
+    def send_current_preset_notifications(self):
+        """
+        Send notifications for all parameters in the current preset.
+        """
+        for param_name in NymphesPreset.all_param_names():
+            self.add_curr_preset_param_notification(param_name)
