@@ -340,11 +340,11 @@ class NymphesOSC:
         msg = msg.build()
         client.send(msg)
 
-        # Send the client all current preset parameters.
-        # We do this by causing NymphesMidi to send notifications
-        # for all parameters. When we receive the notifications
-        # we pass them on via OSC.
-        self._nymphes_midi.send_current_preset_notifications()
+        # If Nymphes is connected, then send the client all current
+        # preset parameters.
+        #
+        if self._nymphes_midi.nymphes_connected:
+            self._nymphes_midi.send_current_preset_notifications()
 
     def unregister_osc_client(self, ip_address_string, port):
         """

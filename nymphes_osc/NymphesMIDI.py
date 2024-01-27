@@ -468,6 +468,9 @@ class NymphesMIDI:
 
                     logger.info('Sent current preset to Nymphes and connected MIDI Output ports via SYSEX')
 
+                    # Send parameters add notifications to client as well
+                    self.send_current_preset_notifications()
+
                 # Clear the flag and store the current time
                 # regardless of whether Nymphes was connected
                 # and we actually sent out the preset via
@@ -906,9 +909,6 @@ class NymphesMIDI:
             # Send the preset to Nymphes and connected MIDI Output ports
             self._preset_snapshot_needed = True
 
-            # Send notifications for all parameters in the preset
-            self.send_current_preset_notifications()
-
     def load_default_preset(self):
         """
         Load default.txt into the current preset
@@ -927,9 +927,6 @@ class NymphesMIDI:
 
             # Send the preset to Nymphes and connected MIDI Output ports
             self._preset_snapshot_needed = True
-
-            # Send notifications for all parameters in the preset
-            self.send_current_preset_notifications()
 
     def save_current_preset_to_file(self, filepath):
         """
