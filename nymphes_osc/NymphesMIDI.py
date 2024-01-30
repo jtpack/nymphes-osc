@@ -468,8 +468,8 @@ class NymphesMIDI:
 
                     logger.info('Sent current preset to Nymphes and connected MIDI Output ports via SYSEX')
 
-                    # Send parameters add notifications to client as well
-                    self.send_current_preset_notifications()
+                    # # Send parameters add notifications to client as well
+                    # self.send_current_preset_notifications()
 
                 # Clear the flag and store the current time
                 # regardless of whether Nymphes was connected
