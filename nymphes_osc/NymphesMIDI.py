@@ -1334,8 +1334,8 @@ class NymphesMIDI:
                             #
 
                             # Set the parameter value in the current preset
-                            if (self._curr_preset_object.set_int(param_names_for_this_cc[0], msg.value)
-                                    or self._waiting_for_preset_data_from_nymphes):
+                            was_new_value = self._curr_preset_object.set_int(param_names_for_this_cc[0], msg.value)
+                            if was_new_value or self._waiting_for_preset_data_from_nymphes:
                                 #
                                 # This was a new value for the parameter,
                                 # or we are currently not ignoring duplicate
@@ -1365,8 +1365,8 @@ class NymphesMIDI:
                                 if NymphesPreset.target_for_param(param_name) == curr_mod_source_name:
 
                                     # Set the parameter value in the current preset
-                                    if (self._curr_preset_object.set_int(param_name, msg.value)
-                                            or self._waiting_for_preset_data_from_nymphes):
+                                    was_new_value = self._curr_preset_object.set_int(param_name, msg.value)
+                                    if was_new_value or self._waiting_for_preset_data_from_nymphes:
                                         #
                                         # This was a new value for the parameter,
                                         # or we are currently not ignoring duplicate

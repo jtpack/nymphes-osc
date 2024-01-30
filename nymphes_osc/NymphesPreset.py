@@ -2688,6 +2688,8 @@ class NymphesPreset:
         :return: True if value was different than the previous value
         for the parameter. False if it was the same.
         """
+
+
         # Make sure param_name is valid
         if param_name not in self.all_param_names():
             raise Exception(f'Invalid param_name: {param_name}')
@@ -2890,6 +2892,7 @@ class NymphesPreset:
         :param value: The value. A float or int
         :return: True if the new value was different than the old value
         """
+
         # Make sure preset_param_name is valid
         if protobuf_preset_name not in NymphesPreset._all_protobuf_preset_param_names():
             raise Exception(f'Invalid preset_param_name: {protobuf_preset_name}')
@@ -2920,7 +2923,7 @@ class NymphesPreset:
                 return False
 
         elif param_type == float:
-            if NymphesPreset.float_equals(value, curr_value):
+            if NymphesPreset.float_equals(value * 127.0, curr_value * 127.0):
                 return False
 
         else:
