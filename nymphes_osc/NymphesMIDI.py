@@ -797,6 +797,16 @@ class NymphesMIDI:
                                program=(bank_names.index(bank_name) * 7) + preset_numbers.index(preset_number))
             self._send_to_nymphes(msg)
 
+            # Send a notification that Nymphes has recalled a preset
+            self.add_notification(
+                name=PresetEvents.recalled_preset.value,
+                value=(
+                    self._curr_preset_type,
+                    self._curr_preset_bank_and_number[0],
+                    self._curr_preset_bank_and_number[1]
+                )
+            )
+
             # Start waiting for preset data to come back from Nymphes
             self._start_waiting_for_preset_data()
 
@@ -906,6 +916,9 @@ class NymphesMIDI:
                 str(filepath)
             )
 
+            # Send all parameters to the client
+            self.send_current_preset_notifications()
+
             # Send the preset to Nymphes and connected MIDI Output ports
             self._preset_snapshot_needed = True
 
@@ -924,6 +937,9 @@ class NymphesMIDI:
                 PresetEvents.loaded_default_preset.value,
                 str(self.default_preset_filepath)
             )
+
+            # Send all parameters to the client
+            self.send_current_preset_notifications()
 
             # Send the preset to Nymphes and connected MIDI Output ports
             self._preset_snapshot_needed = True
