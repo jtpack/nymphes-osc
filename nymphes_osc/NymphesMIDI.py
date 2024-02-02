@@ -810,7 +810,7 @@ class NymphesMIDI:
             # Start waiting for preset data to come back from Nymphes
             self._start_waiting_for_preset_data()
 
-    def load_current_preset_into_nymphes_memory_slot(self, preset_type, bank_name, preset_number):
+    def save_current_preset_to_memory_slot(self, preset_type, bank_name, preset_number):
         """
         A convenience method for sending the current preset settings
         to Nymphes as a SYSEX message, using a persistent import type
@@ -831,7 +831,7 @@ class NymphesMIDI:
         # Notify Client that we've just loaded the current preset into
         # a Nymphes' memory slot
         self.add_notification(
-            PresetEvents.loaded_current_preset_into_nymphes_memory_slot.value,
+            PresetEvents.saved_current_preset_to_memory_slot.value,
             (preset_type, bank_name, preset_number)
         )
 
@@ -863,7 +863,7 @@ class NymphesMIDI:
             # Add it to the message send queue for Nymphes
             self._send_to_nymphes(msg)
 
-    def load_file_into_nymphes_memory_slot(self, filepath, preset_type, bank_name, preset_number):
+    def save_file_to_memory_slot(self, filepath, preset_type, bank_name, preset_number):
         """
         Load the file at filepath, and send its content to Nymphes
         as a SYSEX message, using a persistent import type so the
@@ -896,7 +896,7 @@ class NymphesMIDI:
 
             # Notify Client
             self.add_notification(
-                PresetEvents.loaded_file_into_nymphes_memory_slot.value,
+                PresetEvents.saved_file_to_memory_slot.value,
                 (str(filepath), preset_type, bank_name, preset_number)
             )
 
@@ -959,7 +959,7 @@ class NymphesMIDI:
             str(filepath)
         )
 
-    def save_nymphes_memory_slot_to_file(self, filepath, preset_type, bank_name, preset_number):
+    def save_memory_slot_to_file(self, filepath, preset_type, bank_name, preset_number):
         """
         Save a preset from one of Nymphes' memory slots to a file.
         Raises an Exception if the all_presets dictionary does not
@@ -1484,20 +1484,17 @@ class NymphesMIDI:
 
                     # Send a notification
                     self.add_notification(
-                        PresetEvents.loaded_preset_dump_from_midi_input_port_into_nymphes_memory_slot.value,
+                        PresetEvents.saved_preset_dump_from_midi_input_port_to_memory_slot.value,
                         preset_key
                     )
 
             except Exception as e:
-                logger.warning(f'Failed to interpret SYSEX message from {port} as a Nymphes Preset ({e})')
+                pass
 
         elif msg.is_cc():
 
-            # Make sure the message was received on the Nymphes MIDI Channel
-            if msg.channel != self._nymphes_midi_channel - 1:
-                logger.warning(f'Received a MIDI Control Change message from {port} on a different channel: {msg}')
-
-            else:
+            # Only handle MIDI CC messages received on the Nymphes MIDI Channel
+            if msg.channel == self._nymphes_midi_channel - 1:
                 if msg.control == 0:
                     #
                     # Bank MSB Message
@@ -1690,7 +1687,7 @@ class NymphesMIDI:
             return preset_import_type,  preset_key
 
         except Exception as e:
-            logger.warning(f'Failed to interpret SYSEX data as a Nymphes preset ({e})')
+            pass
 
     @staticmethod
     def _parse_midi_program_change_message(msg):

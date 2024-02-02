@@ -81,7 +81,7 @@
     - Description: Preset Number 
     - Possible Values: 1 through 7
 
-#### /load_current_preset_into_nymphes_memory_slot
+#### /save_current_preset_to_memory_slot
 - Description: Load the current settings into one of Nymphes' memory slots
 - Arguments:
   - 0
@@ -104,7 +104,7 @@
     - Type: String
     - Description: Filepath of preset to load
   
-#### /load_file_into_nymphes_memory_slot
+#### /save_file_to_memory_slot
 - Description: Load a preset file from disk and send via SYSEX to Nymphes, writing to a memory slot
 - Arguments:
   - 0
@@ -130,7 +130,7 @@
     - Type: String
     - Description: Destination filepath
 
-#### /save_nymphes_memory_slot_to_file
+#### /save_memory_slot_to_file
 - Description: Write the preset from the specified Nymphes memory slot to a preset file on disk
 - Arguments:
   - 0
@@ -898,7 +898,7 @@
     - Type: String
     - Description: Filepath of loaded preset
 
-#### /loaded_file_into_nymphes_memory_slot
+#### /save_file_to_memory_slot
 - Description: A file has just been loaded and written into a Nymphes memory slot.
 - Arguments:
   - 0
@@ -917,7 +917,7 @@
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
  
-#### /loaded_current_preset_into_nymphes_memory_slot
+#### /saved_current_preset_to_memory_slot
 - Description: The current preset settings have been written into a Nymphes memory slot.
 - Arguments:
   - 0
@@ -953,7 +953,7 @@
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
-#### /loaded_preset_dump_from_midi_input_into_nymphes_memory_slot
+#### /saved_preset_dump_from_midi_input_port_to_memory_slot
 - Description: Received a persistent preset from a MIDI Input port and passed it on to Nymphes, writing it to a memory slot
 - Arguments:
   - 0

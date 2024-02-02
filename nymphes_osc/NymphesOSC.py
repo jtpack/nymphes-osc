@@ -151,8 +151,8 @@ class NymphesOSC:
             needs_reply_address=True
         )
         self._dispatcher.map(
-            '/load_current_preset_into_nymphes_memory_slot',
-            self._on_osc_message_load_current_preset_into_nymphes_memory_slot,
+            '/save_current_preset_to_memory_slot',
+            self._on_osc_message_save_current_preset_to_memory_slot,
             needs_reply_address=True
         )
         self._dispatcher.map(
@@ -161,8 +161,8 @@ class NymphesOSC:
             needs_reply_address=True
         )
         self._dispatcher.map(
-            '/load_file_into_nymphes_memory_slot',
-            self._on_osc_message_load_file_into_nymphes_memory_slot,
+            '/save_file_to_memory_slot',
+            self._on_osc_message_save_file_to_memory_slot,
             needs_reply_address=True
         )
         self._dispatcher.map(
@@ -171,8 +171,8 @@ class NymphesOSC:
             needs_reply_address=True
         )
         self._dispatcher.map(
-            '/save_nymphes_memory_slot_to_file',
-            self._on_osc_message_save_nymphes_memory_slot_to_file,
+            '/save_memory_slot_to_file',
+            self._on_osc_message_save_memory_slot_to_file,
             needs_reply_address=True
         )
         self._dispatcher.map(
@@ -635,7 +635,7 @@ class NymphesOSC:
             self._send_status_to_osc_clients(status)
             logger.warning(status)
 
-    def _on_osc_message_load_current_preset_into_nymphes_memory_slot(self, sender_ip, address, *args):
+    def _on_osc_message_save_current_preset_to_memory_slot(self, sender_ip, address, *args):
         """
         An OSC message has just been received to load the current preset settings
         into a Nymphes memory slot
@@ -657,7 +657,7 @@ class NymphesOSC:
             logger.info(f"Received {address} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
 
             # Load the file
-            self._nymphes_midi.load_current_preset_into_nymphes_memory_slot(
+            self._nymphes_midi.save_current_preset_to_memory_slot(
                 preset_type=preset_type,
                 bank_name=bank_name,
                 preset_number=preset_number
@@ -669,7 +669,7 @@ class NymphesOSC:
             self._send_status_to_osc_clients(status)
             logger.warning(status)
 
-    def _on_osc_message_load_file_into_nymphes_memory_slot(self, sender_ip, address, *args):
+    def _on_osc_message_save_file_to_memory_slot(self, sender_ip, address, *args):
         """
         An OSC message has just been received to load a file into
         a Nymphes memory slot
@@ -692,7 +692,7 @@ class NymphesOSC:
             logger.info(f"Received {address} {filepath} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
 
             # Load the file
-            self._nymphes_midi.load_file_into_nymphes_memory_slot(
+            self._nymphes_midi.save_file_to_memory_slot(
                 filepath=filepath,
                 preset_type=preset_type,
                 bank_name=bank_name,
@@ -733,7 +733,7 @@ class NymphesOSC:
             self._send_status_to_osc_clients(status)
             logger.warning(status)
 
-    def _on_osc_message_save_nymphes_memory_slot_to_file(self, sender_ip, address, *args):
+    def _on_osc_message_save_memory_slot_to_file(self, sender_ip, address, *args):
         """
         An OSC message has been received to save a preset in a Nymphes memory
         slot to a file on disk.
@@ -756,7 +756,7 @@ class NymphesOSC:
             logger.info(f"Received {address} {filepath} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
 
             # Save the file
-            self._nymphes_midi.save_nymphes_memory_slot_to_file(
+            self._nymphes_midi.save_memory_slot_to_file(
                 filepath=filepath,
                 preset_type=preset_type,
                 bank_name=bank_name,

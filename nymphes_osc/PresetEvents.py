@@ -8,14 +8,14 @@ class PresetEvents(Enum):
     saved_current_preset_to_file = 'saved_current_preset_to_file'
     saved_memory_slot_to_file = 'saved_memory_slot_to_file'
     loaded_file_into_current_preset = 'loaded_file_into_current_preset'
-    loaded_file_into_nymphes_memory_slot = 'loaded_file_into_nymphes_memory_slot'
+    saved_file_to_memory_slot = 'saved_file_to_memory_slot'
     loaded_default_preset = 'loaded_default_preset'
 
-    loaded_current_preset_into_nymphes_memory_slot = 'loaded_current_preset_into_nymphes_memory_slot'
+    saved_current_preset_to_memory_slot = 'saved_current_preset_to_memory_slot'
 
     requested_preset_dump = 'requested_preset_dump'
     received_preset_dump_from_nymphes = 'received_preset_dump_from_nymphes'
-    loaded_preset_dump_from_midi_input_port_into_nymphes_memory_slot = 'loaded_preset_dump_from_midi_input_port_into_nymphes_memory_slot'
+    saved_preset_dump_from_midi_input_port_to_memory_slot = 'saved_preset_dump_from_midi_input_port_to_memory_slot'
 
     @staticmethod
     def all_values():
@@ -30,12 +30,12 @@ class PresetEvents(Enum):
             PresetEvents.saved_current_preset_to_file.value,
             PresetEvents.saved_memory_slot_to_file.value,
             PresetEvents.loaded_file_into_current_preset.value,
-            PresetEvents.loaded_file_into_nymphes_memory_slot.value,
+            PresetEvents.saved_file_to_memory_slot.value,
             PresetEvents.loaded_default_preset.value,
 
-            PresetEvents.loaded_current_preset_into_nymphes_memory_slot.value,
+            PresetEvents.saved_current_preset_to_memory_slot.value,
 
             PresetEvents.requested_preset_dump.value,
             PresetEvents.received_preset_dump_from_nymphes.value,
-            PresetEvents.loaded_preset_dump_from_midi_input_port_into_nymphes_memory_slot.value
+            PresetEvents.saved_preset_dump_from_midi_input_port_to_memory_slot.value
         ]
