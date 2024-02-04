@@ -6,7 +6,7 @@ import csv
 
 class NymphesPreset:
 
-    _csv_header_string = 'Nymphes Preset v1.0.0'
+    _csv_header_string = 'nymphes-midi preset v1.0.0'
     float_precision_num_decimals = 1
 
     _preset_params_map = {

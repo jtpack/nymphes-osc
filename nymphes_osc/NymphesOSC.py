@@ -146,38 +146,38 @@ class NymphesOSC:
             needs_reply_address=True
         )
         self._dispatcher.map(
-            '/recall_preset',
-            self._on_osc_message_recall_preset,
+            '/load_preset',
+            self._on_osc_message_load_preset,
             needs_reply_address=True
         )
         self._dispatcher.map(
-            '/save_current_preset_to_memory_slot',
-            self._on_osc_message_save_current_preset_to_memory_slot,
+            '/save_to_preset',
+            self._on_osc_message_save_to_preset,
             needs_reply_address=True
         )
         self._dispatcher.map(
-            '/load_file_into_current_preset',
-            self._on_osc_message_load_file_into_current_preset,
+            '/load_file',
+            self._on_osc_message_load_file,
             needs_reply_address=True
         )
         self._dispatcher.map(
-            '/save_file_to_memory_slot',
-            self._on_osc_message_save_file_to_memory_slot,
+            '/load_file_to_preset',
+            self._on_osc_message_load_file_to_preset,
             needs_reply_address=True
         )
         self._dispatcher.map(
-            '/save_current_preset_to_file',
-            self._on_osc_message_save_current_preset_to_file,
+            '/save_to_file',
+            self._on_osc_message_save_to_file,
             needs_reply_address=True
         )
         self._dispatcher.map(
-            '/save_memory_slot_to_file',
-            self._on_osc_message_save_memory_slot_to_file,
+            '/save_preset_to_file',
+            self._on_osc_message_save_preset_to_file,
             needs_reply_address=True
         )
         self._dispatcher.map(
-            '/load_default_preset',
-            self._on_osc_message_load_default_preset,
+            '/load_init_file',
+            self._on_osc_message_load_init_file,
             needs_reply_address=True
         )
         self._dispatcher.map(
@@ -300,6 +300,12 @@ class NymphesOSC:
         msg = msg.build()
         client.send(msg)
 
+        # Send the presets directory path
+        msg = OscMessageBuilder(address='/presets_directory_path')
+        msg.add_arg(str(self._nymphes_midi.presets_directory_path))
+        msg = msg.build()
+        client.send(msg)
+
         # Notify the client whether the Nymphes is connected
         if self._nymphes_midi.nymphes_connected:
             msg = OscMessageBuilder(address='/nymphes_connected')
@@ -343,7 +349,8 @@ class NymphesOSC:
         # If Nymphes is connected, then send the client all current
         # preset parameters.
         #
-        self._nymphes_midi.send_current_preset_notifications()
+        if self._nymphes_midi.nymphes_connected:
+            self._nymphes_midi.send_current_preset_notifications()
 
     def unregister_osc_client(self, ip_address_string, port):
         """
@@ -574,9 +581,9 @@ class NymphesOSC:
             self._send_status_to_osc_clients(status)
             logger.warning(status)
 
-    def _on_osc_message_recall_preset(self, sender_ip, address, *args):
+    def _on_osc_message_load_preset(self, sender_ip, address, *args):
         """
-        An OSC message has just been received to recall a preset from memory
+        An OSC message has just been received to load a preset
         :param sender_ip: This is the automatically-detected IP address of the sender
         :param address: (str) The OSC address of the message
         :param *args: The OSC message's arguments
@@ -594,21 +601,19 @@ class NymphesOSC:
 
             logger.info(f"Received {address} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
 
-            self._nymphes_midi.recall_preset(
+            self._nymphes_midi.load_preset(
                 preset_type=preset_type,
                 bank_name=bank_name,
                 preset_number=preset_number
             )
 
-
-
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to recall preset ({e})'
+            status = f'Failed to load preset ({e})'
             self._send_status_to_osc_clients(status)
             logger.warning(status)
 
-    def _on_osc_message_load_file_into_current_preset(self, sender_ip, address, *args):
+    def _on_osc_message_load_file(self, sender_ip, address, *args):
         """
         An OSC message has just been received to load a preset file
         :param sender_ip: This is the automatically-detected IP address of the sender
@@ -627,7 +632,7 @@ class NymphesOSC:
             logger.info(f'Received {address} {filepath} from {sender_ip[0]}')
 
             # Load the file
-            self._nymphes_midi.load_file_into_current_preset(filepath=filepath)
+            self._nymphes_midi.load_file(filepath=filepath)
 
         except Exception as e:
             # Send status update and log it
@@ -635,10 +640,10 @@ class NymphesOSC:
             self._send_status_to_osc_clients(status)
             logger.warning(status)
 
-    def _on_osc_message_save_current_preset_to_memory_slot(self, sender_ip, address, *args):
+    def _on_osc_message_save_to_preset(self, sender_ip, address, *args):
         """
         An OSC message has just been received to load the current preset settings
-        into a Nymphes memory slot
+        into a Nymphes preset slot
         :param sender_ip: This is the automatically-detected IP address of the sender
         :param address: (str) The OSC address of the message
         :param *args: The OSC message's arguments
@@ -657,7 +662,7 @@ class NymphesOSC:
             logger.info(f"Received {address} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
 
             # Load the file
-            self._nymphes_midi.save_current_preset_to_memory_slot(
+            self._nymphes_midi.save_to_preset(
                 preset_type=preset_type,
                 bank_name=bank_name,
                 preset_number=preset_number
@@ -665,14 +670,14 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to load current preset into Nymphes memory slot ({e})'
+            status = f'Failed to load current preset into Nymphes preset slot ({e})'
             self._send_status_to_osc_clients(status)
             logger.warning(status)
 
-    def _on_osc_message_save_file_to_memory_slot(self, sender_ip, address, *args):
+    def _on_osc_message_load_file_to_preset(self, sender_ip, address, *args):
         """
         An OSC message has just been received to load a file into
-        a Nymphes memory slot
+        a Nymphes preset slot
         :param sender_ip: This is the automatically-detected IP address of the sender
         :param address: (str) The OSC address of the message
         :param *args: The OSC message's arguments
@@ -692,7 +697,7 @@ class NymphesOSC:
             logger.info(f"Received {address} {filepath} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
 
             # Load the file
-            self._nymphes_midi.save_file_to_memory_slot(
+            self._nymphes_midi.load_file_to_preset(
                 filepath=filepath,
                 preset_type=preset_type,
                 bank_name=bank_name,
@@ -701,11 +706,11 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to load file into Nymphes memory slot ({e})'
+            status = f'Failed to load file into Nymphes preset slot ({e})'
             self._send_status_to_osc_clients(status)
             logger.warning(status)
 
-    def _on_osc_message_save_current_preset_to_file(self, sender_ip, address, *args):
+    def _on_osc_message_save_to_file(self, sender_ip, address, *args):
         """
         An OSC message has just been received to save the current
         preset as a file on disk.
@@ -725,7 +730,7 @@ class NymphesOSC:
             logger.info(f'Received {address} {filepath} from {sender_ip[0]}')
 
             # Save the file
-            self._nymphes_midi.save_current_preset_to_file(filepath=filepath)
+            self._nymphes_midi.save_to_file(filepath=filepath)
 
         except Exception as e:
             # Send status update and log it
@@ -733,7 +738,7 @@ class NymphesOSC:
             self._send_status_to_osc_clients(status)
             logger.warning(status)
 
-    def _on_osc_message_save_memory_slot_to_file(self, sender_ip, address, *args):
+    def _on_osc_message_save_preset_to_file(self, sender_ip, address, *args):
         """
         An OSC message has been received to save a preset in a Nymphes memory
         slot to a file on disk.
@@ -756,7 +761,7 @@ class NymphesOSC:
             logger.info(f"Received {address} {filepath} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
 
             # Save the file
-            self._nymphes_midi.save_memory_slot_to_file(
+            self._nymphes_midi.save_preset_to_file(
                 filepath=filepath,
                 preset_type=preset_type,
                 bank_name=bank_name,
@@ -765,13 +770,13 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to save preset from Nymphes memory slot to file ({e})'
+            status = f'Failed to save preset from Nymphes preset slot to file ({e})'
             self._send_status_to_osc_clients(status)
             logger.warning(status)
 
-    def _on_osc_message_load_default_preset(self, sender_ip, address, *args):
+    def _on_osc_message_load_init_file(self, sender_ip, address, *args):
         """
-        Load the default preset (default.txt)
+        Load the init preset file (init.txt)
         :param sender_ip: This is the automatically-detected IP address of the sender
         :param address: (str) The OSC address of the message
         :param *args: The OSC message's arguments
@@ -779,11 +784,11 @@ class NymphesOSC:
         """
         try:
             logger.info(f'Received {address} from {sender_ip[0]}')
-            self._nymphes_midi.load_default_preset()
+            self._nymphes_midi.load_init_file()
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to load default preset ({e})'
+            status = f'Failed to load init preset ({e})'
             self._send_status_to_osc_clients(status)
             logger.warning(status)
 

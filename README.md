@@ -65,8 +65,10 @@
 
 ## Preset Handling
 
-#### /recall_preset
-- Description: Recall a preset from one of Nymphes' memory slots
+### Loading Presets
+
+#### /load_preset
+- Description: Load a preset from one of Nymphes' memory slots
 - Arguments:
   - 0
     - Type: String
@@ -81,80 +83,86 @@
     - Description: Preset Number 
     - Possible Values: 1 through 7
 
-#### /save_current_preset_to_memory_slot
-- Description: Load the current settings into one of Nymphes' memory slots
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Preset Type
-    - Possible Values: 'user' or 'factory'
-  - 1
-    - Type: String
-    - Description: Preset Bank 
-    - Possible Values: 'A' through 'G'
-  - 2
-    - Type: Int
-    - Description: Preset Number 
-    - Possible Values: 1 through 7
- 
-#### /load_file_into_current_preset
+#### /load_file
 - Description: Load a preset file from disk and send to Nymphes via SYSEX using a non-persistent import
 - Arguments:
   - 0
     - Type: String
-    - Description: Filepath of preset to load
-  
-#### /save_file_to_memory_slot
-- Description: Load a preset file from disk and send via SYSEX to Nymphes, writing to a memory slot
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Filepath of preset to load
-  - 1
-    - Type: String
-    - Description: Preset Type
-    - Possible Values: 'user' or 'factory'
-  - 2
-    - Type: String
-    - Description: Preset Bank 
-    - Possible Values: 'A' through 'G'
-  - 3
-    - Type: Int
-    - Description: Preset Number 
-    - Possible Values: 1 through 7
-      
-#### /save_current_preset_to_file
-- Description: Save current settings to a preset file on disk
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Destination filepath
+    - Description: Filepath to load
 
-#### /save_memory_slot_to_file
-- Description: Write the preset from the specified Nymphes memory slot to a preset file on disk
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Destination filepath
-  - 1
-    - Type: String
-    - Description: Preset Type
-    - Possible Values: 'user' or 'factory'
-  - 2
-    - Type: String
-    - Description: Preset Bank 
-    - Possible Values: 'A' through 'G'
-  - 3
-    - Type: Int
-    - Description: Preset Number 
-    - Possible Values: 1 through 7
-    - 
-#### /request_preset_dump
-- Description: Send a dump request to Nymphes via SYSEX. This causes Nymphes to send all of its presets via SYSEX messages
+#### /load_init_file
+- Description: Load the init preset file (init.txt). This is the same preset that is automatically loaded when Nymphes first connects.
 - Arguments: None
 
-#### /load_default_preset
-- Description: Load the default preset (default_preset.txt) into the current preset. This is the same preset that is automatically loaded when Nymphes first connects.
+### Saving to Preset Slots
+
+#### /save_to_preset
+- Description: Save the current settings to one of Nymphes' preset slots
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Preset Type
+    - Possible Values: 'user' or 'factory'
+  - 1
+    - Type: String
+    - Description: Preset Bank 
+    - Possible Values: 'A' through 'G'
+  - 2
+    - Type: Int
+    - Description: Preset Number 
+    - Possible Values: 1 through 7
+
+#### /load_file_to_preset
+- Description: Load a preset file from disk and send via SYSEX to Nymphes, writing to a preset slot
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Filepath of preset to load
+  - 1
+    - Type: String
+    - Description: Preset Type
+    - Possible Values: 'user' or 'factory'
+  - 2
+    - Type: String
+    - Description: Preset Bank 
+    - Possible Values: 'A' through 'G'
+  - 3
+    - Type: Int
+    - Description: Preset Number 
+    - Possible Values: 1 through 7
+
+### Saving to Preset Files
+
+#### /save_to_file
+- Description: Save to a preset file on disk
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Destination filepath
+
+#### /save_preset_to_file
+- Description: Write the contents of a preset slot to a file on disk
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Destination filepath
+  - 1
+    - Type: String
+    - Description: Preset Type
+    - Possible Values: 'user' or 'factory'
+  - 2
+    - Type: String
+    - Description: Preset Bank 
+    - Possible Values: 'A' through 'G'
+  - 3
+    - Type: Int
+    - Description: Preset Number 
+    - Possible Values: 1 through 7
+
+### Other
+
+#### /request_preset_dump
+- Description: Send a dump request to Nymphes via SYSEX. This causes Nymphes to send all of its presets via SYSEX messages
 - Arguments: None
 
 ## MIDI Port Control
@@ -830,8 +838,10 @@
 
 ## Preset Events
 
-#### /recalled_preset
-- Description: A preset has just been recalled on Nymphes
+### Loading Presets
+
+#### /loaded_preset
+- Description: A preset has just been loaded on Nymphes
 - Arguments:
   - 0
     - Type: String
@@ -846,12 +856,44 @@
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
-#### /received_current_preset_sysex_from_midi_input_port
-- Description: A non-persistent preset import has been received from a MIDI Input port via SYSEX. This sets the current preset's values.
+#### /loaded_file
+- Description: A preset file has just been loaded
 - Arguments:
   - 0
     - Type: String
-    - Description: Name of the MIDI input port
+    - Description: Filepath of loaded file
+
+#### /loaded_init_file
+- Description: The init preset file (init.txt) has just been loaded
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Filepath of the file
+    
+### Saving to Preset Slots
+
+#### /saved_to_preset
+- Description: The current settings have been written into a preset slot.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Type of preset
+      - 'user' or 'factory'
+  - 1
+    - Type: String
+    - Description: Bank
+      - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
+  - 2
+    - Type: Int
+    - Description: Preset Number
+      - Possible Values: 1, 2, 3, 4, 5, 6, 7
+
+#### /loaded_file_to_preset
+- Description: A file has just been loaded and written into a Nymphes preset slot.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Filepath of loaded preset
   - 1
     - Type: String
     - Description: Type of preset
@@ -865,15 +907,17 @@
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
-#### /saved_current_preset_to_file
-- Description: The current preset settings have just been saved to a file
+### Saving to Preset Files
+
+#### /saved_to_file
+- Description: The current settings have been saved to a preset file
 - Arguments:
   - 0
     - Type: String
     - Description: Filepath of saved preset
 
-#### /saved_memory_slot_to_file
-- Description: A preset in a memory slot has just been save to a file
+#### /saved_preset_to_file
+- Description: The contents of a preset slot have been saved to a file
 - Arguments:
   - 0
     - Type: String
@@ -891,47 +935,7 @@
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
-#### /loaded_file_into_current_preset
-- Description: A file has just been loaded into the current preset
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Filepath of loaded preset
-
-#### /save_file_to_memory_slot
-- Description: A file has just been loaded and written into a Nymphes memory slot.
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Filepath of loaded preset
-  - 1
-    - Type: String
-    - Description: Type of preset
-      - 'user' or 'factory'
-  - 2
-    - Type: String
-    - Description: Bank
-      - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
-  - 3
-    - Type: Int
-    - Description: Preset Number
-      - Possible Values: 1, 2, 3, 4, 5, 6, 7
- 
-#### /saved_current_preset_to_memory_slot
-- Description: The current preset settings have been written into a Nymphes memory slot.
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Type of preset
-      - 'user' or 'factory'
-  - 1
-    - Type: String
-    - Description: Bank
-      - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
-  - 2
-    - Type: Int
-    - Description: Preset Number
-      - Possible Values: 1, 2, 3, 4, 5, 6, 7
+### Other
 
 #### /requested_preset_dump
 - Description: A full preset dump has been requested from Nymphes
@@ -953,7 +957,26 @@
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
-#### /saved_preset_dump_from_midi_input_port_to_memory_slot
+#### /loaded_preset_dump_from_midi_input_port
+- Description: A preset has been received via SYSEX from a MIDI Input Port.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Name of the MIDI input port
+  - 1
+    - Type: String
+    - Description: Type of preset
+      - 'user' or 'factory'
+  - 2
+    - Type: String
+    - Description: Bank
+      - Possible Values: 'A', 'B', 'C', 'D', 'E', 'F', 'G'
+  - 3
+    - Type: Int
+    - Description: Preset Number
+      - Possible Values: 1, 2, 3, 4, 5, 6, 7
+
+#### /saved_preset_dump_from_midi_input_port_to_preset
 - Description: Received a persistent preset from a MIDI Input port and passed it on to Nymphes, writing it to a memory slot
 - Arguments:
   - 0
@@ -1121,3 +1144,10 @@
     - Type: Int
     - Range: 1 to 16
     - Description: The MIDI channel
+
+#### /presets_directory_path
+- Description: The absolute path to the presets directory. Sent to clients upon registering.
+- Arguments:
+  - 0
+    - Type: String
+ 

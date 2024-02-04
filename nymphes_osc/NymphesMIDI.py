@@ -59,32 +59,43 @@ class NymphesMIDI:
         # Set logger level
         logger.setLevel(log_level)
 
-        # Construct filepath for the default preset file.
+        # Construct filepath for the init preset file.
         # It will be in the same directory as this file.
-        self.default_preset_filepath = Path(__file__).resolve().parent / 'default_preset.txt'
+        self.presets_directory_path = Path(__file__).resolve().parent / 'presets'
 
-        # Create the default preset file if it does not exist
+        # Create directory if it doesn't exist
+        if not self.presets_directory_path.exists():
+            try:
+                self.presets_directory_path.mkdir()
+                logger.info(f'Created presets directory at {self.presets_directory_path}')
+            except Exception as e:
+                logger.warning(f'Failed to create presets directory at {self.presets_directory_path} ({e})')
+
+        # Construct the path to the init preset file
+        self.init_preset_filepath = self.presets_directory_path / 'init.txt'
+
+        # Create the init preset file if it does not exist
         #
-        if not self.default_preset_filepath.exists():
+        if not self.init_preset_filepath.exists():
             try:
                 # Create a Nymphes Preset with default settings and write its
                 # preset to disk
                 p = NymphesPreset()
-                p.save_preset_file(self.default_preset_filepath)
-                logger.info(f'Created default preset file at {self.default_preset_filepath}')
+                p.save_preset_file(self.init_preset_filepath)
+                logger.info(f'Created init preset file at {self.init_preset_filepath}')
 
             except Exception as e:
-                logger.warning(f'Failed to create default preset file at {self.default_preset_filepath} ({e})')
+                logger.warning(f'Failed to create init preset file at {self.init_preset_filepath} ({e})')
 
         # Create the preset object used to track all current Nymphes parameter values
         try:
-            self._curr_preset_object = NymphesPreset(filepath=self.default_preset_filepath)
-            logger.info(f'Loaded default preset at {self.default_preset_filepath}')
+            self._curr_preset_object = NymphesPreset(filepath=self.init_preset_filepath)
+            logger.info(f'Loaded init preset at {self.init_preset_filepath}')
 
         except Exception as e:
-            logger.warning(f'Failed to load default preset at {self.default_preset_filepath} ({e})')
+            logger.warning(f'Failed to load init preset at {self.init_preset_filepath} ({e})')
 
-            # Create preset without loading default_preset.txt
+            # Create preset without loading init.txt
             self._curr_preset_object = NymphesPreset()
 
         # The MIDI channel to use when communicating with Nymphes.
@@ -127,19 +138,17 @@ class NymphesMIDI:
         # When a MIDI output port is disconnected its queue is deleted.
         self._midi_message_send_queues = {}
 
-        # Upon connecting to Nymphes, request a full preset dump via SYSEX.
-        # We use the timestamp below to schedule the dump request a short
-        # time later, when the connection is stable.
-        # This seems to greatly improve the chances of the request working
-        # every time.
+        # Upon connecting to Nymphes, wait a short time and then
+        # load the init preset file.
+        # We use the timestamp below to schedule this.
+        self._send_initial_preset_timestamp = None
+        self._send_initial_preset_wait_time_sec = 0.1
+
+        # After sending the initial preset, wait a short time and then
+        # request a full preset dump via SYSEX.
+        # We use the timestamp below to schedule the dump.
         self._send_full_sysex_dump_request_timestamp = None
         self._send_full_sysex_dump_request_wait_time_sec = 0.7
-
-        # When the full preset dump is complete, send the current preset
-        # via SYSEX. We use the timestamp below to schedule this for a
-        # short time after sending the preset dump request.
-        self._send_initial_preset_timestamp = None
-        self._send_initial_preset_wait_time_sec = 3.0
 
         #
         # When a preset is loaded on Nymphes, we receive the following:
@@ -160,16 +169,16 @@ class NymphesMIDI:
         # MIDI CC.
         #
 
-        # Once a preset has been recalled, this will be
+        # Once a preset has been load©ed, this will be
         # either 'user' or 'factory'
         self._curr_preset_type = None
 
-        # Once a preset has been recalled, this will contiain
+        # Once a preset has been load©ed, this will contain
         # the bank name ('A' to 'G') and preset number (1 to 7)
         self._curr_preset_bank_and_number = (None, None)
 
         # When we receive a Program Change message from Nymphes, we know
-        # that a preset has been recalled and we can expect the preset's
+        # that a preset has been load©ed and we can expect the preset's
         # data to follow as both SYSEX and MIDI CC.
         self._waiting_for_preset_data_from_nymphes = False
         self._waiting_for_preset_data_from_nymphes_until_timestamp = None
@@ -191,7 +200,7 @@ class NymphesMIDI:
         # Preset objects for the presets in the Nymphes' memory.
         # If a full SYSEX dump has been done then we will have an
         # entry for every preset. If not, then we'll only have
-        # entries for the presets that have been recalled since
+        # entries for the presets that have been load©ed since
         # connecting to the Nymphes.
         # The dict key is a tuple. ie: For bank A, user preset 1: ('user', 'A', 1).
         # The value is a preset_pb2.preset object.
@@ -214,9 +223,6 @@ class NymphesMIDI:
         # It will contain dicts with the following keys:
         # 'name', 'value'
         self._notification_queue = Queue()
-
-        # Load the default preset
-        self.load_default_preset()
 
     @property
     def logging_enabled(self):
@@ -468,9 +474,6 @@ class NymphesMIDI:
 
                     logger.info('Sent current preset to Nymphes and connected MIDI Output ports via SYSEX')
 
-                    # # Send parameters add notifications to client as well
-                    # self.send_current_preset_notifications()
-
                 # Clear the flag and store the current time
                 # regardless of whether Nymphes was connected
                 # and we actually sent out the preset via
@@ -479,28 +482,27 @@ class NymphesMIDI:
                 self._preset_snapshot_needed = False
                 self._preset_snapshot_last_timestamp = time.time()
 
-        # Nymphes Full Dump Request Timer
-        #
-        if self._send_full_sysex_dump_request_timestamp is not None:
-            if time.time() >= self._send_full_sysex_dump_request_timestamp:
-                # It is time to schedule a full dump request
-                self.request_preset_dump()
-
-                # Reset the timestamp
-                self._send_full_sysex_dump_request_timestamp = None
-
         # Recall First Preset Timer
         #
         if self._send_initial_preset_timestamp is not None:
             if time.time() >= self._send_initial_preset_timestamp:
                 #
-                # It is time to schedule sending the current preset to Nymphes
+                # It is time to load the init preset file
                 #
-
-                self._preset_snapshot_needed = True
+                self.load_init_file()
 
                 # Reset the timestamp
                 self._send_initial_preset_timestamp = None
+
+        # Nymphes Full Dump Request Timer
+        #
+        if self._send_full_sysex_dump_request_timestamp is not None:
+            if time.time() >= self._send_full_sysex_dump_request_timestamp:
+                # It is time to send a full dump request
+                self.request_preset_dump()
+
+                # Reset the timestamp
+                self._send_full_sysex_dump_request_timestamp = None
 
         # Waiting For Preset Data Timer
         #
@@ -748,11 +750,11 @@ class NymphesMIDI:
     #
     # Nymphes Preset Methods
     #
-    def recall_preset(self, preset_type, bank_name, preset_number):
+    def load_preset(self, preset_type, bank_name, preset_number):
         """
-        Send the Nymphes a MIDI program change message to recall
+        Send the Nymphes a MIDI program change message to load
         the specified preset from its internal memory, and start
-        waiting for Nymphes to recall it and send back the data
+        waiting for Nymphes to load it and send back the data
         for the preset.
         Raises an Exception if arguments are invalid.
         :param preset_type: (str) Possible values: 'user', 'factory'
@@ -797,9 +799,9 @@ class NymphesMIDI:
                                program=(bank_names.index(bank_name) * 7) + preset_numbers.index(preset_number))
             self._send_to_nymphes(msg)
 
-            # Send a notification that Nymphes has recalled a preset
+            # Send a notification that Nymphes has loaded a preset
             self.add_notification(
-                name=PresetEvents.recalled_preset.value,
+                name=PresetEvents.loaded_preset.value,
                 value=(
                     self._curr_preset_type,
                     self._curr_preset_bank_and_number[0],
@@ -810,9 +812,9 @@ class NymphesMIDI:
             # Start waiting for preset data to come back from Nymphes
             self._start_waiting_for_preset_data()
 
-    def save_current_preset_to_memory_slot(self, preset_type, bank_name, preset_number):
+    def save_to_preset(self, preset_type, bank_name, preset_number):
         """
-        A convenience method for sending the current preset settings
+        A convenience method for sending the current settings
         to Nymphes as a SYSEX message, using a persistent import type
         so the preset is stored in one of Nymphes' preset slots. It
         will overwrite whatever is in that slot.
@@ -821,21 +823,21 @@ class NymphesMIDI:
         :param preset_number: (int): 1 to 7 or None if non-persistent
         :return:
         """
-        self._send_preset_object_to_nymphes_memory_slot(
+        self._send_preset_object_to_nymphes_preset_slot(
             preset_object=self._curr_preset_object,
             preset_type=preset_type,
             bank_name=bank_name,
             preset_number=preset_number
         )
 
-        # Notify Client that we've just loaded the current preset into
-        # a Nymphes' memory slot
+        # Notify Client that we've just loaded the current settings into
+        # one of Nymphes' preset slots
         self.add_notification(
-            PresetEvents.saved_current_preset_to_memory_slot.value,
+            PresetEvents.saved_to_preset.value,
             (preset_type, bank_name, preset_number)
         )
 
-    def _send_preset_object_to_nymphes_memory_slot(self, preset_object, preset_type, bank_name, preset_number):
+    def _send_preset_object_to_nymphes_preset_slot(self, preset_object, preset_type, bank_name, preset_number):
         """
         Send the supplied preset_object to Nymphes as a SYSEX message,
         using a persistent import type so the preset is stored in
@@ -863,11 +865,11 @@ class NymphesMIDI:
             # Add it to the message send queue for Nymphes
             self._send_to_nymphes(msg)
 
-    def save_file_to_memory_slot(self, filepath, preset_type, bank_name, preset_number):
+    def load_file_to_preset(self, filepath, preset_type, bank_name, preset_number):
         """
         Load the file at filepath, and send its content to Nymphes
-        as a SYSEX message, using a persistent import type so the
-        preset is stored in one of Nymphes' preset slots.
+        as a SYSEX message, using a persistent import type to write
+        to one of Nymphes' preset slots.
         Overwrites whatever was previously in the slot.
         :param filepath: A Path or string. The path to the preset file.
         :param preset_type: (str) ['user', 'factory']
@@ -896,13 +898,13 @@ class NymphesMIDI:
 
             # Notify Client
             self.add_notification(
-                PresetEvents.saved_file_to_memory_slot.value,
+                PresetEvents.loaded_file_to_preset.value,
                 (str(filepath), preset_type, bank_name, preset_number)
             )
 
-    def load_file_into_current_preset(self, filepath):
+    def load_file(self, filepath):
         """
-        Load the file at filepath and set it as the current preset
+        Load the preset file at filepath
         :param filepath: A Path or string. The path to the preset file.
         :return:
         """
@@ -912,7 +914,7 @@ class NymphesMIDI:
 
             # Notify Client
             self.add_notification(
-                PresetEvents.loaded_file_into_current_preset.value,
+                PresetEvents.loaded_file.value,
                 str(filepath)
             )
 
@@ -922,20 +924,20 @@ class NymphesMIDI:
             # Send the preset to Nymphes and connected MIDI Output ports
             self._preset_snapshot_needed = True
 
-    def load_default_preset(self):
+    def load_init_file(self):
         """
-        Load default.txt into the current preset
+        Load init.txt
         :return:
         """
         if self.nymphes_connected:
-            logger.info(f'About to load default preset at {self.default_preset_filepath}')
+            logger.info(f'About to load init preset file at {self.init_preset_filepath}')
 
-            self._curr_preset_object = NymphesPreset(filepath=self.default_preset_filepath)
+            self._curr_preset_object = NymphesPreset(filepath=self.init_preset_filepath)
 
             # Notify Client
             self.add_notification(
-                PresetEvents.loaded_default_preset.value,
-                str(self.default_preset_filepath)
+                PresetEvents.loaded_init_file.value,
+                str(self.init_preset_filepath)
             )
 
             # Send all parameters to the client
@@ -944,26 +946,26 @@ class NymphesMIDI:
             # Send the preset to Nymphes and connected MIDI Output ports
             self._preset_snapshot_needed = True
 
-    def save_current_preset_to_file(self, filepath):
+    def save_to_file(self, filepath):
         """
-        Save the current preset as a file.
+        Save to a preset file.
         :param filepath: Path or str
         :return:
         """
-        # Save the current preset to filepath
+        # Save to a preset file at filepath
         self._curr_preset_object.save_preset_file(filepath)
 
         # Send notification
         self.add_notification(
-            PresetEvents.saved_current_preset_to_file.value,
+            PresetEvents.saved_to_file.value,
             str(filepath)
         )
 
-    def save_memory_slot_to_file(self, filepath, preset_type, bank_name, preset_number):
+    def save_preset_to_file(self, filepath, preset_type, bank_name, preset_number):
         """
-        Save a preset from one of Nymphes' memory slots to a file.
+        Save the contents of a preset slot to a file.
         Raises an Exception if the all_presets dictionary does not
-        contain a preset for the specified memory slot.
+        contain the specified preset.
         :param filepath: Path or str
         :param preset_type:
         :param bank_name:
@@ -973,7 +975,7 @@ class NymphesMIDI:
         # Make sure we have a preset object for the specified memory slot
         dict_key = preset_type, bank_name, preset_number
         if dict_key not in self._nymphes_memory_slots_dict:
-            raise Exception(f'Invalid memory slot or there is no data for the slot ({dict_key})')
+            raise Exception(f'Invalid preset slot or there is no data for the slot ({dict_key})')
 
         # Get the preset object
         preset_object = self._nymphes_memory_slots_dict[dict_key]
@@ -983,7 +985,7 @@ class NymphesMIDI:
 
         # Send notification
         self.add_notification(
-            PresetEvents.saved_memory_slot_to_file.value,
+            PresetEvents.saved_preset_to_file.value,
             (str(filepath), preset_type, bank_name, preset_number)
         )
 
@@ -1272,7 +1274,7 @@ class NymphesMIDI:
                 elif preset_import_type == 'persistent':
                     #
                     # This was a SYSEX dump of a preset from a Nymphes
-                    # memory slot, so it did not affect the current
+                    # preset slot, so it did not affect the current
                     # parameter values
                     #
 
@@ -1295,7 +1297,7 @@ class NymphesMIDI:
                     if msg.control == 0:
                         #
                         # Bank MSB Message
-                        # This message is sent by Nymphes when a preset is recalled,
+                        # This message is sent by Nymphes when a preset is loaded,
                         # just before the Program Change message and SYSEX message.
                         # We will log it, but do nothing else, as we will get the
                         # same information from the SYSEX message itself.
@@ -1411,9 +1413,9 @@ class NymphesMIDI:
                 logger.info(
                     f'Received Program Change Message from Nymphes (Bank {bank_name}, Preset {preset_number})')
 
-                # Send a notification that Nymphes has recalled a preset
+                # Send a notification that Nymphes has loaded a preset
                 self.add_notification(
-                    name=PresetEvents.recalled_preset.value,
+                    name=PresetEvents.loaded_preset.value,
                     value=(
                         self._curr_preset_type,
                         self._curr_preset_bank_and_number[0],
@@ -1461,7 +1463,7 @@ class NymphesMIDI:
 
                     # Send a notification that the current preset parameters
                     # were received from a MIDI input port
-                    self.add_notification(PresetEvents.received_current_preset_sysex_from_midi_input_port.value)
+                    self.add_notification(PresetEvents.loaded_preset_dump_from_midi_input_port.value)
 
                     # Send notifications for all preset parameters
                     for param_name in NymphesPreset.all_param_names():
@@ -1479,12 +1481,12 @@ class NymphesMIDI:
                 elif preset_import_type == 'persistent':
                     #
                     # This is a SYSEX message that writes a preset
-                    # into a Nymphes memory slot
+                    # into a Nymphes preset slot
                     #
 
                     # Send a notification
                     self.add_notification(
-                        PresetEvents.saved_preset_dump_from_midi_input_port_to_memory_slot.value,
+                        PresetEvents.saved_preset_dump_from_midi_input_port_to_preset.value,
                         preset_key
                     )
 
@@ -1659,14 +1661,14 @@ class NymphesMIDI:
 
             if preset_import_type == 'persistent':
                 #
-                # This is a SYSEX dump of a preset in a memory slot.
+                # This is a SYSEX dump of a preset in a preset slot.
                 # Store a copy of the preset object in the all presets dictionary
                 self._nymphes_memory_slots_dict[preset_key] = p
 
             elif preset_import_type == 'non-persistent':
                 #
-                # A preset has been recalled from one of Nymphes'
-                # memory slots
+                # A preset has been loaded from one of Nymphes'
+                # preset slots
                 #
 
                 # This is now the current preset.
@@ -1721,11 +1723,11 @@ class NymphesMIDI:
             self.nymphes_midi_ports
         )
 
-        # Request full preset dump via SYSEX in a short time
-        self._send_full_sysex_dump_request_timestamp = time.time() + self._send_full_sysex_dump_request_wait_time_sec
+        # Schedule the sending of the init preset
+        self._send_initial_preset_timestamp = time.time() + self._send_initial_preset_wait_time_sec
 
-        # Load current preset after giving the dump request a short time to completed
-        self._send_initial_preset_timestamp = self._send_full_sysex_dump_request_timestamp + self._send_initial_preset_wait_time_sec
+        # Schedule a full preset dump request a short time later
+        self._send_full_sysex_dump_request_timestamp = self._send_initial_preset_timestamp + self._send_full_sysex_dump_request_wait_time_sec
 
     def _on_nymphes_disconnected(self):
         # Clear out all_presets_dict
