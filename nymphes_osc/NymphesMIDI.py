@@ -108,9 +108,6 @@ class NymphesMIDI:
         # MIDI Output port for messages to Nymphes
         self._nymphes_midi_output_port_object = None
 
-        # TODO: Remove this
-        self._nymphes_midi_port_object = None
-
         # MIDI Port Scanning Timer
         self._midi_port_scan_interval_sec = 0.5
         self._midi_port_scan_last_timestamp = None
