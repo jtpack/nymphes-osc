@@ -7,9 +7,9 @@ from logging.handlers import RotatingFileHandler
 import mido
 import mido.backends.rtmidi
 from rtmidi import InvalidPortError
-from nymphes_osc.NymphesPreset import NymphesPreset
-from nymphes_osc.PresetEvents import PresetEvents
-from nymphes_osc.MidiConnectionEvents import MidiConnectionEvents
+from src.nymphes_midi.NymphesPreset import NymphesPreset
+from src.nymphes_midi.PresetEvents import PresetEvents
+from src.nymphes_midi.MidiConnectionEvents import MidiConnectionEvents
 
 # Create logs directory if necessary
 logs_directory_path = Path(Path(__file__).resolve().parent / 'logs/')

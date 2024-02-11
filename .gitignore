@@ -4,9 +4,10 @@
 venv/
 dist/
 build/
-nymphes_osc/config.txt
+src/nymphes_osc/config.txt
 nymphes_osc.egg-info/
 scratch.py
 curr_preset.txt
-nymphes_osc/logs/
-presets/
+src/nymphes_osc/logs/
+src/nymphes_midi/logs/
+src/nymphes_midi/presets/
