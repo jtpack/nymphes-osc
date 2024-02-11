@@ -1,4 +1,4 @@
-from src.nymphes_midi.protobuf.preset_pb2 import preset, lfo_speed_mode, lfo_sync_mode, voice_mode
+from nymphes_midi.protobuf.preset_pb2 import preset, lfo_speed_mode, lfo_sync_mode, voice_mode
 from pathlib import Path
 import csv
 

@@ -5,10 +5,10 @@ from pythonosc.udp_client import SimpleUDPClient
 from pythonosc.dispatcher import Dispatcher
 from pythonosc.osc_server import BlockingOSCUDPServer
 from pythonosc.osc_message_builder import OscMessageBuilder
-from src.nymphes_midi.NymphesMIDI import NymphesMIDI
-from src.nymphes_midi.NymphesPreset import NymphesPreset
-from src.nymphes_midi.PresetEvents import PresetEvents
-from src.nymphes_midi.MidiConnectionEvents import MidiConnectionEvents
+from nymphes_midi.NymphesMIDI import NymphesMIDI
+from nymphes_midi.NymphesPreset import NymphesPreset
+from nymphes_midi.PresetEvents import PresetEvents
+from nymphes_midi.MidiConnectionEvents import MidiConnectionEvents
 import netifaces
 import logging
 from logging.handlers import RotatingFileHandler

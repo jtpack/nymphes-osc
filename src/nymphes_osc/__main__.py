@@ -1,6 +1,6 @@
 import logging
 
-from src.nymphes_osc.NymphesOSC import NymphesOSC
+from nymphes_osc.NymphesOSC import NymphesOSC
 import time
 import argparse
 
