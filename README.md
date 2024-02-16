@@ -74,6 +74,7 @@
     - Type: String
     - Description: Preset Type
     - Possible Values: 'user' or 'factory'
+    - Possible Values: 'user' or 'factory'
   - 1
     - Type: String
     - Description: Preset Bank 
@@ -181,28 +182,28 @@
 - Description: Disconnect from Nymphes MIDI ports
 - Arguments: None
 
-#### /connect_midi_input_port
+#### /connect_midi_input
 - Description: Connect the specified MIDI Input Port. Messages received from connected MIDI Input Ports are will be interpreted by nymphes-midi and passed on to Nymphes.
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the port (as reported by mido.get_input_names())
 
-#### /disconnect_midi_input_port
+#### /disconnect_midi_input
 - Description: Disconnect the specified MIDI Input Port. Messages will no longer be received from the port.
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the port (as reported by mido.get_input_names())
 
-#### /connect_midi_output_port
+#### /connect_midi_output
 - Description: Connect the specified MIDI Output Port. Messages from Nymphes and software clients will be passed on to connected MIDI Output Ports.
 - Arguments:
   - 0
     - Type: String
     - Description: The name of the port (as reported by mido.get_output_names())
 
-#### /disconnect_midi_output_port
+#### /disconnect_midi_output
 - Description: Disconnect the specified MIDI Output Port. Messages will no longer be sent to the port.
 - Arguments:
   - 0
