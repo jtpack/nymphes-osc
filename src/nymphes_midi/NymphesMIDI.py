@@ -272,7 +272,7 @@ class NymphesMIDI:
     @property
     def detected_midi_inputs(self):
         """
-        Returns the names of all detected MIDI input ports.
+        Returns the names of all detected MIDI input ports, not including Nymphes.
         :return: A list of strings
         """
         return self._detected_midi_inputs
@@ -280,7 +280,7 @@ class NymphesMIDI:
     @property
     def detected_midi_outputs(self):
         """
-        Returns the names of all detected MIDI output ports.
+        Returns the names of all detected MIDI output ports, not including Nymphes.
         :return: A list of strings
         """
         return self._detected_midi_outputs

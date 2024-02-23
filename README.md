@@ -1031,7 +1031,7 @@
     - Description: The name of the MIDI input port that is no longer detected 
 
 #### /detected_midi_inputs
-- Description: A list of detected MIDI input ports.
+- Description: A list of detected MIDI input ports, not including Nymphes.
   - This is automatically sent to a newly-connected OSC host
 - Arguments: One String argument for the name of each detected input port
   - Note: If no input ports are detected, then the message will be sent but there will be no arguments
@@ -1073,7 +1073,7 @@
     - Description: The name of the MIDI output port that is no longer detected
 
 #### /detected_midi_outputs
-- Description: A list of detected MIDI output ports.
+- Description: A list of detected MIDI output ports, not including Nymphes
   - This is automatically sent to a newly-connected OSC host
 - Arguments: One String argument for the name of each detected output port
   - Note: If no output ports are detected, then the message will be sent but there will be no arguments
