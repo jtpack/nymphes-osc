@@ -4,6 +4,7 @@ import copy
 from pathlib import Path
 import logging
 from logging.handlers import RotatingFileHandler
+import os
 import mido
 import mido.backends.rtmidi
 from rtmidi import InvalidPortError
@@ -12,7 +13,7 @@ from nymphes_midi.PresetEvents import PresetEvents
 from nymphes_midi.MidiConnectionEvents import MidiConnectionEvents
 
 # Create logs directory if necessary
-logs_directory_path = Path(Path(__file__).resolve().parent / 'logs/')
+logs_directory_path = Path(os.path.expanduser('~')) / '.nymphes-osc-logs/'
 if not logs_directory_path.exists():
     logs_directory_path.mkdir()
 
@@ -27,7 +28,7 @@ log_formatter = logging.Formatter(
 
 # Handler for logging to files
 file_handler = RotatingFileHandler(
-    logs_directory_path / 'nymphes_midi_log.txt',
+    logs_directory_path / 'nymphes_midi.txt',
     maxBytes=1024*1024*2,
     backupCount=3
 )
@@ -51,7 +52,8 @@ class NymphesMIDI:
     def __init__(
             self,
             notification_callback_function,
-            log_level=logging.WARNING
+            log_level=logging.WARNING,
+            presets_directory_path=None
     ):
         # Callback function for us to call with notifications.
         self._notification_callback_function = notification_callback_function
@@ -59,17 +61,48 @@ class NymphesMIDI:
         # Set logger level
         logger.setLevel(log_level)
 
-        # Construct filepath for the init preset file.
-        # It will be in the same directory as this file.
-        self.presets_directory_path = Path(__file__).resolve().parent / 'presets'
+        #
+        # Handle presets directory path
+        #
+        fallback_presets_directory_path = Path(os.path.expanduser('~')) / 'nymphes_presets'
 
-        # Create directory if it doesn't exist
-        if not self.presets_directory_path.exists():
+        if presets_directory_path is None:
+            # No path was provided. Use the fallback.
+            presets_directory_path = fallback_presets_directory_path
+
+        else:
+            # A path was provided. Convert to a Path object.
+            presets_directory_path = Path(presets_directory_path)
+
+            # Make sure the path exists
+            #
+            if not presets_directory_path.exists():
+                logger.warning(f'Presets directory path {presets_directory_path} does not exist.')
+                logger.warning(f'Falling back to a directory in the home folder.')
+
+                presets_directory_path = fallback_presets_directory_path
+
+            else:
+                # Make sure the path is a directory
+                #
+                if not presets_directory_path.is_dir():
+                    logger.warning(f'Presets directory path {presets_directory_path} exists but it is not a directory!')
+                    logger.warning(f'Falling back to a directory in the home folder.')
+
+                    presets_directory_path = fallback_presets_directory_path
+
+        # Create the fallback presets directory, if necessary
+        if presets_directory_path == fallback_presets_directory_path and not presets_directory_path.exists():
             try:
-                self.presets_directory_path.mkdir()
-                logger.info(f'Created presets directory at {self.presets_directory_path}')
+                presets_directory_path.mkdir()
+                logger.info(f'Created presets directory at {presets_directory_path}')
+
             except Exception as e:
-                logger.warning(f'Failed to create presets directory at {self.presets_directory_path} ({e})')
+                logger.warning(f'Failed to create presets directory at {presets_directory_path} ({e})')
+
+        # Store the presets directory path
+        self.presets_directory_path = presets_directory_path
+        logger.info(f'Using presets directory at {self.presets_directory_path}')
 
         # Construct the path to the init preset file
         self.init_preset_filepath = self.presets_directory_path / 'init.txt'

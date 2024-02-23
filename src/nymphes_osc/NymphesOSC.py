@@ -13,9 +13,10 @@ import netifaces
 import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+import os
 
 # Create logs directory if necessary
-logs_directory_path = Path(Path(__file__).resolve().parent / 'logs/')
+logs_directory_path = Path(os.path.expanduser('~')) / '.nymphes-osc-logs/'
 if not logs_directory_path.exists():
     logs_directory_path.mkdir()
 
@@ -63,10 +64,13 @@ class NymphesOSC:
             client_host=None,
             mdns_name=None,
             osc_log_level=logging.WARNING,
-            midi_log_level=logging.WARNING):
+            midi_log_level=logging.WARNING,
+            presets_directory_path=None):
 
         # Set logger level
         logger.setLevel(osc_log_level)
+
+        logger.info(f'Started nymphes-osc')
 
         logger.info(f'nymphes_midi_channel: {nymphes_midi_channel}')
         logger.info(f'server_port: {server_port}')
@@ -76,11 +80,13 @@ class NymphesOSC:
         logger.info(f'mdns_name: {mdns_name}')
         logger.info(f'nymphes_osc_log_level: {osc_log_level}')
         logger.info(f'nymphes_midi_log_level: {midi_log_level}')
+        logger.info(f'presets_directory_path: {presets_directory_path}')
 
         # Create NymphesMidi object
         self._nymphes_midi = NymphesMIDI(
             notification_callback_function=self._on_nymphes_notification,
-            log_level=midi_log_level
+            log_level=midi_log_level,
+            presets_directory_path=presets_directory_path
         )
 
         # The MIDI channel Nymphes is set to use.

@@ -3,6 +3,7 @@ import logging
 from nymphes_osc.NymphesOSC import NymphesOSC
 import time
 import argparse
+from pathlib import Path
 
 
 def main():
@@ -68,12 +69,23 @@ def main():
 
     parser.add_argument(
         '--midi_log_level',
-        default='warning',
+        default='info',
         choices={'critical', 'error', 'warning', 'info', 'debug'},
         help='Optional. Sets the log level for NymphesMIDI'
     )
 
+    parser.add_argument(
+        '--presets_directory_path',
+        default='',
+        help='Optional. The path for preset files'
+    )
+
     args = parser.parse_args()
+
+    if args.presets_directory_path == '':
+        presets_directory_path = None
+    else:
+        presets_directory_path = Path(args.presets_directory_path)
 
     #
     # Create the Nymphes OSC Controller
@@ -86,7 +98,8 @@ def main():
         client_host=args.client_host,
         mdns_name=args.mdns_name,
         osc_log_level=log_level_for_name(args.osc_log_level),
-        midi_log_level=log_level_for_name(args.midi_log_level)
+        midi_log_level=log_level_for_name(args.midi_log_level),
+        presets_directory_path=presets_directory_path
     )
 
     #

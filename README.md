@@ -1,28 +1,28 @@
 # Nymphes MIDI to OSC Bridge
 
-### A command line application that provides OSC control of the Dreadbox Nymphes synthesizer
+### A python command-line application which provides OSC control of the Dreadbox Nymphes synthesizer.
 
 # Installation
 
-## 1. Clone the repository
+## 1. Clone this repository to your home directory
    - `cd ~`
-   - `git clone git@github.com:jtpack/nymphes-osc.git`
+   - `git clone https://github.com/jtpack/nymphes-osc.git`
 
 ## 2. Create a virtual environment and activate it
 - `cd ~/nymphes-osc`
 
-#### Mac OS / Linux:
-- `python3 -m venv venv`
-- `source venv/bin/activate`
+- #### Mac OS / Linux:
+  - `python3 -m venv venv`
+  - `source venv/bin/activate`
 
-#### Windows:
-- `py -3 -m venv venv`
-- `venv\scripts\activate`
+- #### Windows:
+  - `py -3 -m venv venv`
+  - `venv\scripts\activate`
 
-## 3. Install nymphes-osc itself
+## 3. Install the nymphes-osc package into the virtual environment
   - `pip install -e .`
 
-## 4. Run nymphes-osc
+## 4. Run it
 - `python -m nymphes_osc`
 
 # OSC Commands Reference
