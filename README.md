@@ -1,8 +1,12 @@
-# Nymphes MIDI to OSC Bridge
+# nymphes-osc
 
-### A python command-line application which provides OSC control of the Dreadbox Nymphes synthesizer.
+### A command-line application which provides OSC control of the Dreadbox Nymphes synthesizer.
+### Written in python
 
-# Installation
+# Installation (If you just want the binary):
+Download it here: TODO: Add link
+
+# Building From Source:
 
 ## 1. Clone this repository to your home directory
    - `cd ~`
