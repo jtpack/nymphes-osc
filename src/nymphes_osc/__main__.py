@@ -5,8 +5,12 @@ import time
 import argparse
 from pathlib import Path
 
+app_version_string = '0.1.0 (BETA)'
 
 def main():
+    # Get logger
+    logger = logging.getLogger('nymphes-osc.main')
+
     #
     # Handle command-line arguments
     #
@@ -87,6 +91,8 @@ def main():
     else:
         presets_directory_path = Path(args.presets_directory_path)
 
+    logger.info(f'***** Starting nymphes-osc {app_version_string} *****')
+
     #
     # Create the Nymphes OSC Controller
     #
@@ -109,8 +115,8 @@ def main():
         while True:
             nymphes_osc.update()
             time.sleep(0.0001)
-    except KeyboardInterrupt:
-        print('KeyboardInterrupt received.')
+    except Exception as e:
+        logger.warning(f'Exception: {e}')
         nymphes_osc.stop_osc_server()
 
 

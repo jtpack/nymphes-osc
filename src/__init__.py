@@ -15,7 +15,7 @@ log_formatter = logging.Formatter(
 )
 
 # Handler for writing to a log file
-file_handler = logging.FileHandler(logs_directory_path / 'log.txt')
+file_handler = logging.FileHandler(logs_directory_path / 'log.txt', mode='w')
 file_handler.setFormatter(log_formatter)
 
 # Handler for logging to the console
@@ -27,5 +27,3 @@ logger.setLevel(logging.DEBUG)
 
 logger.addHandler(file_handler)
 logger.addHandler(console_handler)
-
-logger.info('***** Started nymphes-osc *****')
