@@ -3,7 +3,7 @@
 ### A command-line application which provides OSC control of the Dreadbox Nymphes synthesizer.
 ### Written in python
 
-# How to Use nymphes-osc:
+# How to Get Started:
 
 ## 1. Clone this repository to your home directory
    - `cd ~`
@@ -28,13 +28,62 @@
 
 ## 5. Build an executable
 - `pyinstaller nymphes-osc.spec`
-- The executable file will be in the dist folder:
-  - ie: nymphes-osc/dist/nymphes-osc
+  - The executable file will be in the dist folder:
+    - ie: nymphes-osc/dist/nymphes-osc
 
 # Using nymphes-osc:
 - Run it on the command line and send it OSC messages.
 - Register as an OSC client to received OSC messages from nymphes-osc.
 - Write a program which controls nymphes-osc
+
+# Command Line Arguments
+`--server_host SERVER_HOST`
+  - The hostname or IP address to use when listening for incoming OSC messages.
+  - Type: String. Use quotes around the host name or IP address.
+  - Optional. If not supplied, then the local IP address is detected and used
+
+`--server_port SERVER_PORT`
+  - The port to use when listening for incoming OSC messages.
+  - Type: Int
+  - Optional. If not supplied, use 1237.
+  
+`--client_host CLIENT_HOST`
+  - The hostname or IP address to use for the OSC client.
+  - Type: String. Use quotes around the host name or IP address.
+  - Optional. If not supplied, then the server will wait for clients to register themselves.
+
+`--client_port CLIENT_PORT`
+  - The port to use for the OSC client. 
+  - Type: Int
+  - Optional. If not supplied, then the server will wait for clients to register themselves.
+
+`--midi_channel MIDI_CHANNEL`
+  - The MIDI Channel that Nymphes is set to use. 1 to 16.
+  - Type: Int
+  - Optional. If not supplied, then 1 is used.
+
+`--mdns_name MDNS_NAME`
+  - If supplied, then use mDNS to advertise on the network with this name
+  - Type: String. Use quotes around the name.
+  - Optional. If not supplied, then mDNS will not be used.
+
+`--osc_log_level`
+  - Sets the log level for nymphes_osc
+  - Type: String. Possible values: critical, warning, debug, error, info
+  - Optional. If not supplied, then info is used.
+
+`--midi_log_level`
+  - Sets the log level for nymphes_midi
+  - Type: String. Possible values: critical, warning, debug, error, info
+  - Optional. If not supplied, then info is used.
+
+`--presets_directory_path`
+  - The path to use for preset files
+  - Type: String. Use quotes around the path.
+  - Optional. If not supplied, then use ~/nymphes_presets
+
+You can also use `nymphes-osc --help` to see a help message listing the arguments
+
 
 # Projects Which Use nymphes-osc:
 [nymphes-gui - A graphical editor for the Dreadbox Nymphes Synthesizer]()
