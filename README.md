@@ -31,7 +31,13 @@ Download it here: TODO: Add link
 
 ## 5. Building an executable
 - `pyinstaller nymphes-osc.spec`
-- The executable file will be in the dist folder
+- The executable file will be in the dist folder:
+  - ie: nymphes-osc/dist/nymphes-osc
+
+# Using nymphes-osc:
+Run it on the command line and send it OSC messages.
+Register as an OSC client to received OSC messages from nymphes-osc.
+
 
 # OSC Commands Reference
 

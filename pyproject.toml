@@ -21,12 +21,11 @@ dependencies = [
     "python-rtmidi",
     "protobuf",
     "netifaces",
-    "zeroconf"
+    "zeroconf",
+    "pyinstaller"
 ]
 requires-python = ">=3.9"
 
 [project.urls]
 Homepage = "https://github.com/jtpack/nymphes-osc"
 
-[project.scripts]
-nymphes-osc = "nymphes_osc.__main__:main"
