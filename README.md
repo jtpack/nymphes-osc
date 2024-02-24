@@ -3,10 +3,7 @@
 ### A command-line application which provides OSC control of the Dreadbox Nymphes synthesizer.
 ### Written in python
 
-# Installation (If you just want the binary):
-Download it here: TODO: Add link
-
-# Building From Source:
+# How to Use nymphes-osc:
 
 ## 1. Clone this repository to your home directory
    - `cd ~`
@@ -26,18 +23,21 @@ Download it here: TODO: Add link
 ## 3. Install the nymphes-osc package into the virtual environment
 `pip install -e .`
 
-## 4. Run it
+## 4. Run nymphes-osc
 `python run.py`
 
-## 5. Building an executable
+## 5. Build an executable
 - `pyinstaller nymphes-osc.spec`
 - The executable file will be in the dist folder:
   - ie: nymphes-osc/dist/nymphes-osc
 
 # Using nymphes-osc:
-Run it on the command line and send it OSC messages.
-Register as an OSC client to received OSC messages from nymphes-osc.
+- Run it on the command line and send it OSC messages.
+- Register as an OSC client to received OSC messages from nymphes-osc.
+- Write a program which controls nymphes-osc
 
+# Projects Which Use nymphes-osc:
+[nymphes-gui - A graphical editor for the Dreadbox Nymphes Synthesizer]()
 
 # OSC Commands Reference
 
