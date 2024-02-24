@@ -13,7 +13,7 @@ Download it here: TODO: Add link
    - `git clone https://github.com/jtpack/nymphes-osc.git`
 
 ## 2. Create a virtual environment and activate it
-- `cd ~/nymphes-osc`
+- `cd nymphes-osc`
 
 - #### Mac OS / Linux:
   - `python3 -m venv venv`
@@ -24,10 +24,14 @@ Download it here: TODO: Add link
   - `venv\scripts\activate`
 
 ## 3. Install the nymphes-osc package into the virtual environment
-  - `pip install -e .`
+`pip install -e .`
 
 ## 4. Run it
-- `python -m nymphes_osc`
+`python run.py`
+
+## 5. Building an executable
+- `pyinstaller nymphes-osc.spec`
+- The executable file will be in the dist folder
 
 # OSC Commands Reference
 
