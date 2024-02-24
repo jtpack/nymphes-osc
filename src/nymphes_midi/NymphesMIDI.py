@@ -12,37 +12,6 @@ from nymphes_midi.NymphesPreset import NymphesPreset
 from nymphes_midi.PresetEvents import PresetEvents
 from nymphes_midi.MidiConnectionEvents import MidiConnectionEvents
 
-# Create logs directory if necessary
-logs_directory_path = Path(os.path.expanduser('~')) / '.nymphes-osc-logs/'
-if not logs_directory_path.exists():
-    logs_directory_path.mkdir()
-
-# Get the root logger
-root_logger = logging.getLogger()
-
-# Formatter for logs
-log_formatter = logging.Formatter(
-    '%(asctime)s.%(msecs)03d - NymphesMIDI - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-# Handler for logging to files
-file_handler = RotatingFileHandler(
-    logs_directory_path / 'nymphes_midi.txt',
-    maxBytes=1024*1024*2,
-    backupCount=3
-)
-file_handler.setFormatter(log_formatter)
-
-# Handler for logging to the console
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(log_formatter)
-
-# Get the logger for this module
-logger = logging.getLogger(__name__)
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
-
 
 class NymphesMIDI:
     """
@@ -58,9 +27,9 @@ class NymphesMIDI:
         # Callback function for us to call with notifications.
         self._notification_callback_function = notification_callback_function
 
-        # Set logger level
-        logger.setLevel(log_level)
-
+        # Get logger
+        self.logger = logging.getLogger('nymphes-osc.nymphes_midi')
+    
         #
         # Handle presets directory path
         #
@@ -77,8 +46,8 @@ class NymphesMIDI:
             # Make sure the path exists
             #
             if not presets_directory_path.exists():
-                logger.warning(f'Presets directory path {presets_directory_path} does not exist.')
-                logger.warning(f'Falling back to a directory in the home folder.')
+                self.logger.warning(f'Presets directory path {presets_directory_path} does not exist.')
+                self.logger.warning(f'Falling back to a directory in the home folder.')
 
                 presets_directory_path = fallback_presets_directory_path
 
@@ -86,8 +55,8 @@ class NymphesMIDI:
                 # Make sure the path is a directory
                 #
                 if not presets_directory_path.is_dir():
-                    logger.warning(f'Presets directory path {presets_directory_path} exists but it is not a directory!')
-                    logger.warning(f'Falling back to a directory in the home folder.')
+                    self.logger.warning(f'Presets directory path {presets_directory_path} exists but it is not a directory!')
+                    self.logger.warning(f'Falling back to a directory in the home folder.')
 
                     presets_directory_path = fallback_presets_directory_path
 
@@ -95,14 +64,14 @@ class NymphesMIDI:
         if presets_directory_path == fallback_presets_directory_path and not presets_directory_path.exists():
             try:
                 presets_directory_path.mkdir()
-                logger.info(f'Created presets directory at {presets_directory_path}')
+                self.logger.info(f'Created presets directory at {presets_directory_path}')
 
             except Exception as e:
-                logger.warning(f'Failed to create presets directory at {presets_directory_path} ({e})')
+                self.logger.warning(f'Failed to create presets directory at {presets_directory_path} ({e})')
 
         # Store the presets directory path
         self.presets_directory_path = presets_directory_path
-        logger.info(f'Using presets directory at {self.presets_directory_path}')
+        self.logger.info(f'Using presets directory at {self.presets_directory_path}')
 
         # Construct the path to the init preset file
         self.init_preset_filepath = self.presets_directory_path / 'init.txt'
@@ -115,18 +84,18 @@ class NymphesMIDI:
                 # preset to disk
                 p = NymphesPreset()
                 p.save_preset_file(self.init_preset_filepath)
-                logger.info(f'Created init preset file at {self.init_preset_filepath}')
+                self.logger.info(f'Created init preset file at {self.init_preset_filepath}')
 
             except Exception as e:
-                logger.warning(f'Failed to create init preset file at {self.init_preset_filepath} ({e})')
+                self.logger.warning(f'Failed to create init preset file at {self.init_preset_filepath} ({e})')
 
         # Create the preset object used to track all current Nymphes parameter values
         try:
             self._curr_preset_object = NymphesPreset(filepath=self.init_preset_filepath)
-            logger.info(f'Loaded init preset at {self.init_preset_filepath}')
+            self.logger.info(f'Loaded init preset at {self.init_preset_filepath}')
 
         except Exception as e:
-            logger.warning(f'Failed to load init preset at {self.init_preset_filepath} ({e})')
+            self.logger.warning(f'Failed to load init preset at {self.init_preset_filepath} ({e})')
 
             # Create preset without loading init.txt
             self._curr_preset_object = NymphesPreset()
@@ -465,7 +434,7 @@ class NymphesMIDI:
 
                 if nymphes_input_port_name is not None and nymphes_output_port_name is not None:
                     # Try to connect to the ports
-                    logger.info(f'Trying to auto-connect to Nymphes ports {nymphes_input_port_name} {nymphes_output_port_name}')
+                    self.logger.info(f'Trying to auto-connect to Nymphes ports {nymphes_input_port_name} {nymphes_output_port_name}')
                     self.connect_nymphes(
                         input_port_name=nymphes_input_port_name,
                         output_port_name=nymphes_output_port_name
@@ -502,7 +471,7 @@ class NymphesMIDI:
                     for port_object in self._connected_midi_output_port_objects:
                         self._send_to_midi_output_port(msg, port_object)
 
-                    logger.info('Sent current preset to Nymphes and connected MIDI Output ports via SYSEX')
+                    self.logger.info('Sent current preset to Nymphes and connected MIDI Output ports via SYSEX')
 
                 # Clear the flag and store the current time
                 # regardless of whether Nymphes was connected
@@ -587,13 +556,13 @@ class NymphesMIDI:
                 # Close the currently-connected input port
                 self._nymphes_midi_input_port_object.close()
                 self._nymphes_midi_input_port_object = None
-                logger.info(f'Disconnected Nymphes MIDI Input Port {curr_input_port_name}')
+                self.logger.info(f'Disconnected Nymphes MIDI Input Port {curr_input_port_name}')
 
                 # Close the currently-connected output port
                 self._nymphes_midi_output_port_object.close()
                 self._nymphes_midi_output_port_object = None
                 self._nymphes_midi_message_send_queue = None
-                logger.info(f'Disconnected Nymphes MIDI Output Port {curr_output_port_name}')
+                self.logger.info(f'Disconnected Nymphes MIDI Output Port {curr_output_port_name}')
         else:
             was_connected = False
 
@@ -601,11 +570,11 @@ class NymphesMIDI:
         #
         try:
             self._nymphes_midi_input_port_object = mido.open_input(input_port_name)
-            logger.info(f'Connected Nymphes MIDI Input Port {input_port_name}')
+            self.logger.info(f'Connected Nymphes MIDI Input Port {input_port_name}')
 
         except Exception as e:
             self._nymphes_midi_input_port_object = None
-            logger.warning(f'Failed to connect Nymphes MIDI Input Port {input_port_name} ({e})')
+            self.logger.warning(f'Failed to connect Nymphes MIDI Input Port {input_port_name} ({e})')
 
         # Try to connect to the new output port
         #
@@ -615,13 +584,13 @@ class NymphesMIDI:
             # Create a MIDI message send queue for it
             self._nymphes_midi_message_send_queue = Queue()
 
-            logger.info(f'Connected Nymphes MIDI Output Port {output_port_name}')
+            self.logger.info(f'Connected Nymphes MIDI Output Port {output_port_name}')
 
         except Exception as e:
             self._nymphes_midi_output_port_object = None
             self._nymphes_midi_message_send_queue = None
 
-            logger.warning(f'Failed to connect Nymphes MIDI Output Port {output_port_name} ({e})')
+            self.logger.warning(f'Failed to connect Nymphes MIDI Output Port {output_port_name} ({e})')
 
         # Check whether we succeeded in connecting to Nymphes ports
         #
@@ -646,14 +615,14 @@ class NymphesMIDI:
             curr_input_port_name = self._nymphes_midi_input_port_object.name
             self._nymphes_midi_input_port_object.close()
             self._nymphes_midi_input_port_object = None
-            logger.info(f'Disconnected Nymphes MIDI Input Port {curr_input_port_name}')
+            self.logger.info(f'Disconnected Nymphes MIDI Input Port {curr_input_port_name}')
 
         # Close the currently-connected output port
         if self._nymphes_midi_output_port_object is not None:
             curr_output_port_name = self._nymphes_midi_output_port_object.name
             self._nymphes_midi_output_port_object.close()
             self._nymphes_midi_output_port_object = None
-            logger.info(f'Disconnected Nymphes MIDI Output Port {curr_output_port_name}')
+            self.logger.info(f'Disconnected Nymphes MIDI Output Port {curr_output_port_name}')
 
         # Notify Client that we are no longer connected
         self.add_notification(
@@ -682,7 +651,7 @@ class NymphesMIDI:
         # Store the port
         self._connected_midi_input_port_objects.append(port)
 
-        logger.info(f'Connected MIDI input port ({port_name})')
+        self.logger.info(f'Connected MIDI input port ({port_name})')
 
         # Notify Client
         self.add_notification(
@@ -706,7 +675,7 @@ class NymphesMIDI:
         for port in self._connected_midi_input_port_objects:
             if port.name == port_name:
                 self._connected_midi_input_port_objects.remove(port)
-                logger.info(f'Closing MIDI input port ({port.name})')
+                self.logger.info(f'Closing MIDI input port ({port.name})')
 
                 # Disconnect the port
                 port.close()
@@ -739,7 +708,7 @@ class NymphesMIDI:
         # Store the port
         self._connected_midi_output_port_objects.append(port)
 
-        logger.info(f'Connected MIDI output port ({port_name})')
+        self.logger.info(f'Connected MIDI output port ({port_name})')
 
         # Create a message send queue for the port
         self._midi_message_send_queues[port] = Queue()
@@ -766,7 +735,7 @@ class NymphesMIDI:
         for port in self._connected_midi_output_port_objects:
             if port.name == port_name:
                 self._connected_midi_output_port_objects.remove(port)
-                logger.info(f'Closing MIDI output port ({port.name})')
+                self.logger.info(f'Closing MIDI output port ({port.name})')
 
                 # Disconnect the port
                 port.close()
@@ -960,7 +929,7 @@ class NymphesMIDI:
         :return:
         """
         if self.nymphes_connected:
-            logger.info(f'About to load init preset file at {self.init_preset_filepath}')
+            self.logger.info(f'About to load init preset file at {self.init_preset_filepath}')
 
             self._curr_preset_object = NymphesPreset(filepath=self.init_preset_filepath)
 
@@ -1029,7 +998,7 @@ class NymphesMIDI:
         :return:
         """
         if self.nymphes_connected:
-            logger.info('Requesting full preset dump from Nymphes')
+            self.logger.info('Requesting full preset dump from Nymphes')
 
             # Create a dump request message
             msg = mido.Message('sysex', data=[0x00, 0x21, 0x35, 0x00, 0x06, 0x02])
@@ -1296,10 +1265,10 @@ class NymphesMIDI:
                         param_type = NymphesPreset.type_for_param_name(param_name)
 
                         if param_type == float:
-                            logger.debug(f'{param_name}: {self._curr_preset_object.get_float(param_name)}')
+                            self.logger.debug(f'{param_name}: {self._curr_preset_object.get_float(param_name)}')
 
                         elif param_type == int:
-                            logger.debug(f'{param_name}: {self._curr_preset_object.get_int(param_name)}')
+                            self.logger.debug(f'{param_name}: {self._curr_preset_object.get_int(param_name)}')
 
                 elif preset_import_type == 'persistent':
                     #
@@ -1315,13 +1284,13 @@ class NymphesMIDI:
                     )
 
             except Exception as e:
-                logger.warning(f'Failed to handle SYSEX message from Nymphes ({e})')
+                self.logger.warning(f'Failed to handle SYSEX message from Nymphes ({e})')
 
         elif msg.is_cc():
             if not self._ignore_control_change_messages_from_nymphes:
                 # Make sure the message was received on the Nymphes MIDI Channel
                 if msg.channel != self._nymphes_midi_channel - 1:
-                    logger.warning(f'Received a MIDI Control Change message from Nymphes on a different channel: {msg}')
+                    self.logger.warning(f'Received a MIDI Control Change message from Nymphes on a different channel: {msg}')
 
                 else:
                     if msg.control == 0:
@@ -1335,15 +1304,15 @@ class NymphesMIDI:
 
                         if msg.value == 0:
                             self._curr_preset_type = 'user'
-                            logger.info('Received Bank MSB 0 (User Bank) from Nymphes')
+                            self.logger.info('Received Bank MSB 0 (User Bank) from Nymphes')
 
                         elif msg.value == 1:
                             self._curr_preset_type = 'factory'
-                            logger.info('Received Bank MSB 1 (Factory Bank) from Nymphes')
+                            self.logger.info('Received Bank MSB 1 (Factory Bank) from Nymphes')
 
                         else:
                             self._curr_preset_type = None
-                            logger.warning(f'Received unknown Bank MSB value from Nymphes ({msg.value})')
+                            self.logger.warning(f'Received unknown Bank MSB value from Nymphes ({msg.value})')
 
                     elif msg.control == 30:
                         #
@@ -1357,7 +1326,7 @@ class NymphesMIDI:
                         self.add_notification('mod_source', msg.value)
 
                         # Log the message
-                        logger.debug(f'mod_source: {msg.value}')
+                        self.logger.debug(f'mod_source: {msg.value}')
 
                     else:
                         #
@@ -1374,7 +1343,7 @@ class NymphesMIDI:
                             # This is not a Nymphes parameter
                             #
 
-                            logger.warning(f'Received unhandled MIDI CC Message from Nymphes: {msg}')
+                            self.logger.warning(f'Received unhandled MIDI CC Message from Nymphes: {msg}')
 
                         if len(param_names_for_this_cc) == 1:
                             #
@@ -1395,7 +1364,7 @@ class NymphesMIDI:
                                 self.add_notification('int_param', (param_names_for_this_cc[0], msg.value))
 
                                 # Log the message
-                                logger.debug(f'{param_names_for_this_cc[0]}: {msg.value}')
+                                self.logger.debug(f'{param_names_for_this_cc[0]}: {msg.value}')
 
                         else:
                             #
@@ -1426,7 +1395,7 @@ class NymphesMIDI:
                                         self.add_notification('int_param', (param_name, msg.value))
 
                                         # Log the message
-                                        logger.debug(f'{param_name}: {msg.value}')
+                                        self.logger.debug(f'{param_name}: {msg.value}')
 
         elif msg.type == 'program_change':
             if msg.channel == self._nymphes_midi_channel - 1:
@@ -1440,7 +1409,7 @@ class NymphesMIDI:
                 # Store them
                 self._curr_preset_bank_and_number = bank_name, preset_number
 
-                logger.info(
+                self.logger.info(
                     f'Received Program Change Message from Nymphes (Bank {bank_name}, Preset {preset_number})')
 
                 # Send a notification that Nymphes has loaded a preset
@@ -1461,7 +1430,7 @@ class NymphesMIDI:
             #
             # This is not a recognized MIDI message.
             #
-            logger.warning(f'Received unhandled MIDI message from Nymphes ({msg})')
+            self.logger.warning(f'Received unhandled MIDI message from Nymphes ({msg})')
 
         # We always send a copy of any message from Nymphes to all
         # connected MIDI Output ports
@@ -1503,10 +1472,10 @@ class NymphesMIDI:
                         param_type = NymphesPreset.type_for_param_name(param_name)
 
                         if param_type == float:
-                            logger.debug(f'{param_name}: {self._curr_preset_object.get_float(param_name)}')
+                            self.logger.debug(f'{param_name}: {self._curr_preset_object.get_float(param_name)}')
 
                         elif param_type == int:
-                            logger.debug(f'{param_name}: {self._curr_preset_object.get_int(param_name)}')
+                            self.logger.debug(f'{param_name}: {self._curr_preset_object.get_int(param_name)}')
 
                 elif preset_import_type == 'persistent':
                     #
@@ -1535,11 +1504,11 @@ class NymphesMIDI:
                     #
 
                     if msg.value == 0:
-                        logger.info(f'Received Bank MSB 0 (User Bank) from {port}')
+                        self.logger.info(f'Received Bank MSB 0 (User Bank) from {port}')
                     elif msg.value == 1:
-                        logger.info(f'Received Bank MSB 1 (Factory Bank) from {port}')
+                        self.logger.info(f'Received Bank MSB 1 (Factory Bank) from {port}')
                     else:
-                        logger.warning(f'Received unknown Bank MSB value from {port} ({msg.value})')
+                        self.logger.warning(f'Received unknown Bank MSB value from {port} ({msg.value})')
 
                 elif msg.control == 1:
                     #
@@ -1550,7 +1519,7 @@ class NymphesMIDI:
                     self.add_notification('mod_wheel', msg.value)
 
                     # Log the message
-                    logger.debug(f'{port}: mod_wheel', msg.value)
+                    self.logger.debug(f'{port}: mod_wheel', msg.value)
 
                 elif msg.control == 30:
                     #
@@ -1564,7 +1533,7 @@ class NymphesMIDI:
                     self.add_notification('mod_source', msg.value)
 
                     # Log the message
-                    logger.debug(f'{port}: mod_source: {msg.value}')
+                    self.logger.debug(f'{port}: mod_source: {msg.value}')
 
                 elif msg.control == 64:
                     #
@@ -1575,7 +1544,7 @@ class NymphesMIDI:
                     self.add_notification('sustain_pedal', msg.value)
 
                     # Log the message
-                    logger.debug(f'{port}: sustain_pedal: {msg.value}')
+                    self.logger.debug(f'{port}: sustain_pedal: {msg.value}')
 
                 else:
                     #
@@ -1592,7 +1561,7 @@ class NymphesMIDI:
                         # This is not a Nymphes parameter
                         #
 
-                        logger.warning(f'Received unhandled MIDI CC Message from {port}: {msg}')
+                        self.logger.warning(f'Received unhandled MIDI CC Message from {port}: {msg}')
 
                     if len(param_names_for_this_cc) == 1:
                         #
@@ -1609,7 +1578,7 @@ class NymphesMIDI:
                             self.add_curr_preset_param_notification(param_names_for_this_cc[0])
 
                             # Log the message
-                            logger.debug(f'{port}: {param_names_for_this_cc[0]}: {msg.value}')
+                            self.logger.debug(f'{port}: {param_names_for_this_cc[0]}: {msg.value}')
 
                     else:
                         #
@@ -1636,7 +1605,7 @@ class NymphesMIDI:
                                     self.add_curr_preset_param_notification(param_name)
 
                                     # Log the message
-                                    logger.debug(f'{port}: {param_name}: {msg.value}')
+                                    self.logger.debug(f'{port}: {param_name}: {msg.value}')
 
         elif msg.type == 'program_change':
             if msg.channel == self._nymphes_midi_channel - 1:
@@ -1646,7 +1615,7 @@ class NymphesMIDI:
                 #
 
                 bank_name, preset_number = self._parse_midi_program_change_message(msg)
-                logger.info(
+                self.logger.info(
                     f'Received Program Change Message from {port} (Bank {bank_name}, Preset {preset_number})')
 
         elif msg.type == 'note_on' and msg.velocity != 0:
@@ -1657,7 +1626,7 @@ class NymphesMIDI:
                 self.add_notification('velocity', msg.velocity)
 
                 # Log the message
-                logger.debug(f'{port}: velocity: {msg.velocity}')
+                self.logger.debug(f'{port}: velocity: {msg.velocity}')
 
         elif msg.type == 'aftertouch':
             if msg.channel == self._nymphes_midi_channel - 1:
@@ -1666,7 +1635,7 @@ class NymphesMIDI:
                 self.add_notification('aftertouch', msg.value)
 
                 # Log the message
-                logger.debug(f'{port}: aftertouch: {msg.value}')
+                self.logger.debug(f'{port}: aftertouch: {msg.value}')
 
         # Send a copy of the message to Nymphes
         self._send_to_nymphes(msg)
@@ -1714,7 +1683,7 @@ class NymphesMIDI:
             status_message += f'{p.preset_type.capitalize()} Preset {p.preset_number}, '
             status_message += f'{p.preset_import_type.capitalize()} Import'
             status_message += ')'
-            logger.info(status_message)
+            self.logger.info(status_message)
 
             return preset_import_type,  preset_key
 
@@ -1771,7 +1740,7 @@ class NymphesMIDI:
         )
 
     def _on_midi_input_port_detected(self, port_name):
-        logger.info(f'MIDI Input Port detected ({port_name})')
+        self.logger.info(f'MIDI Input Port detected ({port_name})')
 
         # Notify Client
         self.add_notification(
@@ -1791,13 +1760,13 @@ class NymphesMIDI:
             # The Nymphes input port is no longer detected
             #
 
-            logger.info(f'Nymphes MIDI Input Port {port_name} no longer detected')
+            self.logger.info(f'Nymphes MIDI Input Port {port_name} no longer detected')
 
             # Disconnect from Nymphes input and output ports
             self.disconnect_nymphes()
 
         else:
-            logger.info(f'MIDI Input Port {port_name} no longer detected')
+            self.logger.info(f'MIDI Input Port {port_name} no longer detected')
 
             if port_name in self.connected_midi_inputs:
                 #
@@ -1807,7 +1776,7 @@ class NymphesMIDI:
                 self.disconnect_midi_input(port_name)
 
     def _on_midi_output_port_detected(self, port_name):
-        logger.info(f'MIDI Output Port detected ({port_name})')
+        self.logger.info(f'MIDI Output Port detected ({port_name})')
 
         # Notify Client
         self.add_notification(
@@ -1826,13 +1795,13 @@ class NymphesMIDI:
             #
             # The Nymphes output port is no longer detected
             #
-            logger.info(f'Nymphes MIDI Output Port {port_name} no longer detected')
+            self.logger.info(f'Nymphes MIDI Output Port {port_name} no longer detected')
 
             # Disconnect from Nymphes input and output ports
             self.disconnect_nymphes()
             
         else:
-            logger.info(f'MIDI Output Port {port_name} no longer detected')
+            self.logger.info(f'MIDI Output Port {port_name} no longer detected')
 
             if port_name in self.connected_midi_outputs:
                 #
@@ -1944,13 +1913,13 @@ class NymphesMIDI:
             time.time() + \
             self._ignore_control_change_messages_from_nymphes_duration_sec
 
-        logger.debug('Starting to ignore incoming MIDI CC messages from Nymphes')
+        self.logger.debug('Starting to ignore incoming MIDI CC messages from Nymphes')
 
     def _stop_ignoring_control_change_messages_from_nymphes(self):
         self._ignore_control_change_messages_from_nymphes = False
         self._ignore_control_change_messages_from_nymphes_until_timestamp = None
 
-        logger.debug('No longer ignoring incoming MIDI CC messages from Nymphes')
+        self.logger.debug('No longer ignoring incoming MIDI CC messages from Nymphes')
 
     def _start_waiting_for_preset_data(self):
         # Set the flag to True
@@ -1961,13 +1930,13 @@ class NymphesMIDI:
             time.time() + \
             self._waiting_for_preset_data_from_nymphes_duration_sec
 
-        logger.debug('Starting to wait for preset data from Nymphes')
+        self.logger.debug('Starting to wait for preset data from Nymphes')
 
     def _stop_waiting_for_preset_data_from_nymphes(self):
         self._waiting_for_preset_data_from_nymphes = False
         self._waiting_for_preset_data_from_nymphes_until_timestamp = None
 
-        logger.debug('No longer waiting for preset data from Nymphes')
+        self.logger.debug('No longer waiting for preset data from Nymphes')
 
     def send_current_preset_notifications(self):
         """

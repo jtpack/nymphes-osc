@@ -15,37 +15,6 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 import os
 
-# Create logs directory if necessary
-logs_directory_path = Path(os.path.expanduser('~')) / '.nymphes-osc-logs/'
-if not logs_directory_path.exists():
-    logs_directory_path.mkdir()
-
-# Get the root logger
-root_logger = logging.getLogger()
-
-# Formatter for logs
-log_formatter = logging.Formatter(
-    '%(asctime)s.%(msecs)03d - NymphesOSC  - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-# Handler for logging to files
-file_handler = RotatingFileHandler(
-    logs_directory_path / 'nymphes_osc.txt',
-    maxBytes=1024*1024*2,
-    backupCount=3
-)
-file_handler.setFormatter(log_formatter)
-
-# Handler for logging to the console
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(log_formatter)
-
-# Get the logger for this module
-logger = logging.getLogger(__name__)
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
-
 
 class NymphesOSC:
     """
@@ -65,22 +34,21 @@ class NymphesOSC:
             mdns_name=None,
             osc_log_level=logging.WARNING,
             midi_log_level=logging.WARNING,
-            presets_directory_path=None):
+            presets_directory_path=None
+    ):
 
-        # Set logger level
-        logger.setLevel(osc_log_level)
+        # Get logger
+        self.logger = logging.getLogger('nymphes-osc.nymphes_osc')
 
-        logger.info(f'Started nymphes-osc')
-
-        logger.info(f'nymphes_midi_channel: {nymphes_midi_channel}')
-        logger.info(f'server_port: {server_port}')
-        logger.info(f'server_host: {server_host}')
-        logger.info(f'client_port: {client_port}')
-        logger.info(f'client_host: {client_host}')
-        logger.info(f'mdns_name: {mdns_name}')
-        logger.info(f'nymphes_osc_log_level: {osc_log_level}')
-        logger.info(f'nymphes_midi_log_level: {midi_log_level}')
-        logger.info(f'presets_directory_path: {presets_directory_path}')
+        self.logger.info(f'nymphes_midi_channel: {nymphes_midi_channel}')
+        self.logger.info(f'server_port: {server_port}')
+        self.logger.info(f'server_host: {server_host}')
+        self.logger.info(f'client_port: {client_port}')
+        self.logger.info(f'client_host: {client_host}')
+        self.logger.info(f'mdns_name: {mdns_name}')
+        self.logger.info(f'nymphes_osc_log_level: {osc_log_level}')
+        self.logger.info(f'nymphes_midi_log_level: {midi_log_level}')
+        self.logger.info(f'presets_directory_path: {presets_directory_path}')
 
         # Create NymphesMidi object
         self._nymphes_midi = NymphesMIDI(
@@ -289,7 +257,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Registered client ({host}:{port})'
             self._send_status_to_osc_clients(status)
-            logger.info(status)
+            self.logger.info(status)
         else:
             # We have already added this client.
             client = self._osc_clients_dict[(host, port)]
@@ -297,7 +265,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Client already registered ({host}:{client._port})'
             self._send_status_to_osc_clients(status)
-            logger.info(status)
+            self.logger.info(status)
 
         # Send osc notification to the client
         msg = OscMessageBuilder(address='/client_registered')
@@ -383,10 +351,10 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Unregistered client ({ip_address_string}:{port})'
             self._send_status_to_osc_clients(status)
-            logger.info(status)
+            self.logger.info(status)
 
         else:
-            logger.warning(f'{ip_address_string}:{port} was not a registered client')
+            self.logger.warning(f'{ip_address_string}:{port} was not a registered client')
 
     def _start_osc_server(self):
         # Create the OSC Server and start it on a background thread
@@ -398,7 +366,7 @@ class NymphesOSC:
         # Send status update and log it
         status = f'Started OSC Server at {self.in_host}:{self.in_port}'
         self._send_status_to_osc_clients(status)
-        logger.info(status)
+        self.logger.info(status)
 
         if self._mdns_name is not None:
             try:
@@ -421,10 +389,10 @@ class NymphesOSC:
                 # Send status update and log it
                 status = f'Advertising as {self._mdns_service_info.server}'
                 self._send_status_to_osc_clients(status)
-                logger.info(status)
+                self.logger.info(status)
 
             except Exception as e:
-                logger.warning(f'Failed to register mDNS server as {self._mdns_name} ({e})')
+                self.logger.warning(f'Failed to register mDNS server as {self._mdns_name} ({e})')
 
     def stop_osc_server(self):
         if self._osc_server is not None:
@@ -433,12 +401,12 @@ class NymphesOSC:
             self._osc_server = None
             self._osc_server_thread.join()
             self._osc_server_thread = None
-            logger.info("OSC Server Stopped")
+            self.logger.info("OSC Server Stopped")
 
         if self._zeroconf is not None:
             self._zeroconf.unregister_service(self._mdns_service_info)
             self._zeroconf.close()
-            logger.info("mdns Closed")
+            self.logger.info("mdns Closed")
 
 
 
@@ -485,13 +453,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         # Get the client's port
         client_port = int(args[0])
 
-        logger.info(f"Received {address} {client_port} from {sender_ip[0]}")
+        self.logger.info(f"Received {address} {client_port} from {sender_ip[0]}")
 
         # Register the client
         try:
@@ -501,7 +469,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to register client ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_register_client_with_ip_address(self, sender_ip, address, *args):
         """
@@ -513,7 +481,7 @@ class NymphesOSC:
         """
         # Make sure arguments were supplied
         if len(args) == 0:
-            logger.warning(logger.warning(f'Received {address} from {sender_ip[0]} without any arguments'))
+            self.logger.warning(self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments'))
             return
 
         try:
@@ -521,7 +489,7 @@ class NymphesOSC:
             client_ip = str(args[0])
             client_port = int(args[1])
 
-            logger.info(f"Received {address} {client_ip} {client_port} from {sender_ip[0]}")
+            self.logger.info(f"Received {address} {client_ip} {client_port} from {sender_ip[0]}")
 
             self.register_osc_client(host=client_ip, port=client_port)
 
@@ -529,7 +497,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to register client ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_unregister_client(self, sender_ip, address, *args):
         """
@@ -541,14 +509,14 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             # Get the client's port
             client_port = int(args[0])
 
-            logger.info(f"Received {address} {client_port} from {sender_ip[0]}")
+            self.logger.info(f"Received {address} {client_port} from {sender_ip[0]}")
 
             self.unregister_osc_client(ip_address_string=sender_ip[0], port=client_port)
 
@@ -556,7 +524,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to unregister client ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_unregister_client_with_ip_address(self, sender_ip, address, *args):
         """
@@ -568,7 +536,7 @@ class NymphesOSC:
         """
         # Make sure arguments were supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -576,7 +544,7 @@ class NymphesOSC:
             client_ip = str(args[0])
             client_port = int(args[1])
 
-            logger.info(f"Received {address} {client_ip} {client_port} from {sender_ip[0]}")
+            self.logger.info(f"Received {address} {client_ip} {client_port} from {sender_ip[0]}")
 
             # Unregister the client
             self.unregister_osc_client(ip_address_string=client_ip, port=client_port)
@@ -585,7 +553,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to unregister client ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_load_preset(self, sender_ip, address, *args):
         """
@@ -597,7 +565,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -605,7 +573,7 @@ class NymphesOSC:
             bank_name = args[1]
             preset_number = args[2]
 
-            logger.info(f"Received {address} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
+            self.logger.info(f"Received {address} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
 
             self._nymphes_midi.load_preset(
                 preset_type=preset_type,
@@ -617,7 +585,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to load preset ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_load_file(self, sender_ip, address, *args):
         """
@@ -629,13 +597,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             filepath = args[0]
 
-            logger.info(f'Received {address} {filepath} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {filepath} from {sender_ip[0]}')
 
             # Load the file
             self._nymphes_midi.load_file(filepath=filepath)
@@ -644,7 +612,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to load file into current preset({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_save_to_preset(self, sender_ip, address, *args):
         """
@@ -657,7 +625,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -665,7 +633,7 @@ class NymphesOSC:
             bank_name = args[1]
             preset_number = args[2]
 
-            logger.info(f"Received {address} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
+            self.logger.info(f"Received {address} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
 
             # Load the file
             self._nymphes_midi.save_to_preset(
@@ -678,7 +646,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to load current preset into Nymphes preset slot ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_load_file_to_preset(self, sender_ip, address, *args):
         """
@@ -691,7 +659,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -700,7 +668,7 @@ class NymphesOSC:
             bank_name = args[2]
             preset_number = args[3]
 
-            logger.info(f"Received {address} {filepath} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
+            self.logger.info(f"Received {address} {filepath} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
 
             # Load the file
             self._nymphes_midi.load_file_to_preset(
@@ -714,7 +682,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to load file into Nymphes preset slot ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_save_to_file(self, sender_ip, address, *args):
         """
@@ -727,13 +695,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             filepath = args[0]
 
-            logger.info(f'Received {address} {filepath} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {filepath} from {sender_ip[0]}')
 
             # Save the file
             self._nymphes_midi.save_to_file(filepath=filepath)
@@ -742,7 +710,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to save current preset to file ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_save_preset_to_file(self, sender_ip, address, *args):
         """
@@ -755,7 +723,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -764,7 +732,7 @@ class NymphesOSC:
             bank_name = args[2]
             preset_number = args[3]
 
-            logger.info(f"Received {address} {filepath} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
+            self.logger.info(f"Received {address} {filepath} {preset_type} {bank_name} {preset_number} from {sender_ip[0]}")
 
             # Save the file
             self._nymphes_midi.save_preset_to_file(
@@ -778,7 +746,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to save preset from Nymphes preset slot to file ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_load_init_file(self, sender_ip, address, *args):
         """
@@ -789,14 +757,14 @@ class NymphesOSC:
         :return:
         """
         try:
-            logger.info(f'Received {address} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} from {sender_ip[0]}')
             self._nymphes_midi.load_init_file()
 
         except Exception as e:
             # Send status update and log it
             status = f'Failed to load init preset ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_request_preset_dump(self, sender_ip, address, *args):
         """
@@ -806,7 +774,7 @@ class NymphesOSC:
         :param *args: The OSC message's arguments
         :return:
         """
-        logger.info(f'Received {address} from {sender_ip[0]}')
+        self.logger.info(f'Received {address} from {sender_ip[0]}')
 
         # Send the dump request
         self._nymphes_midi.request_preset_dump()
@@ -821,13 +789,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             port_name = args[0]
 
-            logger.info(f'Received {address} {port_name} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {port_name} from {sender_ip[0]}')
 
             # Connect the port
             self._nymphes_midi.connect_midi_input(port_name)
@@ -836,7 +804,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to connect MIDI Input port ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_connect_nymphes(self, sender_ip, address, *args):
         """
@@ -848,14 +816,14 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             input_port_name = args[0]
             output_port_name = args[1]
 
-            logger.info(f'Received {address} {input_port_name} {output_port_name} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {input_port_name} {output_port_name} from {sender_ip[0]}')
 
             # Connect to the MIDI ports
             self._nymphes_midi.connect_nymphes(
@@ -867,7 +835,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to connect Nymphes ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_disconnect_nymphes(self, sender_ip, address, *args):
         """
@@ -878,7 +846,7 @@ class NymphesOSC:
         :return:
         """
         try:
-            logger.info(f'Received {address} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} from {sender_ip[0]}')
 
             # Disconnect Nymphes ports
             self._nymphes_midi.disconnect_nymphes()
@@ -887,7 +855,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to disconnect Nymphes ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_disconnect_midi_input(self, sender_ip, address, *args):
         """
@@ -899,13 +867,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             port_name = args[0]
 
-            logger.info(f'Received {address} {port_name} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {port_name} from {sender_ip[0]}')
 
             # Disconnect the port
             self._nymphes_midi.disconnect_midi_input(port_name)
@@ -914,7 +882,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to disconnect MIDI Input port ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_connect_midi_output(self, sender_ip, address, *args):
         """
@@ -926,13 +894,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             port_name = args[0]
 
-            logger.info(f'Received {address} {port_name} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {port_name} from {sender_ip[0]}')
 
             # Connect the port
             self._nymphes_midi.connect_midi_output(port_name)
@@ -941,7 +909,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to connect MIDI Output port ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_disconnect_midi_output(self, sender_ip, address, *args):
         """
@@ -953,13 +921,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             port_name = args[0]
 
-            logger.info(f'Received {address} {port_name} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {port_name} from {sender_ip[0]}')
 
             # Disconnect the port
             self._nymphes_midi.disconnect_midi_output(port_name)
@@ -968,7 +936,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to disconnect MIDI Output port ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_set_nymphes_midi_channel(self, sender_ip, address, *args):
         """
@@ -981,13 +949,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             channel = args[0]
 
-            logger.info(f'Received {address} {channel} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {channel} from {sender_ip[0]}')
 
             # Set the channel
             self._nymphes_midi.nymphes_midi_channel = channel
@@ -996,7 +964,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to set Nymphes MIDI channel ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_mod_wheel(self, sender_ip, address, *args):
         """
@@ -1008,13 +976,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             value = args[0]
 
-            logger.info(f'Received {address} {value} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {value} from {sender_ip[0]}')
 
             self._nymphes_midi.set_mod_wheel(value)
 
@@ -1022,7 +990,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to set mod wheel ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_aftertouch(self, sender_ip, address, *args):
         """
@@ -1034,13 +1002,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             value = args[0]
 
-            logger.info(f'Received {address} {value} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {value} from {sender_ip[0]}')
 
             self._nymphes_midi.set_channel_aftertouch(value)
 
@@ -1048,7 +1016,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to set aftertouch ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_osc_message_sustain_pedal(self, sender_ip, address, *args):
         """
@@ -1061,13 +1029,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             value = args[0]
 
-            logger.info(f'Received {address} {value} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {value} from {sender_ip[0]}')
 
             self._nymphes_midi.set_sustain_pedal(value)
 
@@ -1075,7 +1043,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Failed to set sustain_pedal ({e})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_other_osc_message(self, sender_ip, address, *args):
         """
@@ -1099,13 +1067,13 @@ class NymphesOSC:
 
             # Make sure that an argument was supplied
             if len(args) == 0:
-                logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+                self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
                 return
 
             # Get the value
             value = args[0]
 
-            logger.info(f'Received {address} {value} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {value} from {sender_ip[0]}')
 
             if isinstance(value, int):
                 try:
@@ -1115,7 +1083,7 @@ class NymphesOSC:
                     # Send status update and log it
                     status = f'Failed to set parameter ({e})'
                     self._send_status_to_osc_clients(status)
-                    logger.warning(status)
+                    self.logger.warning(status)
 
             elif isinstance(value, float):
                 try:
@@ -1125,13 +1093,13 @@ class NymphesOSC:
                     # Send status update and log it
                     status = f'Failed to set parameter ({e})'
                     self._send_status_to_osc_clients(status)
-                    logger.warning(status)
+                    self.logger.warning(status)
 
             else:
                 # Send status update and log it
                 status = f'Invalid value type for {param_name}: {type(value)}'
                 self._send_status_to_osc_clients(status)
-                logger.warning(status)
+                self.logger.warning(status)
 
         else:
             #
@@ -1140,7 +1108,7 @@ class NymphesOSC:
             # Send status update and log it
             status = f'Unknown OSC message received ({address} from {sender_ip[0]})'
             self._send_status_to_osc_clients(status)
-            logger.warning(status)
+            self.logger.warning(status)
 
     def _on_nymphes_notification(self, name, value):
         """
@@ -1158,7 +1126,7 @@ class NymphesOSC:
             self._send_osc_to_all_clients(f'/{name}', value)
 
             # Log it
-            logger.debug(f'{name}: {value}')
+            self.logger.debug(f'{name}: {value}')
 
         elif name == 'float_param':
             #
@@ -1175,7 +1143,7 @@ class NymphesOSC:
             self._send_osc_to_all_clients(f'/{param_name.replace(".", "/")}', float(param_value))
 
             # Log it
-            logger.debug(f'{name}: {value}')
+            self.logger.debug(f'{name}: {value}')
 
         elif name == 'int_param':
             param_name, param_value = value
@@ -1187,45 +1155,45 @@ class NymphesOSC:
             self._send_osc_to_all_clients(f'/{param_name.replace(".", "/")}', int(param_value))
 
             # Log it
-            logger.debug(f'{name}: {value}')
+            self.logger.debug(f'{name}: {value}')
 
         elif name in PresetEvents.all_values():
             if isinstance(value, tuple):
                 self._send_osc_to_all_clients(f'/{name}', *value)
 
                 # Log the notification
-                logger.info(f'{name}: {value}')
+                self.logger.info(f'{name}: {value}')
 
             elif value is None:
                 self._send_osc_to_all_clients(f'/{name}')
 
                 # Log the notification
-                logger.info(f'{name}')
+                self.logger.info(f'{name}')
 
             else:
                 self._send_osc_to_all_clients(f'/{name}', value)
 
                 # Log the notification
-                logger.info(f'{name}: {value}')
+                self.logger.info(f'{name}: {value}')
 
         elif name in MidiConnectionEvents.all_values():
             if isinstance(value, tuple):
                 self._send_osc_to_all_clients(f'/{name}', *value)
 
                 # Log the notification
-                logger.info(f'{name}: {value}')
+                self.logger.info(f'{name}: {value}')
 
             elif value is None:
                 self._send_osc_to_all_clients(f'/{name}')
 
                 # Log the notification
-                logger.info(f'{name}')
+                self.logger.info(f'{name}')
 
             else:
                 self._send_osc_to_all_clients(f'/{name}', value)
 
                 # Log the notification
-                logger.info(f'{name}: {value}')
+                self.logger.info(f'{name}: {value}')
 
         else:
             # This is some other notification
@@ -1234,19 +1202,19 @@ class NymphesOSC:
                 self._send_osc_to_all_clients(f'/{name}', *value)
 
                 # Log the notification
-                logger.info(f'{name}: {value}')
+                self.logger.info(f'{name}: {value}')
 
             elif value is None:
                 self._send_osc_to_all_clients(f'/{name}')
 
                 # Log the notification
-                logger.info(f'{name}')
+                self.logger.info(f'{name}')
 
             else:
                 self._send_osc_to_all_clients(f'/{name}', value)
 
                 # Log the notification
-                logger.info(f'{name}: {value}')
+                self.logger.info(f'{name}: {value}')
 
     @staticmethod
     def _get_local_ip_address():
@@ -1272,7 +1240,7 @@ class NymphesOSC:
                         return ip_address
 
             except Exception as e:
-                logger.warning(f'Failed to detect local IP address ({e})')
+                self.logger.warning(f'Failed to detect local IP address ({e})')
 
                 # Default to localhost
                 return '127.0.0.1'
