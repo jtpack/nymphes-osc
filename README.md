@@ -72,7 +72,7 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
 - Write a program which controls nymphes-osc
 
 # Command Line Arguments
-`--server_host SERVER_HOST`
+`--server_host "SERVER_HOST"`
   - The hostname or IP address to use when listening for incoming OSC messages.
   - Type: String. Use quotes around the host name or IP address.
   - Optional. If not supplied, then the local IP address is detected and used
@@ -82,7 +82,7 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
   - Type: Int
   - Optional. If not supplied, use 1237.
   
-`--client_host CLIENT_HOST`
+`--client_host "CLIENT_HOST"`
   - The hostname or IP address to use for the OSC client.
   - Type: String. Use quotes around the host name or IP address.
   - Optional. If not supplied, then the server will wait for clients to register themselves.
@@ -97,22 +97,22 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
   - Type: Int
   - Optional. If not supplied, then 1 is used.
 
-`--mdns_name MDNS_NAME`
+`--mdns_name "MDNS_NAME"`
   - If supplied, then use mDNS to advertise on the network with this name
   - Type: String. Use quotes around the name.
   - Optional. If not supplied, then mDNS will not be used.
 
-`--osc_log_level`
+`--osc_log_level LOG_LEVEL`
   - Sets the log level for nymphes_osc
   - Type: String. Possible values: critical, warning, debug, error, info
   - Optional. If not supplied, then info is used.
 
-`--midi_log_level`
+`--midi_log_level LOG_LEVEL`
   - Sets the log level for nymphes_midi
   - Type: String. Possible values: critical, warning, debug, error, info
   - Optional. If not supplied, then info is used.
 
-`--presets_directory_path`
+`--presets_directory_path "PATH"`
   - The path to use for preset files
   - Type: String. Use quotes around the path.
   - Optional. If not supplied, then use ~/nymphes_presets
