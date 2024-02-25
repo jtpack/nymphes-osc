@@ -25,7 +25,7 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
 - OSC is a well-established standard at this point, and many powerful tools exist
    - At a high-level, you can use an app like TouchOSC to create your own custom GUI with no coding required.
    - At a lower level, it is (relatively) easy to write a python application that speaks OSC and provides a completely custom GUI that fits your needs exactly.
-- Because OSC is network-based, messages can be exchanged with many OSC programs anywhere on the network. This provides a lot of flexibility. Here are a few possibilities:
+- OSC is network-based, so messages can be exchanged by devices anywhere on the network. Here are a few possibilities:
    - Connect Nymphes and your USB MIDI controllers to a Raspberry Pi running nymphes-osc. Control it from an iPad running TouchOSC
    - Use a touchscreen with the Raspberry Pi
    - Run everything on a laptop, alongside a DAW and other music applications
