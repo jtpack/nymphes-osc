@@ -13,10 +13,10 @@
 I have a Dreadbox Nymphes synthesizer, and I love it. Its huge and real sound continues to surprise and delight me even after owning it for a year and a half. The modulation matrix is immense, and every time I play with it I'm impressed with what I hear.
 
 Early experiments with MIDI controlling the Nymphes led to this project. 
-I wanted a way to view all of Nymphes' parameters when I recall a preset, including the modulation matrix and chord settings. I felt that if I could really dig into the details of a preset, amazing things might happen. 
-I wanted to be able to load and save presets as files, and to be able to share them. 
-I also wanted a way to easily pass messages from USB MIDI controllers to Nymphes. 
-Along the way, I learned that most parameters are controllable using greater than 0-127 integer resolution using SYSEX, so I also wanted to be able to take advantage of this. 
+- I wanted a way to view all of Nymphes' parameters when I recall a preset, including the modulation matrix and chord settings. I felt that if I could really dig into the details of a preset, amazing things might happen. 
+- I wanted to be able to load and save presets as files, and to be able to share them. 
+- I also wanted a way to easily pass messages from USB MIDI controllers to Nymphes. 
+- Along the way, I learned that most parameters are controllable using greater than 0-127 integer resolution using SYSEX, so I also wanted to be able to take advantage of this. 
 
 # What exactly is nymphes-osc?
 nymphes-osc is a command-line application. It detects and manages a USB MIDI connection with the Nymphes synthesizer and handles all of the complexity of using the right kinds of MIDI messages for each parameter, and it acts as an OSC server, allowing clients to send and receive OSC messages to control the Nymphes and be informed of all of its parameters.
@@ -31,6 +31,12 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
    - Run everything on a laptop, alongside a DAW and other music applications
    - Build a microcontroller-based physical controller which communicates via OSC with nymphes-osc
 
+# What platforms are supported?
+- macOS
+- Linux
+   - Including Raspberry Pi OS
+- Windows
+   - Though only a small amount of initial testing has been done so far...
 
 # How to Get Started:
 
