@@ -59,9 +59,15 @@ def main():
     )
 
     parser.add_argument(
+        '--use_mdns',
+        action='store_true',
+        help='Optional. If this flag is present, then use mDNS to advertise as an OSC server on the network.'
+    )
+
+    parser.add_argument(
         '--mdns_name',
-        default=None,
-        help='Optional. If supplied, then use mDNS to advertise on the network with this name'
+        default='nymphes-osc',
+        help='Optional. Use this to specify a custom mdns name.'
     )
 
     parser.add_argument(
@@ -102,6 +108,7 @@ def main():
         server_host=args.server_host,
         client_port=args.client_port,
         client_host=args.client_host,
+        use_mdns=args.use_mdns,
         mdns_name=args.mdns_name,
         osc_log_level=log_level_for_name(args.osc_log_level),
         midi_log_level=log_level_for_name(args.midi_log_level),
@@ -115,8 +122,8 @@ def main():
         while True:
             nymphes_osc.update()
             time.sleep(0.0001)
-    except Exception as e:
-        logger.warning(f'Exception: {e}')
+    except KeyboardInterrupt:
+        logger.warning(f'nymphes-osc is about to close')
         nymphes_osc.stop_osc_server()
 
 

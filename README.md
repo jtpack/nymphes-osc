@@ -3,9 +3,9 @@
 ### A command-line application which provides full control of the Dreadbox Nymphes synthesizer, via OSC (Open Sound Control) messages.
 ### Written in python
 
-# A note from the developer: This is really alpha software, and it's my first open source project
-- Beta testing is just getting started
-- There are definitely going to be bugs
+# A Warning: This is alpha software, and it's my first open source project
+- Beta testing is just about to get started
+- There definitely will be bugs and features that don't quite work
 - You will probably see code that could have been written a lot better
 - You might be surprised by the things I don't know about open source, or git, etc. Please be patient.
 
@@ -23,8 +23,8 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
 
 # Why OSC?
 - OSC is a well-established standard at this point, and many powerful tools exist
-   - At a high-level, you can use an app like TouchOSC to create your own custom GUI with no coding required.
-   - At a lower level, it is (relatively) easy to write a python application that speaks OSC and provides a completely custom GUI that fits your needs exactly.
+   - You can use an app like TouchOSC to create your own custom GUI with no coding required.
+   - If you want to go lower-level, it is (relatively) easy to write a python application that speaks OSC and provides a completely custom GUI that fits your needs exactly.
 - OSC is network-based, so messages can be exchanged by devices anywhere on the network. Here are a few possibilities:
    - Connect Nymphes and your USB MIDI controllers to a Raspberry Pi running nymphes-osc. Control it from an iPad running TouchOSC
    - Use a touchscreen with the Raspberry Pi
@@ -37,6 +37,10 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
    - Including Raspberry Pi OS
 - Windows
    - Though only a small amount of initial testing has been done so far...
+
+# Projects Which Use nymphes-osc:
+Coming soon...
+[nymphes-gui - A graphical editor for the Dreadbox Nymphes Synthesizer]()
 
 # How to Get Started:
 
@@ -68,8 +72,10 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
 
 # Using nymphes-osc:
 - Run it on the command line and send it OSC messages.
-- Register as an OSC client to received OSC messages from nymphes-osc.
-- Write a program which controls nymphes-osc
+  - `nymphes-osc`
+- Register as an OSC client to receive OSC messages from nymphes-osc.
+  - 
+- Write a program which runs nymphes-osc in the background
 
 # Command Line Arguments
 `--server_host "SERVER_HOST"`
@@ -97,10 +103,15 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
   - Type: Int
   - Optional. If not supplied, then 1 is used.
 
-`--mdns_name "MDNS_NAME"`
-  - If supplied, then use mDNS to advertise on the network with this name
-  - Type: String. Use quotes around the name.
+`--use_mdns`
+  - If supplied, then use mDNS to advertise on the network
+  - Type: Flag.
   - Optional. If not supplied, then mDNS will not be used.
+
+`--custom_mdns_name "MDNS_NAME"`
+  - If supplied, and if --use_mdns is also supplied, then use mDNS to advertise on the network with this name
+  - Type: String. Use quotes around the name.
+  - Optional. If not supplied, then 
 
 `--osc_log_level LOG_LEVEL`
   - Sets the log level for nymphes_osc
@@ -119,9 +130,6 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
 
 You can also use `nymphes-osc --help` to see a help message listing the arguments
 
-
-# Projects Which Use nymphes-osc:
-[nymphes-gui - A graphical editor for the Dreadbox Nymphes Synthesizer]()
 
 # OSC Commands Reference
 

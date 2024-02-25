@@ -31,6 +31,7 @@ class NymphesOSC:
             server_host=None,
             client_port=None,
             client_host=None,
+            use_mdns=False,
             mdns_name=None,
             osc_log_level=logging.WARNING,
             midi_log_level=logging.WARNING,
@@ -39,12 +40,14 @@ class NymphesOSC:
 
         # Get logger
         self.logger = logging.getLogger('nymphes-osc.nymphes_osc')
+        self.logger.setLevel(osc_log_level)
 
         self.logger.info(f'nymphes_midi_channel: {nymphes_midi_channel}')
         self.logger.info(f'server_port: {server_port}')
         self.logger.info(f'server_host: {server_host}')
         self.logger.info(f'client_port: {client_port}')
         self.logger.info(f'client_host: {client_host}')
+        self.logger.info(f'use_mdns: {use_mdns}')
         self.logger.info(f'mdns_name: {mdns_name}')
         self.logger.info(f'nymphes_osc_log_level: {osc_log_level}')
         self.logger.info(f'nymphes_midi_log_level: {midi_log_level}')
@@ -80,6 +83,7 @@ class NymphesOSC:
         #
         # mDNS Advertising
         #
+        self._use_mdns = use_mdns
         self._mdns_name = mdns_name
 
         # The OSC Server, which receives OSC messages on a background thread
@@ -368,7 +372,7 @@ class NymphesOSC:
         self._send_status_to_osc_clients(status)
         self.logger.info(status)
 
-        if self._mdns_name is not None:
+        if self._use_mdns and self._mdns_name is not None:
             try:
                 # Advertise OSC Server on the network using mDNS
                 #
@@ -377,9 +381,7 @@ class NymphesOSC:
                     name=f"{self._mdns_name}._osc._udp.local.",
                     addresses=[socket.inet_aton(self.in_host)],
                     port=self.in_port,
-                    weight=0,
-                    priority=0,
-                    properties={},
+                    properties={'version': '0.1.0'},
                     server=f'{self._mdns_name}.local'
                 )
 
@@ -387,12 +389,12 @@ class NymphesOSC:
                 self._zeroconf.register_service(info=self._mdns_service_info)
 
                 # Send status update and log it
-                status = f'Advertising as {self._mdns_service_info.server}'
+                status = f'Registered mDNS service as {self._mdns_service_info.server}'
                 self._send_status_to_osc_clients(status)
                 self.logger.info(status)
 
             except Exception as e:
-                self.logger.warning(f'Failed to register mDNS server as {self._mdns_name} ({e})')
+                self.logger.warning(f'Failed to register mDNS service as {self._mdns_name} ({e})')
 
     def stop_osc_server(self):
         if self._osc_server is not None:

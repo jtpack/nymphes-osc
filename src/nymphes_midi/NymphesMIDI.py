@@ -29,6 +29,7 @@ class NymphesMIDI:
 
         # Get logger
         self.logger = logging.getLogger('nymphes-osc.nymphes_midi')
+        self.logger.setLevel(log_level)
     
         #
         # Handle presets directory path
