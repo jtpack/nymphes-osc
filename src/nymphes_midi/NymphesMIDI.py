@@ -119,6 +119,10 @@ class NymphesMIDI:
         self._detected_midi_inputs = []
         self._detected_midi_outputs = []
 
+        # Names of Detected Nymphes MIDI Ports
+        self._detected_nymphes_midi_inputs = []
+        self._detected_nymphes_midi_outputs = []
+
         # List of currently-connected MIDI ports
         self._connected_midi_input_port_objects = []
         self._connected_midi_output_port_objects = []
@@ -211,7 +215,7 @@ class NymphesMIDI:
 
         # Flag indicating that a value in the current preset object has
         # been changed and we need to send the entire preset via SYSEX
-        # to Nymphes and connected MIDI Output Ports.
+        # to Nymphes and connected MIDI output ports.
         # This is only necessary when float parameter values have been
         # changed, or for int parameters with no associated MIDI CC
         # (ie: chord settings).
@@ -271,6 +275,22 @@ class NymphesMIDI:
 
         else:
             return None
+
+    @property
+    def detected_nymphes_midi_inputs(self):
+        """
+        Returns the names of all detected Nymphes MIDI input ports.
+        :return: A list of strings
+        """
+        return self._detected_nymphes_midi_inputs
+
+    @property
+    def detected_nymphes_midi_outputs(self):
+        """
+        Returns the names of all detected Nymphes MIDI output ports.
+        :return: A list of strings
+        """
+        return self._detected_nymphes_midi_outputs
 
     @property
     def detected_midi_inputs(self):
@@ -396,7 +416,7 @@ class NymphesMIDI:
                 for midi_message in self._nymphes_midi_input_port_object.iter_pending():
                     self._on_message_from_nymphes(midi_message)
 
-            # Handle Incoming MIDI Messages from Connected MIDI Input Ports
+            # Handle Incoming MIDI Messages from Connected MIDI input ports
             #
             for port in self._connected_midi_input_port_objects:
                 for midi_message in port.iter_pending():
@@ -416,35 +436,10 @@ class NymphesMIDI:
             self._detect_midi_input_ports()
             self._detect_midi_output_ports()
 
-            if not self.nymphes_connected:
-                # Get the first MIDI input port with nymphes in
-                # its name
-                nymphes_input_port_name = None
-                for port_name in self._detected_midi_inputs:
-                    if 'nymphes' in port_name.lower():
-                        nymphes_input_port_name = port_name
-                        break
-
-                # Get the first MIDI output port with nymphes in
-                # its name
-                nymphes_output_port_name = None
-                for port_name in self._detected_midi_outputs:
-                    if 'nymphes' in port_name.lower():
-                        nymphes_output_port_name = port_name
-                        break
-
-                if nymphes_input_port_name is not None and nymphes_output_port_name is not None:
-                    # Try to connect to the ports
-                    self.logger.info(f'Trying to auto-connect to Nymphes ports {nymphes_input_port_name} {nymphes_output_port_name}')
-                    self.connect_nymphes(
-                        input_port_name=nymphes_input_port_name,
-                        output_port_name=nymphes_output_port_name
-                    )
-
             # Store the current time
             self._midi_port_scan_last_timestamp = time.time()
 
-        # Send the current preset to Nymphes and Connected MIDI Output Ports
+        # Send the current preset to Nymphes and Connected MIDI output ports
         # if the snapshot flag is set
         #
         if self._preset_snapshot_last_timestamp is None or \
@@ -468,7 +463,7 @@ class NymphesMIDI:
                     # Add it to the message send queue for Nymphes
                     self._send_to_nymphes(msg)
 
-                    # Add it to the queues for all connected MIDI Output Ports
+                    # Add it to the queues for all connected MIDI output ports
                     for port_object in self._connected_midi_output_port_objects:
                         self._send_to_midi_output_port(msg, port_object)
 
@@ -529,7 +524,7 @@ class NymphesMIDI:
                 msg = self._nymphes_midi_message_send_queue.get()
                 self._nymphes_midi_output_port_object.send(msg)
 
-        # Send All Queued Messages to MIDI Output Ports
+        # Send All Queued Messages to MIDI output ports
         #
         for port, queue in self._midi_message_send_queues.items():
             while not queue.empty():
@@ -557,13 +552,13 @@ class NymphesMIDI:
                 # Close the currently-connected input port
                 self._nymphes_midi_input_port_object.close()
                 self._nymphes_midi_input_port_object = None
-                self.logger.info(f'Disconnected Nymphes MIDI Input Port {curr_input_port_name}')
+                self.logger.info(f'Disconnected Nymphes MIDI input port {curr_input_port_name}')
 
                 # Close the currently-connected output port
                 self._nymphes_midi_output_port_object.close()
                 self._nymphes_midi_output_port_object = None
                 self._nymphes_midi_message_send_queue = None
-                self.logger.info(f'Disconnected Nymphes MIDI Output Port {curr_output_port_name}')
+                self.logger.info(f'Disconnected Nymphes MIDI output port {curr_output_port_name}')
         else:
             was_connected = False
 
@@ -571,11 +566,11 @@ class NymphesMIDI:
         #
         try:
             self._nymphes_midi_input_port_object = mido.open_input(input_port_name)
-            self.logger.info(f'Connected Nymphes MIDI Input Port {input_port_name}')
+            self.logger.info(f'Connected Nymphes MIDI input port {input_port_name}')
 
         except Exception as e:
             self._nymphes_midi_input_port_object = None
-            self.logger.warning(f'Failed to connect Nymphes MIDI Input Port {input_port_name} ({e})')
+            self.logger.warning(f'Failed to connect Nymphes MIDI input port {input_port_name} ({e})')
 
         # Try to connect to the new output port
         #
@@ -585,13 +580,13 @@ class NymphesMIDI:
             # Create a MIDI message send queue for it
             self._nymphes_midi_message_send_queue = Queue()
 
-            self.logger.info(f'Connected Nymphes MIDI Output Port {output_port_name}')
+            self.logger.info(f'Connected Nymphes MIDI output port {output_port_name}')
 
         except Exception as e:
             self._nymphes_midi_output_port_object = None
             self._nymphes_midi_message_send_queue = None
 
-            self.logger.warning(f'Failed to connect Nymphes MIDI Output Port {output_port_name} ({e})')
+            self.logger.warning(f'Failed to connect Nymphes MIDI output port {output_port_name} ({e})')
 
         # Check whether we succeeded in connecting to Nymphes ports
         #
@@ -616,14 +611,14 @@ class NymphesMIDI:
             curr_input_port_name = self._nymphes_midi_input_port_object.name
             self._nymphes_midi_input_port_object.close()
             self._nymphes_midi_input_port_object = None
-            self.logger.info(f'Disconnected Nymphes MIDI Input Port {curr_input_port_name}')
+            self.logger.info(f'Disconnected Nymphes MIDI input port {curr_input_port_name}')
 
         # Close the currently-connected output port
         if self._nymphes_midi_output_port_object is not None:
             curr_output_port_name = self._nymphes_midi_output_port_object.name
             self._nymphes_midi_output_port_object.close()
             self._nymphes_midi_output_port_object = None
-            self.logger.info(f'Disconnected Nymphes MIDI Output Port {curr_output_port_name}')
+            self.logger.info(f'Disconnected Nymphes MIDI output port {curr_output_port_name}')
 
         # Notify Client that we are no longer connected
         self.add_notification(
@@ -670,7 +665,7 @@ class NymphesMIDI:
         """
         # Validate port_name
         if port_name not in [port.name for port in self._connected_midi_input_port_objects]:
-            raise Exception(f'MIDI Input Port {port_name} is not connected')
+            raise Exception(f'MIDI input port {port_name} is not connected')
         
         # Remove the port from the collection
         for port in self._connected_midi_input_port_objects:
@@ -730,7 +725,7 @@ class NymphesMIDI:
         """
         # Validate port_name
         if port_name not in [port.name for port in self._connected_midi_output_port_objects]:
-            raise Exception(f'MIDI Output Port {port_name} is not connected')
+            raise Exception(f'MIDI output port {port_name} is not connected')
 
         # Remove the port from the collection
         for port in self._connected_midi_output_port_objects:
@@ -1212,7 +1207,7 @@ class NymphesMIDI:
         :return:
         """
         if port_object not in self._connected_midi_output_port_objects:
-            raise Exception(f'Invalid MIDI Output Port Object: {port_object} (There is no message send queue for this port)')
+            raise Exception(f'Invalid MIDI output port object: {port_object} (There is no message send queue for this port)')
 
         # Add the message to the queue for the port
         self._midi_message_send_queues[port_object].put(msg)
@@ -1717,6 +1712,8 @@ class NymphesMIDI:
         return bank_name, preset_number
 
     def _on_nymphes_connected(self):
+        self.logger.info('Nymphes Connected')
+
         # Notify Client
         self.add_notification(
             MidiConnectionEvents.nymphes_connected.value,
@@ -1730,6 +1727,8 @@ class NymphesMIDI:
         self._send_full_sysex_dump_request_timestamp = self._send_initial_preset_timestamp + self._send_full_sysex_dump_request_wait_time_sec
 
     def _on_nymphes_disconnected(self):
+        self.logger.info('Nymphes Disconnected')
+
         # Clear out all_presets_dict
         #
         self._curr_preset_dict_key = None
@@ -1740,19 +1739,23 @@ class NymphesMIDI:
             MidiConnectionEvents.nymphes_disconnected.value
         )
 
-    def _on_midi_input_port_detected(self, port_name):
-        self.logger.info(f'MIDI Input Port detected ({port_name})')
+    def _on_nymphes_input_detected(self, port_name):
+        # A Nymphes MIDI input port has been detected.
+        self.logger.info(f'Nymphes MIDI input port detected ({port_name})')
 
-        # Notify Client
+        # Notify client
         self.add_notification(
-            MidiConnectionEvents.midi_input_detected.value,
+            MidiConnectionEvents.nymphes_midi_input_detected.value,
             port_name
         )
 
-    def _on_midi_input_port_no_longer_detected(self, port_name):
-        # Notify Client
+    def _on_nymphes_input_no_longer_detected(self, port_name):
+        # A Nymphes MIDI input port is no longer detected.
+        self.logger.info(f'Nymphes MIDI input port no longer detected ({port_name})')
+
+        # Notify client
         self.add_notification(
-            MidiConnectionEvents.midi_input_no_longer_detected.value,
+            MidiConnectionEvents.nymphes_midi_input_no_longer_detected.value,
             port_name
         )
 
@@ -1761,23 +1764,63 @@ class NymphesMIDI:
             # The Nymphes input port is no longer detected
             #
 
-            self.logger.info(f'Nymphes MIDI Input Port {port_name} no longer detected')
+            self.logger.info(f'Nymphes MIDI input port {port_name} no longer detected')
 
             # Disconnect from Nymphes input and output ports
             self.disconnect_nymphes()
 
-        else:
-            self.logger.info(f'MIDI Input Port {port_name} no longer detected')
+    def _on_nymphes_output_detected(self, port_name):
+        # A Nymphes MIDI output port has been detected.
+        self.logger.info(f'Nymphes MIDI output port detected ({port_name})')
 
-            if port_name in self.connected_midi_inputs:
-                #
-                # This was a connected MIDI input port
-                #
+        # Notify client
+        self.add_notification(
+            MidiConnectionEvents.nymphes_midi_output_detected.value,
+            port_name
+        )
 
-                self.disconnect_midi_input(port_name)
+    def _on_nymphes_output_no_longer_detected(self, port_name):
+        # A Nymphes MIDI output port is no longer detected.
+        self.logger.info(f'Nymphes MIDI output port no longer detected ({port_name})')
+
+        # Notify client
+        self.add_notification(
+            MidiConnectionEvents.nymphes_midi_output_no_longer_detected.value,
+            port_name
+        )
+
+        if self.nymphes_connected and port_name == self.nymphes_midi_ports[1]:
+            #
+            # The Nymphes output port is no longer detected
+            #
+            self.logger.info(f'Nymphes MIDI output port {port_name} no longer detected')
+
+            # Disconnect from Nymphes input and output ports
+            self.disconnect_nymphes()
+
+    def _on_midi_input_port_detected(self, port_name):
+        self.logger.info(f'MIDI input port detected ({port_name})')
+
+        # Notify Client
+        self.add_notification(
+            MidiConnectionEvents.midi_input_detected.value,
+            port_name
+        )
+
+    def _on_midi_input_port_no_longer_detected(self, port_name):
+        self.logger.info(f'MIDI input port no longer detected ({port_name})')
+
+        # Notify Client
+        self.add_notification(
+            MidiConnectionEvents.midi_input_no_longer_detected.value,
+            port_name
+        )
+
+        if port_name in self.connected_midi_inputs:
+            self.disconnect_midi_input(port_name)
 
     def _on_midi_output_port_detected(self, port_name):
-        self.logger.info(f'MIDI Output Port detected ({port_name})')
+        self.logger.info(f'MIDI output port detected ({port_name})')
 
         # Notify Client
         self.add_notification(
@@ -1786,30 +1829,16 @@ class NymphesMIDI:
         )
 
     def _on_midi_output_port_no_longer_detected(self, port_name):
+        self.logger.info(f'MIDI output port no longer detected ({port_name})')
+
         # Notify Client
         self.add_notification(
             MidiConnectionEvents.midi_output_no_longer_detected.value,
             port_name
         )
 
-        if self.nymphes_connected and port_name == self.nymphes_midi_ports[1]:
-            #
-            # The Nymphes output port is no longer detected
-            #
-            self.logger.info(f'Nymphes MIDI Output Port {port_name} no longer detected')
-
-            # Disconnect from Nymphes input and output ports
-            self.disconnect_nymphes()
-            
-        else:
-            self.logger.info(f'MIDI Output Port {port_name} no longer detected')
-
-            if port_name in self.connected_midi_outputs:
-                #
-                # This was a connected MIDI output port
-                #
-
-                self.disconnect_midi_output(port_name)
+        if port_name in self.connected_midi_outputs:
+            self.disconnect_midi_output(port_name)
 
     def _detect_midi_input_ports(self):
         """
@@ -1817,7 +1846,9 @@ class NymphesMIDI:
         """
         # Sometimes getting port names causes an Exception...
         try:
+            #
             # Get a list of all MIDI input ports
+            #
             port_names = mido.get_input_names()
 
             # Remove None if it is in the list of port names.
@@ -1826,26 +1857,57 @@ class NymphesMIDI:
             port_names = [port_name for port_name in port_names if port_name is not None]
 
             #
-            # Determine whether any new ports have been detected,
-            # or previously-detected ports are no longer detected
+            # Create separate lists of nymphes
+            # and non-nymphes port names
             #
+            nymphes_port_names = []
+            non_nymphes_port_names = []
 
-            if set(port_names) != set(self._detected_midi_inputs):
-                # There has been some kind of change to the list of detected MIDI ports.
+            for port_name in port_names:
+                if 'nymphes' in port_name.lower():
+                    nymphes_port_names.append(port_name)
+                else:
+                    non_nymphes_port_names.append(port_name)
 
+            #
+            # Nymphes Ports
+            #
+            if set(nymphes_port_names) != set(self._detected_nymphes_midi_inputs):
+                #
+                # Handle ports that are no longer detected
+                #
+                for port_name in self._detected_nymphes_midi_inputs:
+                    if port_name not in nymphes_port_names:
+                        self._detected_nymphes_midi_inputs.remove(port_name)
+                        self._on_nymphes_input_no_longer_detected(port_name)
+
+                #
+                # Handle newly-detected ports
+                #
+                for port_name in nymphes_port_names:
+                    if port_name not in self._detected_nymphes_midi_inputs:
+                        self._detected_nymphes_midi_inputs.append(port_name)
+                        self._on_nymphes_input_detected(port_name)
+
+            #
+            # Non-Nymphes Ports
+            #
+            if set(non_nymphes_port_names) != set(self._detected_midi_inputs):
+                #
                 # Handle ports that are no longer detected
                 #
                 for port_name in self._detected_midi_inputs:
-                    if port_name not in port_names:
+                    if port_name not in non_nymphes_port_names:
                         # This port is no longer detected.
                         self._detected_midi_inputs.remove(port_name)
 
                         # Call the event handler
                         self._on_midi_input_port_no_longer_detected(port_name)
 
+                #
                 # Handle newly-detected MIDI ports
                 #
-                for port_name in port_names:
+                for port_name in non_nymphes_port_names:
                     if port_name not in self._detected_midi_inputs:
                         # This port has just been detected.
                         self._detected_midi_inputs.append(port_name)
@@ -1864,7 +1926,9 @@ class NymphesMIDI:
         """
         # Sometimes getting port names causes an Exception...
         try:
+            #
             # Get a list of all MIDI output ports
+            #
             port_names = mido.get_output_names()
 
             # Remove None if it is in the list of port names.
@@ -1873,26 +1937,57 @@ class NymphesMIDI:
             port_names = [port_name for port_name in port_names if port_name is not None]
 
             #
-            # Determine whether any new ports have been detected,
-            # or previously-detected ports are no longer detected
+            # Create separate lists of nymphes
+            # and non-nymphes port names
             #
+            nymphes_port_names = []
+            non_nymphes_port_names = []
 
-            if set(port_names) != set(self._detected_midi_outputs):
-                # There has been some kind of change to the list of detected MIDI ports.
+            for port_name in port_names:
+                if 'nymphes' in port_name.lower():
+                    nymphes_port_names.append(port_name)
+                else:
+                    non_nymphes_port_names.append(port_name)
 
+            #
+            # Nymphes Ports
+            #
+            if set(nymphes_port_names) != set(self._detected_nymphes_midi_outputs):
+                #
+                # Handle ports that are no longer detected
+                #
+                for port_name in self._detected_nymphes_midi_outputs:
+                    if port_name not in nymphes_port_names:
+                        self._detected_nymphes_midi_outputs.remove(port_name)
+                        self._on_nymphes_output_no_longer_detected(port_name)
+
+                #
+                # Handle newly-detected ports
+                #
+                for port_name in nymphes_port_names:
+                    if port_name not in self._detected_nymphes_midi_outputs:
+                        self._detected_nymphes_midi_outputs.append(port_name)
+                        self._on_nymphes_output_detected(port_name)
+
+            #
+            # Non-Nymphes Ports
+            #
+            if set(non_nymphes_port_names) != set(self._detected_midi_outputs):
+                #
                 # Handle ports that are no longer detected
                 #
                 for port_name in self._detected_midi_outputs:
-                    if port_name not in port_names:
+                    if port_name not in non_nymphes_port_names:
                         # This port is no longer detected.
                         self._detected_midi_outputs.remove(port_name)
 
                         # Call the event handler
                         self._on_midi_output_port_no_longer_detected(port_name)
 
+                #
                 # Handle newly-detected MIDI ports
                 #
-                for port_name in port_names:
+                for port_name in non_nymphes_port_names:
                     if port_name not in self._detected_midi_outputs:
                         # This port has just been detected.
                         self._detected_midi_outputs.append(port_name)

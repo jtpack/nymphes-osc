@@ -2,9 +2,15 @@ from enum import Enum
 
 
 class MidiConnectionEvents(Enum):
+    nymphes_midi_input_detected = 'nymphes_midi_input_detected'
+    nymphes_midi_input_no_longer_detected = 'nymphes_midi_input_no_longer_detected'
+
+    nymphes_midi_output_detected = 'nymphes_midi_output_detected'
+    nymphes_midi_output_no_longer_detected = 'nymphes_midi_output_no_longer_detected'
+
     nymphes_connected = 'nymphes_connected'
     nymphes_disconnected = 'nymphes_disconnected'
-
+    
     midi_input_detected = 'midi_input_detected'
     midi_input_no_longer_detected = 'midi_input_no_longer_detected'
     midi_input_connected = 'midi_input_connected'
@@ -22,6 +28,12 @@ class MidiConnectionEvents(Enum):
         :return: A list of strings
         """
         return [
+            MidiConnectionEvents.nymphes_midi_input_detected.value,
+            MidiConnectionEvents.nymphes_midi_input_no_longer_detected.value,
+
+            MidiConnectionEvents.nymphes_midi_output_detected.value,
+            MidiConnectionEvents.nymphes_midi_output_no_longer_detected.value,
+            
             MidiConnectionEvents.nymphes_connected.value,
             MidiConnectionEvents.nymphes_disconnected.value,
             

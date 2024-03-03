@@ -74,7 +74,6 @@ Coming soon...
 - Run it on the command line and send it OSC messages.
   - `nymphes-osc`
 - Register as an OSC client to receive OSC messages from nymphes-osc.
-  - 
 - Write a program which runs nymphes-osc in the background
 
 # Command Line Arguments
@@ -129,6 +128,8 @@ Coming soon...
   - Optional. If not supplied, then use ~/nymphes_presets
 
 You can also use `nymphes-osc --help` to see a help message listing the arguments
+
+# Features
 
 
 # OSC Commands Reference
@@ -1106,6 +1107,34 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 
 ### Nymphes Connection
 
+#### /nymphes_midi_input_detected
+- Description: A new Nymphes MIDI input port has been detected
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the newly-detected MIDI input port
+
+#### /nymphes_midi_input_no_longer_detected
+- Description: A previously-detected Nymphes MIDI input port is no longer detected.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the Nymphes MIDI input port that is no longer detected
+
+#### /nymphes_midi_output_detected
+- Description: A new Nymphes MIDI output port has been detected
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the newly-detected Nymphes MIDI output port
+
+#### /nymphes_midi_output_no_longer_detected
+- Description: A previously-detected Nymphes MIDI output port is no longer detected.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the Nymphes MIDI output port that is no longer detected 
+
 #### /nymphes_connected
 - Description: The Nymphes synthesizer has just been connected
 - Arguments:
@@ -1120,7 +1149,7 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 - Description: The Nymphes synthesizer has just been disconnected
 - Arguments: None
 
-### MIDI Input Ports
+### MIDI Input Ports 
 
 #### /midi_input_detected
 - Description: A new MIDI input port has been detected
@@ -1136,12 +1165,6 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Type: String
     - Description: The name of the MIDI input port that is no longer detected 
 
-#### /detected_midi_inputs
-- Description: A list of detected MIDI input ports, not including Nymphes.
-  - This is automatically sent to a newly-connected OSC host
-- Arguments: One String argument for the name of each detected input port
-  - Note: If no input ports are detected, then the message will be sent but there will be no arguments
-
 #### /midi_input_connected
 - Description: A MIDI input port has been connected
 - Arguments:
@@ -1155,12 +1178,6 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
   - 0
     - Type: String
     - Description: The name of the MIDI input port
-
-#### /connected_midi_inputs
-- Description: A list of connected MIDI input ports
-  - This is automatically sent to a newly-registered OSC host
-- Arguments: One String argument for the name of each connected input port
-  - Note: If no input ports are connected, then the message will be sent but there will be no arguments
 
 ### MIDI Output Ports
 
@@ -1178,12 +1195,6 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Type: String
     - Description: The name of the MIDI output port that is no longer detected
 
-#### /detected_midi_outputs
-- Description: A list of detected MIDI output ports, not including Nymphes
-  - This is automatically sent to a newly-connected OSC host
-- Arguments: One String argument for the name of each detected output port
-  - Note: If no output ports are detected, then the message will be sent but there will be no arguments
-
 #### /midi_output_connected
 - Description: A MIDI output port has been connected
 - Arguments:
@@ -1197,12 +1208,6 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
   - 0
     - Type: String
     - Description: The name of the MIDI output port
-
-#### /connected_midi_outputs
-- Description: A list of connected MIDI output ports
-  - This is automatically sent to a newly-registered OSC host
-- Arguments: One String argument for the name of each connected output port
-  - Note: If no output ports are connected, then the message will be sent but there will be no arguments
 
 ## Performance Controls
 
