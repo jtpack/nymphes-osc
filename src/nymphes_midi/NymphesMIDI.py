@@ -213,6 +213,10 @@ class NymphesMIDI:
         # The key to the most-recently-loaded nymphes preset object
         self._curr_preset_dict_key = None
 
+        # Flag indicating that settings have changed since the current
+        # preset was loaded or saved.
+        self._unsaved_changes = False
+
         # Flag indicating that a value in the current preset object has
         # been changed and we need to send the entire preset via SYSEX
         # to Nymphes and connected MIDI output ports.
@@ -950,6 +954,9 @@ class NymphesMIDI:
         # Save to a preset file at filepath
         self._curr_preset_object.save_preset_file(filepath)
 
+        # Reset the unsaved changes flag
+        self._unsaved_changes = False
+
         # Send notification
         self.add_notification(
             PresetEvents.saved_to_file.value,
@@ -1048,12 +1055,15 @@ class NymphesMIDI:
         if int_value is not None and float_value is not None:
             raise Exception(f'Only one value should be supplied (int_value: {int_value}, float_value: {float_value}')
 
+        # Keep track of whether this is a new value
+        val_changed = False
+
         if int_value is not None:
             #
             # The value has been supplied as an int.
             #
             # Set the parameter
-            self._curr_preset_object.set_int(param_name, int_value)
+            val_changed = self._curr_preset_object.set_int(param_name, int_value)
 
             # Send MIDI Control Change messages to Nymphes and MIDI Output
             # Ports if there is an associated MIDI CC for the parameter
@@ -1117,10 +1127,17 @@ class NymphesMIDI:
             #
 
             # Update the parameter's value
-            self._curr_preset_object.set_float(param_name, float_value)
+            val_changed = self._curr_preset_object.set_float(param_name, float_value)
 
             # We need to send the entire updated preset via SYSEX
             self._preset_snapshot_needed = True
+
+        # If a parameter value was changed in this whole process
+        # then send a notification that there are unsaved changes
+        #
+        if val_changed and not self._unsaved_changes:
+            self._unsaved_changes = True
+            self.add_notification(PresetEvents.unsaved_changes.value)
 
     def set_mod_wheel(self, value):
         """
@@ -1265,6 +1282,9 @@ class NymphesMIDI:
 
                         elif param_type == int:
                             self.logger.debug(f'{param_name}: {self._curr_preset_object.get_int(param_name)}')
+
+                    # Reset the unsaved changes flag
+                    self._unsaved_changes = False
 
                 elif preset_import_type == 'persistent':
                     #
