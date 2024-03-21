@@ -1103,6 +1103,10 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
+#### /unsaved_changes
+- Description: There are unsaved changes since the current preset was loaded or saved.
+- Arguments: None
+
 ## MIDI Port Events
 
 ### Nymphes Connection

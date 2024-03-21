@@ -20,6 +20,7 @@ class PresetEvents(Enum):
     received_preset_dump_from_nymphes = 'received_preset_dump_from_nymphes'
     saved_preset_dump_from_midi_input_port_to_preset = 'saved_preset_dump_from_midi_input_port_to_preset'
     loaded_preset_dump_from_midi_input_port = 'loaded_preset_dump_from_midi_input_port'
+    unsaved_changes = 'unsaved_changes'
 
     @staticmethod
     def all_values():
@@ -41,5 +42,6 @@ class PresetEvents(Enum):
 
             PresetEvents.requested_preset_dump.value,
             PresetEvents.received_preset_dump_from_nymphes.value,
-            PresetEvents.saved_preset_dump_from_midi_input_port_to_preset.value
+            PresetEvents.saved_preset_dump_from_midi_input_port_to_preset.value,
+            PresetEvents.unsaved_changes.value
         ]
