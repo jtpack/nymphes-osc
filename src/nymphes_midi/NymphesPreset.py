@@ -2688,7 +2688,6 @@ class NymphesPreset:
         for the parameter. False if it was the same.
         """
 
-
         # Make sure param_name is valid
         if param_name not in self.all_param_names():
             raise Exception(f'Invalid param_name: {param_name}')

@@ -798,6 +798,9 @@ class NymphesMIDI:
                                program=(bank_names.index(bank_name) * 7) + preset_numbers.index(preset_number))
             self._send_to_nymphes(msg)
 
+            # Reset the unsaved changes flag
+            self._unsaved_changes = False
+
             # Send a notification that Nymphes has loaded a preset
             self.add_notification(
                 name=PresetEvents.loaded_preset.value,
@@ -911,6 +914,9 @@ class NymphesMIDI:
             # Load the preset file as the current preset
             self._curr_preset_object = NymphesPreset(filepath=filepath)
 
+            # Reset the unsaved changes flag
+            self._unsaved_changes = False
+
             # Notify Client
             self.add_notification(
                 PresetEvents.loaded_file.value,
@@ -932,6 +938,9 @@ class NymphesMIDI:
             self.logger.info(f'About to load init preset file at {self.init_preset_filepath}')
 
             self._curr_preset_object = NymphesPreset(filepath=self.init_preset_filepath)
+
+            # Reset the unsaved changes flag
+            self._unsaved_changes = False
 
             # Notify Client
             self.add_notification(
@@ -1376,6 +1385,13 @@ class NymphesMIDI:
                                 # preset data from Nymphes
                                 #
 
+                                # If this was the first new value since loading
+                                # or saving a preset, then send an unsaved changes
+                                # notification
+                                if not self._unsaved_changes:
+                                    self._unsaved_changes = True
+                                    self.add_notification(PresetEvents.unsaved_changes.value)
+
                                 # Send a notification
                                 self.add_notification('int_param', (param_names_for_this_cc[0], msg.value))
 
@@ -1406,6 +1422,13 @@ class NymphesMIDI:
                                         # MIDI CC messages because we are waiting for
                                         # preset data from Nymphes
                                         #
+
+                                        # If this was the first new value since loading
+                                        # or saving a preset, then send an unsaved changes
+                                        # notification
+                                        if not self._unsaved_changes:
+                                            self._unsaved_changes = True
+                                            self.add_notification(PresetEvents.unsaved_changes.value)
 
                                         # Send a notification
                                         self.add_notification('int_param', (param_name, msg.value))
@@ -1590,6 +1613,13 @@ class NymphesMIDI:
                             # This was a new value for the parameter
                             #
 
+                            # If this was the first new value since loading
+                            # or saving a preset, then send an unsaved changes
+                            # notification
+                            if not self._unsaved_changes:
+                                self._unsaved_changes = True
+                                self.add_notification(PresetEvents.unsaved_changes.value)
+
                             # Send a notification
                             self.add_curr_preset_param_notification(param_names_for_this_cc[0])
 
@@ -1616,6 +1646,13 @@ class NymphesMIDI:
                                     #
                                     # This was a new value for the parameter
                                     #
+
+                                    # If this was the first new value since loading
+                                    # or saving a preset, then send an unsaved changes
+                                    # notification
+                                    if not self._unsaved_changes:
+                                        self._unsaved_changes = True
+                                        self.add_notification(PresetEvents.unsaved_changes.value)
 
                                     # Send a notification
                                     self.add_curr_preset_param_notification(param_name)
