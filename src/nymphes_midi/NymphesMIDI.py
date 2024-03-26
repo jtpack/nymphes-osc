@@ -262,6 +262,12 @@ class NymphesMIDI:
 
         self._nymphes_midi_channel = channel
 
+        # Notify client
+        self.add_notification(
+            MidiConnectionEvents.nymphes_midi_channel_changed.value,
+            self._nymphes_midi_channel
+        )
+
     @property
     def nymphes_connected(self):
         return self._nymphes_midi_input_port_object is not None and self._nymphes_midi_output_port_object is not None

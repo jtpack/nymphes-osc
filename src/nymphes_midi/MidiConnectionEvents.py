@@ -21,6 +21,8 @@ class MidiConnectionEvents(Enum):
     midi_output_connected = 'midi_output_connected'
     midi_output_disconnected = 'midi_output_disconnected'
 
+    nymphes_midi_channel_changed = 'nymphes_midi_channel_changed'
+
     @staticmethod
     def all_values():
         """
@@ -45,5 +47,7 @@ class MidiConnectionEvents(Enum):
             MidiConnectionEvents.midi_output_detected.value,
             MidiConnectionEvents.midi_output_no_longer_detected.value,
             MidiConnectionEvents.midi_output_connected.value,
-            MidiConnectionEvents.midi_output_disconnected.value
+            MidiConnectionEvents.midi_output_disconnected.value,
+
+            MidiConnectionEvents.nymphes_midi_channel_changed
         ]
