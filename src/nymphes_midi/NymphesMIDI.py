@@ -1688,13 +1688,11 @@ class NymphesMIDI:
                 self.logger.debug(f'{port}: velocity: {msg.velocity}')
 
         elif msg.type == 'aftertouch':
-            if msg.channel == self._nymphes_midi_channel - 1:
+            # Send aftertouch to clients so they can display it to the user
+            self.add_notification('aftertouch', msg.value)
 
-                # Send aftertouch to clients so they can display it to the user
-                self.add_notification('aftertouch', msg.value)
-
-                # Log the message
-                self.logger.debug(f'{port}: aftertouch: {msg.value}')
+            # Log the message
+            self.logger.debug(f'{port}: aftertouch: {msg.value}')
 
         # Send a copy of the message to Nymphes
         self._send_to_nymphes(msg)
