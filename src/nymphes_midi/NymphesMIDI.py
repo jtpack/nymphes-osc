@@ -1549,10 +1549,15 @@ class NymphesMIDI:
                     #
 
                     if msg.value == 0:
+                        self._curr_preset_type = 'user'
                         self.logger.info(f'Received Bank MSB 0 (User Bank) from {port}')
+
                     elif msg.value == 1:
+                        self._curr_preset_type = 'factory'
                         self.logger.info(f'Received Bank MSB 1 (Factory Bank) from {port}')
+
                     else:
+                        self._curr_preset_type = None
                         self.logger.warning(f'Received unknown Bank MSB value from {port} ({msg.value})')
 
                 elif msg.control == 1:
@@ -1670,12 +1675,31 @@ class NymphesMIDI:
             if msg.channel == self._nymphes_midi_channel - 1:
                 #
                 # We have received a program change message.
-                # We will log it, and pass it on to Nymphes.
+                # Pass it on to Nymphes.
                 #
 
+                # Parse into bank name and preset number
                 bank_name, preset_number = self._parse_midi_program_change_message(msg)
+
+                # Store them
+                self._curr_preset_bank_and_number = bank_name, preset_number
+
                 self.logger.info(
                     f'Received Program Change Message from {port} (Bank {bank_name}, Preset {preset_number})')
+
+                # Send a notification that Nymphes has loaded a preset
+                self.add_notification(
+                    name=PresetEvents.loaded_preset.value,
+                    value=(
+                        self._curr_preset_type,
+                        self._curr_preset_bank_and_number[0],
+                        self._curr_preset_bank_and_number[1]
+                    )
+                )
+
+                # Start waiting for the preset's data to arrive via
+                # SYSEX and MIDI CC
+                self._start_waiting_for_preset_data()
 
         elif msg.type == 'note_on' and msg.velocity != 0:
             if msg.channel == self._nymphes_midi_channel - 1:
