@@ -1776,8 +1776,8 @@ class NymphesPreset:
         # Chord Sections
         #
 
-        # Chord 1
-        'chord_1.root.value':
+        # Chord 0
+        'chord_0.root.value':
             {'cc': None,
              'mod_source': None,
              'preset_name': 'chord_1.root',
@@ -1786,7 +1786,7 @@ class NymphesPreset:
              'max': 127
              },
 
-        'chord_1.semi_1.value':
+        'chord_0.semi_1.value':
             {'cc': None,
              'mod_source': None,
              'preset_name': 'chord_1.semi_1',
@@ -1795,7 +1795,7 @@ class NymphesPreset:
              'max': 127
              },
 
-        'chord_1.semi_2.value':
+        'chord_0.semi_2.value':
             {'cc': None,
              'mod_source': None,
              'preset_name': 'chord_1.semi_2',
@@ -1804,7 +1804,7 @@ class NymphesPreset:
              'max': 127
              },
 
-        'chord_1.semi_3.value':
+        'chord_0.semi_3.value':
             {'cc': None,
              'mod_source': None,
              'preset_name': 'chord_1.semi_3',
@@ -1813,7 +1813,7 @@ class NymphesPreset:
              'max': 127
              },
 
-        'chord_1.semi_4.value':
+        'chord_0.semi_4.value':
             {'cc': None,
              'mod_source': None,
              'preset_name': 'chord_1.semi_4',
@@ -1822,10 +1822,65 @@ class NymphesPreset:
              'max': 127
              },
 
-        'chord_1.semi_5.value':
+        'chord_0.semi_5.value':
             {'cc': None,
              'mod_source': None,
              'preset_name': 'chord_1.semi_5',
+             'type': int,
+             'min': 0,
+             'max': 127
+             },
+
+        # Chord 1
+        'chord_1.root.value':
+            {'cc': None,
+             'mod_source': None,
+             'preset_name': 'chord_2.root',
+             'type': int,
+             'min': 0,
+             'max': 127
+             },
+
+        'chord_1.semi_1.value':
+            {'cc': None,
+             'mod_source': None,
+             'preset_name': 'chord_2.semi_1',
+             'type': int,
+             'min': 0,
+             'max': 127
+             },
+
+        'chord_1.semi_2.value':
+            {'cc': None,
+             'mod_source': None,
+             'preset_name': 'chord_2.semi_2',
+             'type': int,
+             'min': 0,
+             'max': 127
+             },
+
+        'chord_1.semi_3.value':
+            {'cc': None,
+             'mod_source': None,
+             'preset_name': 'chord_2.semi_3',
+             'type': int,
+             'min': 0,
+             'max': 127
+             },
+
+        'chord_1.semi_4.value':
+            {'cc': None,
+             'mod_source': None,
+             'preset_name': 'chord_2.semi_4',
+             'type': int,
+             'min': 0,
+             'max': 127
+             },
+
+        'chord_1.semi_5.value':
+            {'cc': None,
+             'mod_source': None,
+             'preset_name': 'chord_2.semi_5',
              'type': int,
              'min': 0,
              'max': 127
@@ -1835,7 +1890,7 @@ class NymphesPreset:
         'chord_2.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_2.root',
+             'preset_name': 'chord_3.root',
              'type': int,
              'min': 0,
              'max': 127
@@ -1844,7 +1899,7 @@ class NymphesPreset:
         'chord_2.semi_1.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_2.semi_1',
+             'preset_name': 'chord_3.semi_1',
              'type': int,
              'min': 0,
              'max': 127
@@ -1853,7 +1908,7 @@ class NymphesPreset:
         'chord_2.semi_2.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_2.semi_2',
+             'preset_name': 'chord_3.semi_2',
              'type': int,
              'min': 0,
              'max': 127
@@ -1862,7 +1917,7 @@ class NymphesPreset:
         'chord_2.semi_3.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_2.semi_3',
+             'preset_name': 'chord_3.semi_3',
              'type': int,
              'min': 0,
              'max': 127
@@ -1871,7 +1926,7 @@ class NymphesPreset:
         'chord_2.semi_4.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_2.semi_4',
+             'preset_name': 'chord_3.semi_4',
              'type': int,
              'min': 0,
              'max': 127
@@ -1880,7 +1935,7 @@ class NymphesPreset:
         'chord_2.semi_5.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_2.semi_5',
+             'preset_name': 'chord_3.semi_5',
              'type': int,
              'min': 0,
              'max': 127
@@ -1890,7 +1945,7 @@ class NymphesPreset:
         'chord_3.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_3.root',
+             'preset_name': 'chord_4.root',
              'type': int,
              'min': 0,
              'max': 127
@@ -1899,7 +1954,7 @@ class NymphesPreset:
         'chord_3.semi_1.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_3.semi_1',
+             'preset_name': 'chord_4.semi_1',
              'type': int,
              'min': 0,
              'max': 127
@@ -1908,7 +1963,7 @@ class NymphesPreset:
         'chord_3.semi_2.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_3.semi_2',
+             'preset_name': 'chord_4.semi_2',
              'type': int,
              'min': 0,
              'max': 127
@@ -1917,7 +1972,7 @@ class NymphesPreset:
         'chord_3.semi_3.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_3.semi_3',
+             'preset_name': 'chord_4.semi_3',
              'type': int,
              'min': 0,
              'max': 127
@@ -1926,7 +1981,7 @@ class NymphesPreset:
         'chord_3.semi_4.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_3.semi_4',
+             'preset_name': 'chord_4.semi_4',
              'type': int,
              'min': 0,
              'max': 127
@@ -1935,7 +1990,7 @@ class NymphesPreset:
         'chord_3.semi_5.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_3.semi_5',
+             'preset_name': 'chord_4.semi_5',
              'type': int,
              'min': 0,
              'max': 127
@@ -1945,7 +2000,7 @@ class NymphesPreset:
         'chord_4.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_4.root',
+             'preset_name': 'chord_5.root',
              'type': int,
              'min': 0,
              'max': 127
@@ -1954,7 +2009,7 @@ class NymphesPreset:
         'chord_4.semi_1.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_4.semi_1',
+             'preset_name': 'chord_5.semi_1',
              'type': int,
              'min': 0,
              'max': 127
@@ -1963,7 +2018,7 @@ class NymphesPreset:
         'chord_4.semi_2.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_4.semi_2',
+             'preset_name': 'chord_5.semi_2',
              'type': int,
              'min': 0,
              'max': 127
@@ -1972,7 +2027,7 @@ class NymphesPreset:
         'chord_4.semi_3.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_4.semi_3',
+             'preset_name': 'chord_5.semi_3',
              'type': int,
              'min': 0,
              'max': 127
@@ -1981,7 +2036,7 @@ class NymphesPreset:
         'chord_4.semi_4.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_4.semi_4',
+             'preset_name': 'chord_5.semi_4',
              'type': int,
              'min': 0,
              'max': 127
@@ -1990,7 +2045,7 @@ class NymphesPreset:
         'chord_4.semi_5.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_4.semi_5',
+             'preset_name': 'chord_5.semi_5',
              'type': int,
              'min': 0,
              'max': 127
@@ -2000,7 +2055,7 @@ class NymphesPreset:
         'chord_5.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_5.root',
+             'preset_name': 'chord_6.root',
              'type': int,
              'min': 0,
              'max': 127
@@ -2009,7 +2064,7 @@ class NymphesPreset:
         'chord_5.semi_1.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_5.semi_1',
+             'preset_name': 'chord_6.semi_1',
              'type': int,
              'min': 0,
              'max': 127
@@ -2018,7 +2073,7 @@ class NymphesPreset:
         'chord_5.semi_2.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_5.semi_2',
+             'preset_name': 'chord_6.semi_2',
              'type': int,
              'min': 0,
              'max': 127
@@ -2027,7 +2082,7 @@ class NymphesPreset:
         'chord_5.semi_3.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_5.semi_3',
+             'preset_name': 'chord_6.semi_3',
              'type': int,
              'min': 0,
              'max': 127
@@ -2036,7 +2091,7 @@ class NymphesPreset:
         'chord_5.semi_4.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_5.semi_4',
+             'preset_name': 'chord_6.semi_4',
              'type': int,
              'min': 0,
              'max': 127
@@ -2045,7 +2100,7 @@ class NymphesPreset:
         'chord_5.semi_5.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_5.semi_5',
+             'preset_name': 'chord_6.semi_5',
              'type': int,
              'min': 0,
              'max': 127
@@ -2055,7 +2110,7 @@ class NymphesPreset:
         'chord_6.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_6.root',
+             'preset_name': 'chord_7.root',
              'type': int,
              'min': 0,
              'max': 127
@@ -2064,7 +2119,7 @@ class NymphesPreset:
         'chord_6.semi_1.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_6.semi_1',
+             'preset_name': 'chord_7.semi_1',
              'type': int,
              'min': 0,
              'max': 127
@@ -2073,7 +2128,7 @@ class NymphesPreset:
         'chord_6.semi_2.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_6.semi_2',
+             'preset_name': 'chord_7.semi_2',
              'type': int,
              'min': 0,
              'max': 127
@@ -2082,7 +2137,7 @@ class NymphesPreset:
         'chord_6.semi_3.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_6.semi_3',
+             'preset_name': 'chord_7.semi_3',
              'type': int,
              'min': 0,
              'max': 127
@@ -2091,7 +2146,7 @@ class NymphesPreset:
         'chord_6.semi_4.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_6.semi_4',
+             'preset_name': 'chord_7.semi_4',
              'type': int,
              'min': 0,
              'max': 127
@@ -2100,7 +2155,7 @@ class NymphesPreset:
         'chord_6.semi_5.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_6.semi_5',
+             'preset_name': 'chord_7.semi_5',
              'type': int,
              'min': 0,
              'max': 127
@@ -2110,7 +2165,7 @@ class NymphesPreset:
         'chord_7.root.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_7.root',
+             'preset_name': 'chord_8.root',
              'type': int,
              'min': 0,
              'max': 127
@@ -2119,7 +2174,7 @@ class NymphesPreset:
         'chord_7.semi_1.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_7.semi_1',
+             'preset_name': 'chord_8.semi_1',
              'type': int,
              'min': 0,
              'max': 127
@@ -2128,7 +2183,7 @@ class NymphesPreset:
         'chord_7.semi_2.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_7.semi_2',
+             'preset_name': 'chord_8.semi_2',
              'type': int,
              'min': 0,
              'max': 127
@@ -2137,7 +2192,7 @@ class NymphesPreset:
         'chord_7.semi_3.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_7.semi_3',
+             'preset_name': 'chord_8.semi_3',
              'type': int,
              'min': 0,
              'max': 127
@@ -2146,7 +2201,7 @@ class NymphesPreset:
         'chord_7.semi_4.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_7.semi_4',
+             'preset_name': 'chord_8.semi_4',
              'type': int,
              'min': 0,
              'max': 127
@@ -2155,66 +2210,12 @@ class NymphesPreset:
         'chord_7.semi_5.value':
             {'cc': None,
              'mod_source': None,
-             'preset_name': 'chord_7.semi_5',
-             'type': int,
-             'min': 0,
-             'max': 127
-             },
-
-        # Chord 8
-        'chord_8.root.value':
-            {'cc': None,
-             'mod_source': None,
-             'preset_name': 'chord_8.root',
-             'type': int,
-             'min': 0,
-             'max': 127
-             },
-
-        'chord_8.semi_1.value':
-            {'cc': None,
-             'mod_source': None,
-             'preset_name': 'chord_8.semi_1',
-             'type': int,
-             'min': 0,
-             'max': 127
-             },
-
-        'chord_8.semi_2.value':
-            {'cc': None,
-             'mod_source': None,
-             'preset_name': 'chord_8.semi_2',
-             'type': int,
-             'min': 0,
-             'max': 127
-             },
-
-        'chord_8.semi_3.value':
-            {'cc': None,
-             'mod_source': None,
-             'preset_name': 'chord_8.semi_3',
-             'type': int,
-             'min': 0,
-             'max': 127
-             },
-
-        'chord_8.semi_4.value':
-            {'cc': None,
-             'mod_source': None,
-             'preset_name': 'chord_8.semi_4',
-             'type': int,
-             'min': 0,
-             'max': 127
-             },
-
-        'chord_8.semi_5.value':
-            {'cc': None,
-             'mod_source': None,
              'preset_name': 'chord_8.semi_5',
              'type': int,
              'min': 0,
              'max': 127
              }
+
     }
 
     def __init__(self, sysex_data=None, filepath=None, print_logs_enabled=False):
@@ -3168,7 +3169,7 @@ class NymphesPreset:
         # Voice Mode
         p.voice_mode = voice_mode.poly
 
-        # Chord Settings
+        # Chord Settings        
         p.chord_1.root = 0
         p.chord_1.semi_1 = 0
         p.chord_1.semi_2 = 0

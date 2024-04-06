@@ -797,6 +797,17 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
   - /reverb/mix/aftertouch
   - /reverb/mix/lfo2
 
+### Chord 0 Settings
+- Value Type:
+  - Int (0 to 127)
+- Addresses:
+  - /chord_0/root/value
+  - /chord_0/semi_1/value
+  - /chord_0/semi_2/value
+  - /chord_0/semi_3/value
+  - /chord_0/semi_4/value
+  - /chord_0/semi_5/value
+
 ### Chord 1 Settings
 - Value Type:
   - Int (0 to 127)
@@ -874,16 +885,6 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
   - /chord_7/semi_4/value
   - /chord_7/semi_5/value
 
-### Chord 8 Settings
-- Value Type:
-  - Int (0 to 127)
-- Addresses:
-  - /chord_8/root/value
-  - /chord_8/semi_1/value
-  - /chord_8/semi_2/value
-  - /chord_8/semi_3/value
-  - /chord_8/semi_4/value
-  - /chord_8/semi_5/value
 
 ## Performance Controls
 
