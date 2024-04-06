@@ -120,7 +120,7 @@ class NymphesPreset:
             'preset_name': 'legato',
             'type': int,
             'min': 0,
-            'max': 1
+            'max': 127
         },
 
         #

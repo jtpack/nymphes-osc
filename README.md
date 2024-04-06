@@ -369,7 +369,7 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 - Address: /osc/legato/value
 - Value Type: Int
   - 0: Off
-  - 1: On
+  - 127: On
 
 ### Pitch Settings
 
