@@ -1782,7 +1782,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_1.root',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1791,7 +1791,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_1.semi_1',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1800,7 +1800,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_1.semi_2',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1809,7 +1809,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_1.semi_3',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1818,7 +1818,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_1.semi_4',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1827,7 +1827,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_1.semi_5',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1846,7 +1846,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_2.semi_1',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1855,7 +1855,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_2.semi_2',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1864,7 +1864,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_2.semi_3',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1873,7 +1873,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_2.semi_4',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1882,7 +1882,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_2.semi_5',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1901,7 +1901,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_3.semi_1',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1910,7 +1910,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_3.semi_2',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1919,7 +1919,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_3.semi_3',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1928,7 +1928,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_3.semi_4',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1937,7 +1937,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_3.semi_5',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1956,7 +1956,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_4.semi_1',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1965,7 +1965,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_4.semi_2',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1974,7 +1974,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_4.semi_3',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1983,7 +1983,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_4.semi_4',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -1992,7 +1992,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_4.semi_5',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2011,7 +2011,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_5.semi_1',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2020,7 +2020,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_5.semi_2',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2029,7 +2029,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_5.semi_3',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2038,7 +2038,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_5.semi_4',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2047,7 +2047,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_5.semi_5',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2066,7 +2066,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_6.semi_1',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2075,7 +2075,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_6.semi_2',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2084,7 +2084,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_6.semi_3',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2093,7 +2093,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_6.semi_4',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2102,7 +2102,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_6.semi_5',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2121,7 +2121,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_7.semi_1',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2130,7 +2130,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_7.semi_2',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2139,7 +2139,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_7.semi_3',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2148,7 +2148,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_7.semi_4',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2157,7 +2157,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_7.semi_5',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2176,7 +2176,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_8.semi_1',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2185,7 +2185,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_8.semi_2',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2194,7 +2194,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_8.semi_3',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2203,7 +2203,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_8.semi_4',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              },
 
@@ -2212,7 +2212,7 @@ class NymphesPreset:
              'mod_source': None,
              'preset_name': 'chord_8.semi_5',
              'type': int,
-             'min': 0,
+             'min': -127,
              'max': 127
              }
 

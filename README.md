@@ -799,7 +799,10 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 
 ### Chord 0 Settings
 - Value Type:
-  - Int (0 to 127)
+  - Int
+- Value Range:
+  - Root values are 0 to 127
+  - Semitone values are -127 to 127
 - Addresses:
   - /chord_0/root/value
   - /chord_0/semi_1/value
@@ -810,7 +813,10 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 
 ### Chord 1 Settings
 - Value Type:
-  - Int (0 to 127)
+  - Int
+- Value Range:
+  - Root values are 0 to 127
+  - Semitone values are -127 to 127
 - Addresses:
   - /chord_1/root/value
   - /chord_1/semi_1/value
@@ -821,7 +827,10 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 
 ### Chord 2 Settings
 - Value Type:
-  - Int (0 to 127)
+  - Int
+- Value Range:
+  - Root values are 0 to 127
+  - Semitone values are -127 to 127
 - Addresses:
   - /chord_2/root/value
   - /chord_2/semi_1/value
@@ -832,7 +841,10 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 
 ### Chord 3 Settings
 - Value Type:
-  - Int (0 to 127)
+  - Int
+- Value Range:
+  - Root values are 0 to 127
+  - Semitone values are -127 to 127
 - Addresses:
   - /chord_3/root/value
   - /chord_3/semi_1/value
@@ -843,7 +855,10 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 
 ### Chord 4 Settings
 - Value Type:
-  - Int (0 to 127)
+  - Int
+- Value Range:
+  - Root values are 0 to 127
+  - Semitone values are -127 to 127
 - Addresses:
   - /chord_4/root/value
   - /chord_4/semi_1/value
@@ -854,7 +869,10 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 
 ### Chord 5 Settings
 - Value Type:
-  - Int (0 to 127)
+  - Int
+- Value Range:
+  - Root values are 0 to 127
+  - Semitone values are -127 to 127
 - Addresses:
   - /chord_5/root/value
   - /chord_5/semi_1/value
@@ -865,7 +883,10 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 
 ### Chord 6 Settings
 - Value Type:
-  - Int (0 to 127)
+  - Int
+- Value Range:
+  - Root values are 0 to 127
+  - Semitone values are -127 to 127
 - Addresses:
   - /chord_6/root/value
   - /chord_6/semi_1/value
@@ -876,7 +897,10 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 
 ### Chord 7 Settings
 - Value Type:
-  - Int (0 to 127)
+  - Int
+- Value Range:
+  - Root values are 0 to 127
+  - Semitone values are -127 to 127
 - Addresses:
   - /chord_7/root/value
   - /chord_7/semi_1/value
