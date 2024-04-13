@@ -9,36 +9,60 @@ from nymphes_midi.NymphesMIDI import NymphesMIDI
 from nymphes_midi.NymphesPreset import NymphesPreset
 from nymphes_midi.PresetEvents import PresetEvents
 from nymphes_midi.MidiConnectionEvents import MidiConnectionEvents
+from nymphes_osc.file_locations import get_data_files_directory_path
 import netifaces
 import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 import os
+import platform
 
-# Create logs directory if necessary
-logs_directory_path = Path(os.path.expanduser('~')) / 'nymphes-osc-logs/'
-if not logs_directory_path.exists():
-    logs_directory_path.mkdir()
 
-# Formatter for logs
+#
+# Logging
+#
+
+logger = logging.getLogger('nymphes-osc')
+logger.setLevel(logging.DEBUG)
+
 log_formatter = logging.Formatter(
     '%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-# Handler for writing to a log file
-file_handler = logging.FileHandler(logs_directory_path / 'log.txt', mode='w')
-file_handler.setFormatter(log_formatter)
-
-# Handler for logging to the console
+# Logging to console
+#
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(log_formatter)
-
-logger = logging.getLogger('nymphes-osc')
-logger.setLevel(logging.DEBUG)
-
-logger.addHandler(file_handler)
 logger.addHandler(console_handler)
+
+#
+# Logging to a file
+#
+
+# Create data files directory if necessary
+data_files_directory_path = get_data_files_directory_path()
+if not data_files_directory_path.exists():
+    try:
+        data_files_directory_path.mkdir()
+        logger.info(f'Created data files directory at {data_files_directory_path}')
+
+    except Exception as e:
+        logger.critical(f'Failed to create data files directory at {data_files_directory_path}: {e}')
+
+# Create logs directory if necessary
+logs_directory_path = data_files_directory_path / 'logs'
+if not logs_directory_path.exists():
+    try:
+        logs_directory_path.mkdir()
+        logger.info(f'Created logs directory at {logs_directory_path}')
+
+    except Exception as e:
+        logger.critical(f'Failed to create data files directory at {logs_directory_path}: {e}')
+
+file_handler = logging.FileHandler(logs_directory_path / 'log.txt', mode='w')
+file_handler.setFormatter(log_formatter)
+logger.addHandler(file_handler)
 
 
 class NymphesOSC:

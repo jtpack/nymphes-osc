@@ -11,6 +11,7 @@ from rtmidi import InvalidPortError
 from nymphes_midi.NymphesPreset import NymphesPreset
 from nymphes_midi.PresetEvents import PresetEvents
 from nymphes_midi.MidiConnectionEvents import MidiConnectionEvents
+from nymphes_osc.file_locations import get_data_files_directory_path
 
 
 class NymphesMIDI:
@@ -34,7 +35,7 @@ class NymphesMIDI:
         #
         # Handle presets directory path
         #
-        fallback_presets_directory_path = Path(os.path.expanduser('~')) / 'nymphes_presets'
+        fallback_presets_directory_path = get_data_files_directory_path() / 'presets'
 
         if presets_directory_path is None:
             # No path was provided. Use the fallback.
