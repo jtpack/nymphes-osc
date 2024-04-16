@@ -1,3 +1,8 @@
+## v0.1.7-beta
+
+- Moved logs to ~/Library/Application Support/nymphes-osc on macOS
+
+
 ## v0.1.6-beta
 
 - Discovered that chord semitone values can be negative
