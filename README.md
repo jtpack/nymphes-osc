@@ -202,6 +202,13 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 - Description: Load the init preset file (init.txt). This is the same preset that is automatically loaded when Nymphes first connects.
 - Arguments: None
 
+#### /load_syx_file
+- Description: Load a .syx file (which contains SYSEX data) and attempt to interpret its contents as a Dreadbox Nymphes preset.
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Filepath to load
+
 ### Saving to Preset Slots
 
 #### /save_to_preset

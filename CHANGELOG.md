@@ -1,3 +1,6 @@
+- Added support for loading .syx SYSEX files
+
+
 ## v0.1.7-beta
 
 - Moved logs to ~/Library/Application Support/nymphes-osc on macOS

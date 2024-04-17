@@ -188,6 +188,11 @@ class NymphesOSC:
             needs_reply_address=True
         )
         self._dispatcher.map(
+            '/load_syx_file',
+            self._on_osc_message_load_syx_file,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
             '/load_file_to_preset',
             self._on_osc_message_load_file_to_preset,
             needs_reply_address=True
@@ -672,6 +677,33 @@ class NymphesOSC:
 
             # Load the file
             self._nymphes_midi.load_file(filepath=filepath)
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to load file into current preset({e})'
+            self._send_status_to_osc_clients(status)
+            self.logger.warning(status)
+
+    def _on_osc_message_load_syx_file(self, sender_ip, address, *args):
+        """
+        An OSC message has just been received to load a .syx file containing SYSEX data.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            filepath = args[0]
+
+            self.logger.info(f'Received {address} {filepath} from {sender_ip[0]}')
+
+            # Load the file
+            self._nymphes_midi.load_syx_file(filepath=filepath)
 
         except Exception as e:
             # Send status update and log it
