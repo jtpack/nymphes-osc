@@ -1,3 +1,9 @@
+## v0.1.8-beta
+
+- Added support for loading .syx SYSEX files
+- Added /error for sending error messages to clients, separate from status messages
+
+
 ## v0.1.7-beta
 
 - Moved logs to ~/Library/Application Support/nymphes-osc on macOS

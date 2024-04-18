@@ -192,7 +192,7 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Possible Values: 1 through 7
 
 #### /load_file
-- Description: Load a preset file from disk and send to Nymphes via SYSEX using a non-persistent import
+- Description: Load a .txt preset file or .syx sysex file from disk and send to Nymphes via SYSEX using a non-persistent import
 - Arguments:
   - 0
     - Type: String
@@ -1277,6 +1277,16 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 - Arguments:
   - 0
     - Type: String
+
+#### /error
+- Description: An error message. These messages mirror those output on the console of the machine running the nymphes_osc application
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Error Message
+  - 1
+    - Type: String
+    - Description: Error Message Extra Detail
 
 #### /nymphes_midi_channel_changed
 - Description: The MIDI channel that Nymphes uses changed
