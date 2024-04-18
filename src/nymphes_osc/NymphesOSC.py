@@ -188,11 +188,6 @@ class NymphesOSC:
             needs_reply_address=True
         )
         self._dispatcher.map(
-            '/load_syx_file',
-            self._on_osc_message_load_syx_file,
-            needs_reply_address=True
-        )
-        self._dispatcher.map(
             '/load_file_to_preset',
             self._on_osc_message_load_file_to_preset,
             needs_reply_address=True
@@ -486,11 +481,19 @@ class NymphesOSC:
 
     def _send_status_to_osc_clients(self, message):
         """
-        Sends a string status message to OSC clients, using the address /status.
+        Sends a status message string to OSC clients, using the address /status.
         Also logs the message.
         """
         # Send to all clients
         self._send_osc_to_all_clients('/status', str(message))
+
+    def _send_error_message_to_osc_clients(self, message, detailed_message):
+        """
+        Sends an error message string to OSC clients, using the address /error.
+        Also logs the message.
+        """
+        # Send to all clients
+        self._send_osc_to_all_clients('/error', str(message), str(detailed_message))
 
     def _send_osc_to_all_clients(self, address, *args):
         """
@@ -537,9 +540,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to register client ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to register client'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_register_client_with_ip_address(self, sender_ip, address, *args):
         """
@@ -565,9 +568,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to register client ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to register client'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_unregister_client(self, sender_ip, address, *args):
         """
@@ -592,9 +595,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to unregister client ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to unregister client'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_unregister_client_with_ip_address(self, sender_ip, address, *args):
         """
@@ -621,9 +624,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to unregister client ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to unregister client'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_load_preset(self, sender_ip, address, *args):
         """
@@ -653,9 +656,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to load preset ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to load preset'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_load_file(self, sender_ip, address, *args):
         """
@@ -671,45 +674,27 @@ class NymphesOSC:
             return
 
         try:
-            filepath = args[0]
-
+            filepath = Path(args[0])
             self.logger.info(f'Received {address} {filepath} from {sender_ip[0]}')
 
-            # Load the file
-            self._nymphes_midi.load_file(filepath=filepath)
+            if filepath.suffix == '.txt':
+                # This might be a preset file
+                self._nymphes_midi.load_file(filepath=filepath)
+
+            elif filepath.suffix == '.syx':
+                # This may be a sysex file containing a preset
+                self._nymphes_midi.load_syx_file(filepath=filepath)
+
+            else:
+                status = f'Invalid file: {filepath}'
+                self._send_error_message_to_osc_clients(status, '')
+                self.logger.warning(status)
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to load file into current preset({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
-
-    def _on_osc_message_load_syx_file(self, sender_ip, address, *args):
-        """
-        An OSC message has just been received to load a .syx file containing SYSEX data.
-        :param sender_ip: This is the automatically-detected IP address of the sender
-        :param address: (str) The OSC address of the message
-        :param *args: The OSC message's arguments
-        :return:
-        """
-        # Make sure an argument was supplied
-        if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
-            return
-
-        try:
-            filepath = args[0]
-
-            self.logger.info(f'Received {address} {filepath} from {sender_ip[0]}')
-
-            # Load the file
-            self._nymphes_midi.load_syx_file(filepath=filepath)
-
-        except Exception as e:
-            # Send status update and log it
-            status = f'Failed to load file into current preset({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to load file into current preset: {filepath}'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_save_to_preset(self, sender_ip, address, *args):
         """
@@ -741,9 +726,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to load current preset into Nymphes preset slot ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to load current preset into Nymphes preset slot'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_load_file_to_preset(self, sender_ip, address, *args):
         """
@@ -777,9 +762,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to load file into Nymphes preset slot ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to load file into Nymphes preset slot'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_save_to_file(self, sender_ip, address, *args):
         """
@@ -805,9 +790,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to save current preset to file ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to save current preset to file'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_save_preset_to_file(self, sender_ip, address, *args):
         """
@@ -841,9 +826,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to save preset from Nymphes preset slot to file ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to save preset from Nymphes preset slot to file'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_load_init_file(self, sender_ip, address, *args):
         """
@@ -859,9 +844,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to load init preset ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to load init preset'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_request_preset_dump(self, sender_ip, address, *args):
         """
@@ -899,9 +884,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to connect MIDI Input port ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to connect MIDI Input port'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_connect_nymphes(self, sender_ip, address, *args):
         """
@@ -930,9 +915,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to connect Nymphes ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to connect Nymphes'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_disconnect_nymphes(self, sender_ip, address, *args):
         """
@@ -950,9 +935,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to disconnect Nymphes ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to disconnect Nymphes'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_disconnect_midi_input(self, sender_ip, address, *args):
         """
@@ -977,9 +962,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to disconnect MIDI Input port ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to disconnect MIDI Input port'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_connect_midi_output(self, sender_ip, address, *args):
         """
@@ -1004,9 +989,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to connect MIDI Output port ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to connect MIDI Output port'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_disconnect_midi_output(self, sender_ip, address, *args):
         """
@@ -1031,9 +1016,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to disconnect MIDI Output port ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to disconnect MIDI Output port'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_set_nymphes_midi_channel(self, sender_ip, address, *args):
         """
@@ -1059,9 +1044,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to set Nymphes MIDI channel ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            message = f'Failed to set Nymphes MIDI channel'
+            self._send_error_message_to_osc_clients(message, str(e))
+            self.logger.warning(f'{message}: {e}')
 
     def _on_osc_message_mod_wheel(self, sender_ip, address, *args):
         """
@@ -1085,9 +1070,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to set mod wheel ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to set mod wheel'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_aftertouch(self, sender_ip, address, *args):
         """
@@ -1111,9 +1096,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to set aftertouch ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to set aftertouch'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_osc_message_sustain_pedal(self, sender_ip, address, *args):
         """
@@ -1138,9 +1123,9 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to set sustain_pedal ({e})'
-            self._send_status_to_osc_clients(status)
-            self.logger.warning(status)
+            status = f'Failed to set sustain_pedal'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
 
     def _on_other_osc_message(self, sender_ip, address, *args):
         """
@@ -1178,9 +1163,9 @@ class NymphesOSC:
 
                 except Exception as e:
                     # Send status update and log it
-                    status = f'Failed to set parameter ({e})'
-                    self._send_status_to_osc_clients(status)
-                    self.logger.warning(status)
+                    status = f'Failed to set parameter'
+                    self._send_error_message_to_osc_clients(status, str(e))
+                    self.logger.warning(f'{status}: {e}')
 
             elif isinstance(value, float):
                 try:
@@ -1188,14 +1173,14 @@ class NymphesOSC:
 
                 except Exception as e:
                     # Send status update and log it
-                    status = f'Failed to set parameter ({e})'
-                    self._send_status_to_osc_clients(status)
-                    self.logger.warning(status)
+                    status = f'Failed to set parameter'
+                    self._send_error_message_to_osc_clients(status, str(e))
+                    self.logger.warning(f'{status}: {e}')
 
             else:
                 # Send status update and log it
                 status = f'Invalid value type for {param_name}: {type(value)}'
-                self._send_status_to_osc_clients(status)
+                self._send_error_message_to_osc_clients(status, '')
                 self.logger.warning(status)
 
         else:

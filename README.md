@@ -192,7 +192,7 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Possible Values: 1 through 7
 
 #### /load_file
-- Description: Load a preset file from disk and send to Nymphes via SYSEX using a non-persistent import
+- Description: Load a .txt preset file or .syx sysex file from disk and send to Nymphes via SYSEX using a non-persistent import
 - Arguments:
   - 0
     - Type: String
@@ -201,13 +201,6 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 #### /load_init_file
 - Description: Load the init preset file (init.txt). This is the same preset that is automatically loaded when Nymphes first connects.
 - Arguments: None
-
-#### /load_syx_file
-- Description: Load a .syx file (which contains SYSEX data) and attempt to interpret its contents as a Dreadbox Nymphes preset.
-- Arguments:
-  - 0
-    - Type: String
-    - Description: Filepath to load
 
 ### Saving to Preset Slots
 
@@ -1284,6 +1277,16 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 - Arguments:
   - 0
     - Type: String
+
+#### /error
+- Description: An error message. These messages mirror those output on the console of the machine running the nymphes_osc application
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Error Message
+  - 1
+    - Type: String
+    - Description: Error Message Extra Detail
 
 #### /nymphes_midi_channel_changed
 - Description: The MIDI channel that Nymphes uses changed
