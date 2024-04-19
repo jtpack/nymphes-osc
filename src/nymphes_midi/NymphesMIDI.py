@@ -938,41 +938,61 @@ class NymphesMIDI:
 
     def load_syx_file(self, filepath):
         """
-        Load the .syx file at filepath
-        :param filepath: A Path or string. The path to the preset file.
+        Load the .syx file at filepath.
+        If the syx file contains more than one Nymphes Preset, then a
+        folder will be created with the same name as the syx file, and
+        preset files will be written to the folder.
+        If the file contains only one preset then it will be written to
+        the presets root folder with the same name as the syx file.
+        After writing the preset files, the first preset will be loaded.
+        :param filepath: A Path or string. The path to the syx file.
         :return:
         """
-        if self.nymphes_connected:
+        #if self.nymphes_connected:
+        try:
+            # Load the file into a list of MIDI messages
+            sysex_messages = mido.read_syx_file(filepath)
+        except Exception as e:
+            Logger.warning(f'Failed to load .syx file at {filepath}: {e}')
+            return
+
+        # Create a Nymphes Preset object from each
+        # SYSEX message
+        nymphes_presets = []
+        for i in range(len(sysex_messages)):
+            msg = sysex_messages[i]
             try:
-                # Load the file into a list of MIDI messages
-                messages = mido.read_syx_file(filepath)
-
-                # Get the first message
-                msg = messages[0]
-
-                # Get its data
-                msg_data = msg.data
-
-                # Load the preset file as the current preset
-                self._curr_preset_object = NymphesPreset(sysex_data=msg_data)
-
-                # Reset the unsaved changes flag
-                self._unsaved_changes = False
-
-                # Notify Client
-                self.add_notification(
-                    PresetEvents.loaded_file.value,
-                    str(filepath)
-                )
-
-                # Send all parameters to the client
-                self.send_current_preset_notifications()
-
-                # Send the preset to Nymphes and connected MIDI Output ports
-                self._preset_snapshot_needed = True
-
+                # Create a Nymphes Preset from the message
+                new_preset = NymphesPreset(sysex_data=msg.data)
+                nymphes_presets.append(new_preset)
             except Exception as e:
-                Logger.warning(f'Failed to load .syx file as a Nymphes preset: {filepath}, {e}')
+                Logger.warning(f'Failed to create Nymphes preset from message {i} in .syx file: {e}')
+
+        if len(nymphes_presets) > 1:
+
+
+
+
+            # Load the preset file as the current preset
+            self._curr_preset_object =
+
+            # Reset the unsaved changes flag
+            self._unsaved_changes = False
+
+            # Notify Client
+            self.add_notification(
+                PresetEvents.loaded_file.value,
+                str(filepath)
+            )
+
+            # Send all parameters to the client
+            self.send_current_preset_notifications()
+
+            # Send the preset to Nymphes and connected MIDI Output ports
+            self._preset_snapshot_needed = True
+
+        except Exception as e:
+            Logger.warning(f'Failed to load .syx file as a Nymphes preset: {filepath}, {e}')
 
     def load_init_file(self):
         """
