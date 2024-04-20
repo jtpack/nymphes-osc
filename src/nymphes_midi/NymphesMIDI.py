@@ -948,51 +948,53 @@ class NymphesMIDI:
         :param filepath: A Path or string. The path to the syx file.
         :return:
         """
+        pass
+        # TODO: Implement this
         #if self.nymphes_connected:
-        try:
-            # Load the file into a list of MIDI messages
-            sysex_messages = mido.read_syx_file(filepath)
-        except Exception as e:
-            Logger.warning(f'Failed to load .syx file at {filepath}: {e}')
-            return
-
-        # Create a Nymphes Preset object from each
-        # SYSEX message
-        nymphes_presets = []
-        for i in range(len(sysex_messages)):
-            msg = sysex_messages[i]
-            try:
-                # Create a Nymphes Preset from the message
-                new_preset = NymphesPreset(sysex_data=msg.data)
-                nymphes_presets.append(new_preset)
-            except Exception as e:
-                Logger.warning(f'Failed to create Nymphes preset from message {i} in .syx file: {e}')
-
-        if len(nymphes_presets) > 1:
-
-
-
-
-            # Load the preset file as the current preset
-            self._curr_preset_object =
-
-            # Reset the unsaved changes flag
-            self._unsaved_changes = False
-
-            # Notify Client
-            self.add_notification(
-                PresetEvents.loaded_file.value,
-                str(filepath)
-            )
-
-            # Send all parameters to the client
-            self.send_current_preset_notifications()
-
-            # Send the preset to Nymphes and connected MIDI Output ports
-            self._preset_snapshot_needed = True
-
-        except Exception as e:
-            Logger.warning(f'Failed to load .syx file as a Nymphes preset: {filepath}, {e}')
+        # try:
+        #     # Load the file into a list of MIDI messages
+        #     sysex_messages = mido.read_syx_file(filepath)
+        # except Exception as e:
+        #     Logger.warning(f'Failed to load .syx file at {filepath}: {e}')
+        #     return
+        #
+        # # Create a Nymphes Preset object from each
+        # # SYSEX message
+        # nymphes_presets = []
+        # for i in range(len(sysex_messages)):
+        #     msg = sysex_messages[i]
+        #     try:
+        #         # Create a Nymphes Preset from the message
+        #         new_preset = NymphesPreset(sysex_data=msg.data)
+        #         nymphes_presets.append(new_preset)
+        #     except Exception as e:
+        #         Logger.warning(f'Failed to create Nymphes preset from message {i} in .syx file: {e}')
+        #
+        # if len(nymphes_presets) > 1:
+        #
+        #
+        #
+        #
+        #     # Load the preset file as the current preset
+        #     self._curr_preset_object =
+        #
+        #     # Reset the unsaved changes flag
+        #     self._unsaved_changes = False
+        #
+        #     # Notify Client
+        #     self.add_notification(
+        #         PresetEvents.loaded_file.value,
+        #         str(filepath)
+        #     )
+        #
+        #     # Send all parameters to the client
+        #     self.send_current_preset_notifications()
+        #
+        #     # Send the preset to Nymphes and connected MIDI Output ports
+        #     self._preset_snapshot_needed = True
+        #
+        # except Exception as e:
+        #     Logger.warning(f'Failed to load .syx file as a Nymphes preset: {filepath}, {e}')
 
     def load_init_file(self):
         """
