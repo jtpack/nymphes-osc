@@ -140,8 +140,30 @@ class NymphesMIDI:
 
         # Queues for MIDI output ports. There will be one queue for
         # each connected MIDI output port.
+        # The port object itself is used as the key.
         # When a MIDI output port is disconnected its queue is deleted.
-        self._midi_message_send_queues = {}
+        self._midi_message_send_queues_dict = {}
+
+        # Dict containing lists of MIDI messages recently
+        # sent to connected MIDI output ports.
+        # The port object itself is used as the key.
+        # If a MIDI output port is disconnected then its
+        # list is deleted.
+        # This is used for MIDI message feedback suppression.
+        self._recently_sent_midi_messages_dict = {}
+
+        # How long to keep recently-sent MIDI messages
+        self._recently_sent_midi_messages_retention_time_sec = 0.1
+
+        # Dict connecting output ports to input ports for
+        # MIDI message feedback suppression.
+        # There is an entry for each connected MIDI input
+        # port, with the port object itself as the key.
+        # If feedback suppression is disabled for the port,
+        # then the value will be None. If enabled, then the
+        # value will be the MIDI output port object to
+        # suppress feedback from
+        self._midi_message_feedback_suppression_dict = {}
 
         # Upon connecting to Nymphes, wait a short time and then
         # load the init preset file.
@@ -537,10 +559,33 @@ class NymphesMIDI:
 
         # Send All Queued Messages to MIDI output ports
         #
-        for port, queue in self._midi_message_send_queues.items():
+        for port, queue in self._midi_message_send_queues_dict.items():
             while not queue.empty():
+                # Remove the message from the queue
                 msg = queue.get()
+
+                # Send it
                 port.send(msg)
+
+                # Add an expiration time to the message
+                msg.time = time.time() + self._recently_sent_midi_messages_retention_time_sec
+
+                # Store the message in the recently-sent messages
+                # list for this port
+                self._recently_sent_midi_messages_dict[port].append(msg)
+
+        # Clear all expired messages
+        curr_time = time.time()
+
+        # Get the messages list for each port
+        for messages_list in self._recently_sent_midi_messages_dict.values():
+
+            # Get each message in the message list
+            for msg in messages_list[:]:
+
+                # Remove the message if it has expired
+                if msg.time < curr_time:
+                    messages_list.remove(msg)
 
     def connect_nymphes(self, input_port_name, output_port_name):
         """
@@ -658,6 +703,9 @@ class NymphesMIDI:
         # Store the port
         self._connected_midi_input_port_objects.append(port)
 
+        # Add an entry for the port in feedback suppression dict
+        self._midi_message_feedback_suppression_dict[port] = None
+
         self.logger.info(f'Connected MIDI input port ({port_name})')
 
         # Notify Client
@@ -677,21 +725,116 @@ class NymphesMIDI:
         # Validate port_name
         if port_name not in [port.name for port in self._connected_midi_input_port_objects]:
             raise Exception(f'MIDI input port {port_name} is not connected')
-        
-        # Remove the port from the collection
+
+        # Get the port object
+        input_port = None
         for port in self._connected_midi_input_port_objects:
             if port.name == port_name:
-                self._connected_midi_input_port_objects.remove(port)
-                self.logger.info(f'Closing MIDI input port ({port.name})')
+                input_port = port
 
-                # Disconnect the port
-                port.close()
+        if input_port is None:
+            raise Exception(f'Failed to get port object for input port name: {port_name}')
 
-                # Notify Client
-                self.add_notification(
-                    MidiConnectionEvents.midi_input_disconnected.value,
-                    port_name
-                )
+        # Remove the port from the collection
+        self._connected_midi_input_port_objects.remove(port)
+
+        # Remove the entry for the port in feedback suppression dict
+        del(self._midi_message_feedback_suppression_dict[port])
+
+        # Disconnect the port
+        port.close()
+        self.logger.info(f'Closed MIDI input port: {port.name}')
+
+        # Notify Client
+        self.add_notification(
+            MidiConnectionEvents.midi_input_disconnected.value,
+            port_name
+        )
+
+    def enable_midi_feedback_suppression(self, input_port_name, output_port_name):
+        """
+        Enable MIDI feedback suppression on a MIDI input port, so that it ignores
+        copies of MIDI messages recently sent to a specific MIDI output port.
+        :param input_port_name: str. Raise Exception if this is invalid or if the
+        port is not connected.
+        :param output_port_name: str. Raise Exception if this is invalid or if the
+        port is not connected. 
+        """
+        # Validate input_port_name
+        if input_port_name not in self._detected_midi_inputs:
+            raise Exception(f'MIDI input port {input_port_name} is invalid')
+        
+        # Make sure input_port is connected
+        if input_port_name not in [port.name for port in self._connected_midi_input_port_objects]:
+            raise Exception(f'MIDI input port {input_port_name} is not connected')
+
+        # Validate output_port_name
+        if output_port_name not in self._detected_midi_outputs:
+            raise Exception(f'MIDI output port {output_port_name} is invalid')
+
+        # Make sure output_port is connected
+        if output_port_name not in [port.name for port in self._connected_midi_output_port_objects]:
+            raise Exception(f'MIDI output port {output_port_name} is not connected')
+
+        # Get the port objects
+        #
+        input_port = None
+        for port in self._connected_midi_input_port_objects:
+            if port.name == input_port_name:
+                input_port = port
+                
+        if input_port is None:
+            raise Exception(f'Failed to get port object for input port name: {input_port_name}')
+
+        output_port = None
+        for port in self._connected_midi_output_port_objects:
+            if port.name == output_port_name:
+                output_port = port
+                
+        if output_port is None:
+            raise Exception(f'Failed to get port object for output port name: {output_port_name}')
+
+        # Update the feedback suppression dict entry for the input port
+        self._midi_message_feedback_suppression_dict[input_port] = output_port
+
+        # Notify client
+        self.add_notification(
+            name=MidiConnectionEvents.midi_input_enabled_midi_feedback_suppression.value,
+            value=(input_port_name, output_port_name)
+        )
+
+    def disable_midi_feedback_suppression(self, input_port_name):
+        """
+        Disable MIDI feedback suppression on a MIDI input port.
+        :param input_port_name: str. Raise Exception if this is invalid or if the
+        port is not connected.
+        """
+        # Validate input_port_name
+        if input_port_name not in self._detected_midi_inputs:
+            raise Exception(f'MIDI input port {input_port_name} is invalid')
+
+        # Make sure input_port is connected
+        if input_port_name not in [port.name for port in self._connected_midi_input_port_objects]:
+            raise Exception(f'MIDI input port {input_port_name} is not connected')
+
+        # Get the port object
+        #
+        input_port = None
+        for port in self._connected_midi_input_port_objects:
+            if port.name == input_port_name:
+                input_port = port
+
+        if input_port is None:
+            raise Exception(f'Failed to get port object for input port name: {input_port_name}')
+
+        # Update the feedback suppression dict entry for the input port
+        self._midi_message_feedback_suppression_dict[input_port] = None
+
+        # Notify client
+        self.add_notification(
+            name=MidiConnectionEvents.midi_input_disabled_midi_feedback_suppression.value,
+            value=input_port_name
+        )
 
     def connect_midi_output(self, port_name):
         """
@@ -718,7 +861,10 @@ class NymphesMIDI:
         self.logger.info(f'Connected MIDI output port ({port_name})')
 
         # Create a message send queue for the port
-        self._midi_message_send_queues[port] = Queue()
+        self._midi_message_send_queues_dict[port] = Queue()
+
+        # Create a list of recently-sent MIDI messages for the port
+        self._recently_sent_midi_messages_dict[port] = []
 
         # Notify Client
         self.add_notification(
@@ -738,20 +884,54 @@ class NymphesMIDI:
         if port_name not in [port.name for port in self._connected_midi_output_port_objects]:
             raise Exception(f'MIDI output port {port_name} is not connected')
 
-        # Remove the port from the collection
+        # Get the port object for this port name
+        output_port = None
         for port in self._connected_midi_output_port_objects:
             if port.name == port_name:
-                self._connected_midi_output_port_objects.remove(port)
-                self.logger.info(f'Closing MIDI output port ({port.name})')
+                output_port = port
 
-                # Disconnect the port
-                port.close()
+        if output_port is None:
+            raise Exception(f'Failed to get port object for output port name: {port_name}')
 
-                # Notify Client
+        # Delete the message send queue for the port
+        del(self._midi_message_send_queues_dict[port])
+
+        # Remove the port from the collection of connected ports
+        self._connected_midi_output_port_objects.remove(port)
+
+        # Delete the list of MIDI messages recently sent to the port
+        del(self._recently_sent_midi_messages_dict[port])
+
+        # Check whether this port was being used in MIDI feedback suppression
+        #
+        for input_port, output_port in self._midi_message_feedback_suppression_dict.items():
+            if output_port == port:
+                #
+                # input_port was suppressing feedback from this
+                # output port.
+                #
+
+                # Reset back to None
+                self._midi_message_feedback_suppression_dict[input_port] = None
+
+                # Send a notification to clients that the input port
+                # is no longer suppressing feedback from this output
+                # port
                 self.add_notification(
-                    MidiConnectionEvents.midi_output_disconnected.value,
-                    port_name
+                    MidiConnectionEvents.midi_input_disabled_midi_feedback_suppression.value,
+                    input_port.name
                 )
+
+        # Close the port
+        port.close()
+
+        self.logger.info(f'Closed MIDI output port ({port.name})')
+
+        # Notify Client
+        self.add_notification(
+            MidiConnectionEvents.midi_output_disconnected.value,
+            port_name
+        )
 
     #
     # Nymphes Preset Methods
@@ -1303,7 +1483,7 @@ class NymphesMIDI:
             raise Exception(f'Invalid MIDI output port object: {port_object} (There is no message send queue for this port)')
 
         # Add the message to the queue for the port
-        self._midi_message_send_queues[port_object].put(msg)
+        self._midi_message_send_queues_dict[port_object].put(msg)
 
     def _send_to_connected_midi_output_ports(self, msg):
         """
@@ -1542,7 +1722,7 @@ class NymphesMIDI:
         # connected MIDI Output ports
         self._send_to_connected_midi_output_ports(msg)
 
-    def _on_message_from_midi_input_port(self, msg, port):
+    def _on_message_from_midi_input_port(self, msg, input_port_name):
         """
         A MIDI message has been received from a connected
         MIDI input port. Interpret it. If it affects the
@@ -1550,10 +1730,47 @@ class NymphesMIDI:
         client.
         We always send a copy of the message to Nymphes.
         :param msg: A mido MIDI Message object
-        :param port: (str) The name of the mido MIDI Input
+        :param input_port_name: (str) The name of the mido MIDI Input
         port that received the message
         :return:
         """
+        self.logger.debug(f'Received from MIDI Input Port {input_port_name}: {str(msg)}')
+
+        #
+        # Handle MIDI feedback suppression (if enabled)
+        #
+
+        # Get the port object for this message
+        #
+        input_port = None
+        for port in self._connected_midi_input_port_objects:
+            if port.name == input_port_name:
+                input_port = port
+
+        if input_port is None:
+            raise Exception(f'Failed to get port object for input port name: {input_port_name}')
+
+        if self._midi_message_feedback_suppression_dict[input_port] is not None:
+            #
+            # Feedback suppression is enabled for this input port.
+            #
+
+            # Check whether this MIDI message matches one of the messages
+            # recently sent from the port we are feedback suppressing
+            #
+            output_port = self._midi_message_feedback_suppression_dict[input_port]
+            for recent_msg in self._recently_sent_midi_messages_dict[output_port]:
+                if msg.bytes() == recent_msg.bytes():
+                    #
+                    # We should ignore this message
+                    #
+                    self.logger.debug(f'Ignoring message: {msg}')
+                    return
+
+        #
+        # Handle the message
+        #
+
         if msg.type == 'sysex':
             # Try to interpret this SYSEX message as a Nymphes preset
             try:
@@ -1611,15 +1828,15 @@ class NymphesMIDI:
 
                     if msg.value == 0:
                         self._curr_preset_type = 'user'
-                        self.logger.info(f'Received Bank MSB 0 (User Bank) from {port}')
+                        self.logger.info(f'Received Bank MSB 0 (User Bank) from {input_port_name}')
 
                     elif msg.value == 1:
                         self._curr_preset_type = 'factory'
-                        self.logger.info(f'Received Bank MSB 1 (Factory Bank) from {port}')
+                        self.logger.info(f'Received Bank MSB 1 (Factory Bank) from {input_port_name}')
 
                     else:
                         self._curr_preset_type = None
-                        self.logger.warning(f'Received unknown Bank MSB value from {port} ({msg.value})')
+                        self.logger.warning(f'Received unknown Bank MSB value from {input_port_name} ({msg.value})')
 
                 elif msg.control == 1:
                     #
@@ -1630,7 +1847,7 @@ class NymphesMIDI:
                     self.add_notification('mod_wheel', msg.value)
 
                     # Log the message
-                    self.logger.debug(f'{port}: mod_wheel', msg.value)
+                    self.logger.debug(f'{input_port_name}: mod_wheel', msg.value)
 
                 elif msg.control == 30:
                     #
@@ -1644,7 +1861,7 @@ class NymphesMIDI:
                     self.add_notification('mod_source', msg.value)
 
                     # Log the message
-                    self.logger.debug(f'{port}: mod_source: {msg.value}')
+                    self.logger.debug(f'{input_port_name}: mod_source: {msg.value}')
 
                 elif msg.control == 64:
                     #
@@ -1655,7 +1872,7 @@ class NymphesMIDI:
                     self.add_notification('sustain_pedal', msg.value)
 
                     # Log the message
-                    self.logger.debug(f'{port}: sustain_pedal: {msg.value}')
+                    self.logger.debug(f'{input_port_name}: sustain_pedal: {msg.value}')
 
                 else:
                     #
@@ -1672,7 +1889,7 @@ class NymphesMIDI:
                         # This is not a Nymphes parameter
                         #
 
-                        self.logger.warning(f'Received unhandled MIDI CC Message from {port}: {msg}')
+                        self.logger.warning(f'Received unhandled MIDI CC Message from {input_port_name}: {msg}')
 
                     if len(param_names_for_this_cc) == 1:
                         #
@@ -1696,7 +1913,7 @@ class NymphesMIDI:
                             self.add_curr_preset_param_notification(param_names_for_this_cc[0])
 
                             # Log the message
-                            self.logger.debug(f'{port}: {param_names_for_this_cc[0]}: {msg.value}')
+                            self.logger.debug(f'{input_port_name}: {param_names_for_this_cc[0]}: {msg.value}')
 
                     else:
                         #
@@ -1730,7 +1947,7 @@ class NymphesMIDI:
                                     self.add_curr_preset_param_notification(param_name)
 
                                     # Log the message
-                                    self.logger.debug(f'{port}: {param_name}: {msg.value}')
+                                    self.logger.debug(f'{input_port_name}: {param_name}: {msg.value}')
 
         elif msg.type == 'program_change':
             if msg.channel == self._nymphes_midi_channel - 1:
@@ -1746,7 +1963,7 @@ class NymphesMIDI:
                 self._curr_preset_bank_and_number = bank_name, preset_number
 
                 self.logger.info(
-                    f'Received Program Change Message from {port} (Bank {bank_name}, Preset {preset_number})')
+                    f'Received Program Change Message from {input_port_name} (Bank {bank_name}, Preset {preset_number})')
 
                 # Send a notification that Nymphes has loaded a preset
                 self.add_notification(
@@ -1770,14 +1987,14 @@ class NymphesMIDI:
                 self.add_notification('velocity', msg.velocity)
 
                 # Log the message
-                self.logger.debug(f'{port}: velocity: {msg.velocity}')
+                self.logger.debug(f'{input_port_name}: velocity: {msg.velocity}')
 
         elif msg.type == 'aftertouch':
             # Send aftertouch to clients so they can display it to the user
             self.add_notification('aftertouch', msg.value)
 
             # Log the message
-            self.logger.debug(f'{port}: aftertouch: {msg.value}')
+            self.logger.debug(f'{input_port_name}: aftertouch: {msg.value}')
 
         # Send a copy of the message to Nymphes
         self._send_to_nymphes(msg)

@@ -233,6 +233,16 @@ class NymphesOSC:
             needs_reply_address=True
         )
         self._dispatcher.map(
+            '/midi_input_enable_midi_feedback_suppression',
+            self._on_osc_message_midi_input_enable_midi_feedback_suppression,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/midi_input_disable_midi_feedback_suppression',
+            self._on_osc_message_midi_input_disable_midi_feedback_suppression,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
             '/connect_midi_output',
             self._on_osc_message_connect_midi_output,
             needs_reply_address=True
@@ -963,6 +973,56 @@ class NymphesOSC:
         except Exception as e:
             # Send status update and log it
             status = f'Failed to disconnect MIDI Input port'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
+
+    def _on_osc_message_midi_input_enable_midi_feedback_suppression(self, sender_ip, address, *args):
+        """
+        Enable MIDI feedback suppression for a MIDI input
+        """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            input_port_name = args[0]
+            output_port_name = args[0]
+
+            self.logger.info(f'Received {address} {input_port_name} {output_port_name} from {sender_ip[0]}')
+
+            self._nymphes_midi.enable_midi_feedback_suppression(
+                input_port_name=input_port_name,
+                output_port_name=output_port_name
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to enable MIDI feedback suppression for input port {input_port_name}'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
+
+    def _on_osc_message_midi_input_disable_midi_feedback_suppression(self, sender_ip, address, *args):
+        """
+        Disable MIDI feedback suppression for a MIDI input
+        """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            input_port_name = args[0]
+
+            self.logger.info(f'Received {address} {input_port_name} from {sender_ip[0]}')
+
+            self._nymphes_midi.disable_midi_feedback_suppression(
+                input_port_name=input_port_name
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to disable MIDI feedback suppression for input port {input_port_name}'
             self._send_error_message_to_osc_clients(status, str(e))
             self.logger.warning(f'{status}: {e}')
 

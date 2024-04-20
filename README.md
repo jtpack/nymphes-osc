@@ -317,6 +317,23 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Type: String
     - Description: The name of the port (as reported by mido.get_output_names())
 
+#### /midi_input_enable_midi_feedback_suppression
+- Description: Set a MIDI input port to ignore copies of MIDI messages that were recently sent to a MIDI output port
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the input port
+  - 1
+    - Type: String
+    - Description: The name of the output port
+
+#### /midi_input_disable_midi_feedback_suppression
+- Description: Set a MIDI input port to no longer ignore copies of MIDI messages that were recently sent to a MIDI output port
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the input port
+
 ## Setting Nymphes Parameters
 
 ### Oscillator Settings
@@ -1207,6 +1224,23 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
   - 0
     - Type: String
     - Description: The name of the MIDI input port
+
+#### /midi_input_suppressing_feedback
+- Description: A MIDI input port has enabled feedback suppression, ignoring copies of MIDI messages that were recently sent to a MIDI output port
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the input port
+  - 1
+    - Type: String
+    - Description: The name of the output port
+
+#### /midi_input_no_longer_suppressing_feedback
+- Description: A MIDI input port has disabled feedback suppression
+- Arguments:
+  - 0
+    - Type: String
+    - Description: The name of the input port
 
 ### MIDI Output Ports
 
