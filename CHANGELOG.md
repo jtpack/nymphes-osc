@@ -1,6 +1,7 @@
 - Added MIDI feedback suppression, to prevent feedback from connected MIDI outputs and inputs
   - When enabled (the default), MIDI inputs ignore any copies they receive of MIDI messages recently sent to connected MIDI outputs
     - By default, "recent" is defined as 0.1 seconds
+- Added support for .syx files that contain more than one Nymphes preset (as separate SYSEX messages)
 
 
 ## v0.1.8-beta

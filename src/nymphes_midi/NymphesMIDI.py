@@ -1018,53 +1018,134 @@ class NymphesMIDI:
         :param filepath: A Path or string. The path to the syx file.
         :return:
         """
-        pass
-        # TODO: Implement this
-        #if self.nymphes_connected:
-        # try:
-        #     # Load the file into a list of MIDI messages
-        #     sysex_messages = mido.read_syx_file(filepath)
-        # except Exception as e:
-        #     Logger.warning(f'Failed to load .syx file at {filepath}: {e}')
-        #     return
-        #
-        # # Create a Nymphes Preset object from each
-        # # SYSEX message
-        # nymphes_presets = []
-        # for i in range(len(sysex_messages)):
-        #     msg = sysex_messages[i]
-        #     try:
-        #         # Create a Nymphes Preset from the message
-        #         new_preset = NymphesPreset(sysex_data=msg.data)
-        #         nymphes_presets.append(new_preset)
-        #     except Exception as e:
-        #         Logger.warning(f'Failed to create Nymphes preset from message {i} in .syx file: {e}')
-        #
-        # if len(nymphes_presets) > 1:
-        #
-        #
-        #
-        #
-        #     # Load the preset file as the current preset
-        #     self._curr_preset_object =
-        #
-        #     # Reset the unsaved changes flag
-        #     self._unsaved_changes = False
-        #
-        #     # Notify Client
-        #     self.add_notification(
-        #         PresetEvents.loaded_file.value,
-        #         str(filepath)
-        #     )
-        #
-        #     # Send all parameters to the client
-        #     self.send_current_preset_notifications()
-        #
-        #     # Send the preset to Nymphes and connected MIDI Output ports
-        #     self._preset_snapshot_needed = True
-        #
-        # except Exception as e:
-        #     Logger.warning(f'Failed to load .syx file as a Nymphes preset: {filepath}, {e}')
+        if self.nymphes_connected:
+            #
+            # Load the file into a list of MIDI messages
+            #
+            try:
+                sysex_messages = mido.read_syx_file(filepath)
+            except Exception as e:
+                Logger.warning(f'Failed to load .syx file at {filepath}: {e}')
+                return
+
+            #
+            # Create a list of Nymphes Preset objects, one for each
+            # successfully parsed SYSEX message
+            #
+            nymphes_presets = []
+            for i in range(len(sysex_messages)):
+                try:
+                    # Try creating a Nymphes Preset from the message
+                    msg = sysex_messages[i]
+                    new_preset = NymphesPreset(sysex_data=msg.data)
+                    nymphes_presets.append(new_preset)
+                except Exception as e:
+                    Logger.warning(f'Failed to create Nymphes preset from message {i} in .syx file: {e}')
+
+            #
+            # Write the presets to disk
+            #
+            if len(nymphes_presets) == 1:
+                #
+                # The syx file contained only one preset. Write it
+                # to the presets folder with the same filename as
+                # the syx file.
+                #
+                nymphes_preset = nymphes_presets[0]
+
+                # Make sure we don't overwrite a preset file that already exists.
+                #
+                destination_filepath = self.presets_directory_path / (str(Path(filepath).stem) + '.txt')
+                file_suffix = 0
+                while destination_filepath.exists():
+                    file_suffix += 1
+                    destination_filepath = self.presets_directory_path / (str(Path(filepath).stem) + f'_{file_suffix}' + '.txt')
+
+                # Write the file to disk
+                #
+                try:
+                    nymphes_preset.save_preset_file(destination_filepath)
+                    self.logger.info(f'Created preset file from syx file: {destination_filepath}')
+                except Exception as e:
+                    self.logger.warning(f'Failed to store nymphes preset as a file: {destination_filepath}, {e}')
+
+                # Load the new preset file
+                #
+                self.load_file(destination_filepath)
+
+            elif len(nymphes_presets) > 1:
+                #
+                # It contained more than one preset.
+                # Create a folder in the presets folder with
+                # the name of the original syx file.
+                #
+
+                # Make sure we don't overwrite a folder or preset file that already exists
+                # in the same location.
+                #
+                destination_folder_path = self.presets_directory_path / (str(Path(filepath).stem))
+                path_suffix = 0
+                while destination_folder_path.exists():
+                    path_suffix += 1
+                    destination_folder_path = self.presets_directory_path / (str(Path(filepath).stem) + f'_{path_suffix}')
+
+                try:
+                    # Create the folder
+                    destination_folder_path.mkdir()
+                    self.logger.info(f'Created folder for presets: {destination_folder_path}')
+
+                    #
+                    # Write the presets to disk
+                    #
+
+                    # The preset files will end in a number, starting with 1.
+                    # The numbers will be zero-padded so their filenames will
+                    # sort correctly.
+                    #
+                    num_digits = len(str(len(nymphes_presets)))
+                    for i in range(len(nymphes_presets)):
+                        nymphes_preset = nymphes_presets[i]
+                        try:
+                            destination_filepath = destination_folder_path / f'{str(Path(filepath).stem)}_{str(i+1).zfill(num_digits)}.txt'
+                            nymphes_preset.save_preset_file(destination_filepath)
+                            self.logger.info(f'Wrote preset file to disk: {destination_filepath}')
+                        except Exception as e1:
+                            self.logger.warning(f'Failed to store nymphes preset as a file: {destination_filepath}, {e}')
+
+                    # Load the first preset
+                    self.load_file(destination_folder_path / f'{str(Path(filepath).stem)}_{str(i+1).zfill(num_digits)}.txt')
+
+                except Exception as e:
+                    self.logger.warning(f'Failed to create folder for presets at {destination_folder_path}')
+
+
+
+
+
+
+
+
+
+
+
+                # # Load the preset file as the current preset
+                # self._curr_preset_object =
+                #
+                # # Reset the unsaved changes flag
+                # self._unsaved_changes = False
+                #
+                # # Notify Client
+                # self.add_notification(
+                #     PresetEvents.loaded_file.value,
+                #     str(filepath)
+                # )
+                #
+                # # Send all parameters to the client
+                # self.send_current_preset_notifications()
+                #
+                # # Send the preset to Nymphes and connected MIDI Output ports
+                # self._preset_snapshot_needed = True
+
 
     def load_init_file(self):
         """
@@ -1728,7 +1809,7 @@ class NymphesMIDI:
                     self.add_notification('mod_wheel', msg.value)
 
                     # Log the message
-                    self.logger.debug(f'{input_port_name}: mod_wheel', msg.value)
+                    self.logger.debug(f'{input_port_name}: mod_wheel: {msg.value}')
 
                 elif msg.control == 30:
                     #
