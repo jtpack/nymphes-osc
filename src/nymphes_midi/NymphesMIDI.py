@@ -1470,11 +1470,11 @@ class NymphesMIDI:
 
                         if msg.value == 0:
                             self._curr_preset_type = 'user'
-                            self.logger.info('Received Bank MSB 0 (User Bank) from Nymphes')
+                            self.logger.debug('Received Bank MSB 0 (User Bank) from Nymphes')
 
                         elif msg.value == 1:
                             self._curr_preset_type = 'factory'
-                            self.logger.info('Received Bank MSB 1 (Factory Bank) from Nymphes')
+                            self.logger.debug('Received Bank MSB 1 (Factory Bank) from Nymphes')
 
                         else:
                             self._curr_preset_type = None
@@ -1589,7 +1589,7 @@ class NymphesMIDI:
                 # Store them
                 self._curr_preset_bank_and_number = bank_name, preset_number
 
-                self.logger.info(
+                self.logger.debug(
                     f'Received Program Change Message from Nymphes (Bank {bank_name}, Preset {preset_number})')
 
                 # Send a notification that Nymphes has loaded a preset
@@ -1628,8 +1628,6 @@ class NymphesMIDI:
         port that received the message
         :return:
         """
-        self.logger.debug(f'Received from MIDI Input Port {input_port_name}: {str(msg)}')
-
         #
         # MIDI Feedback Suppression (if enabled)
         #
@@ -1651,6 +1649,8 @@ class NymphesMIDI:
         #
         # Handle the message
         #
+
+        self.logger.debug(f'Received from MIDI Input Port {input_port_name}: {str(msg)}')
 
         if msg.type == 'sysex':
             # Try to interpret this SYSEX message as a Nymphes preset
@@ -1709,11 +1709,11 @@ class NymphesMIDI:
 
                     if msg.value == 0:
                         self._curr_preset_type = 'user'
-                        self.logger.info(f'Received Bank MSB 0 (User Bank) from {input_port_name}')
+                        self.logger.debug(f'Received Bank MSB 0 (User Bank) from {input_port_name}')
 
                     elif msg.value == 1:
                         self._curr_preset_type = 'factory'
-                        self.logger.info(f'Received Bank MSB 1 (Factory Bank) from {input_port_name}')
+                        self.logger.debug(f'Received Bank MSB 1 (Factory Bank) from {input_port_name}')
 
                     else:
                         self._curr_preset_type = None
@@ -1843,7 +1843,7 @@ class NymphesMIDI:
                 # Store them
                 self._curr_preset_bank_and_number = bank_name, preset_number
 
-                self.logger.info(
+                self.logger.debug(
                     f'Received Program Change Message from {input_port_name} (Bank {bank_name}, Preset {preset_number})')
 
                 # Send a notification that Nymphes has loaded a preset
