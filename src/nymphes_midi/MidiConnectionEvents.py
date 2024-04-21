@@ -10,13 +10,11 @@ class MidiConnectionEvents(Enum):
 
     nymphes_connected = 'nymphes_connected'
     nymphes_disconnected = 'nymphes_disconnected'
-    
+
     midi_input_detected = 'midi_input_detected'
     midi_input_no_longer_detected = 'midi_input_no_longer_detected'
     midi_input_connected = 'midi_input_connected'
     midi_input_disconnected = 'midi_input_disconnected'
-    midi_input_enabled_midi_feedback_suppression = 'midi_input_enabled_midi_feedback_suppression'
-    midi_input_disabled_midi_feedback_suppression = 'midi_input_disabled_midi_feedback_suppression'
 
     midi_output_detected = 'midi_output_detected'
     midi_output_no_longer_detected = 'midi_output_no_longer_detected'
@@ -24,6 +22,10 @@ class MidiConnectionEvents(Enum):
     midi_output_disconnected = 'midi_output_disconnected'
 
     nymphes_midi_channel_changed = 'nymphes_midi_channel_changed'
+
+    midi_feedback_suppression_enabled = 'midi_feedback_suppression_enabled'
+    midi_feedback_suppression_disabled = 'midi_feedback_suppression_disabled'
+    midi_feedback_detected = 'midi_feedback_detected'
 
     @staticmethod
     def all_values():
@@ -37,22 +39,24 @@ class MidiConnectionEvents(Enum):
 
             MidiConnectionEvents.nymphes_midi_output_detected.value,
             MidiConnectionEvents.nymphes_midi_output_no_longer_detected.value,
-            
+
             MidiConnectionEvents.nymphes_connected.value,
             MidiConnectionEvents.nymphes_disconnected.value,
-            
+
             MidiConnectionEvents.midi_input_detected.value,
             MidiConnectionEvents.midi_input_no_longer_detected.value,
             MidiConnectionEvents.midi_input_connected.value,
             MidiConnectionEvents.midi_input_disconnected.value,
-            MidiConnectionEvents.midi_input_enabled_midi_feedback_suppression.value,
-            MidiConnectionEvents.midi_input_disabled_midi_feedback_suppression.value,
 
             MidiConnectionEvents.midi_output_detected.value,
             MidiConnectionEvents.midi_output_no_longer_detected.value,
             MidiConnectionEvents.midi_output_connected.value,
             MidiConnectionEvents.midi_output_disconnected.value,
 
-            MidiConnectionEvents.nymphes_midi_channel_changed
+            MidiConnectionEvents.nymphes_midi_channel_changed,
+
+            MidiConnectionEvents.midi_feedback_suppression_enabled.value,
+            MidiConnectionEvents.midi_feedback_suppression_disabled.value,
+            MidiConnectionEvents.midi_feedback_detected.value
 
         ]
