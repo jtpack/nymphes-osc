@@ -303,6 +303,14 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Type: String
     - Description: The name of the port (as reported by mido.get_input_names())
 
+#### /enable_midi_feedback_suppression
+- Description: Enable MIDI feedback suppression, ignoring any received copies of MIDI messages recently sent to MIDI output ports
+- Arguments: None
+
+#### /disable_midi_feedback_suppression
+- Description: Disable MIDI feedback suppression
+- Arguments: None
+
 #### /connect_midi_output
 - Description: Connect the specified MIDI Output Port. Messages from Nymphes and software clients will be passed on to connected MIDI Output Ports.
 - Arguments:
@@ -1207,6 +1215,18 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
   - 0
     - Type: String
     - Description: The name of the MIDI input port
+
+#### /midi_feedback_suppression_enabled
+- Description: MIDI feedback suppression has been enabled, ignoring received copies of MIDI messages that were recently sent to MIDI output ports
+- Arguments: None
+
+#### /midi_feedback_suppression_disabled
+- Description: MIDI feedback suppression has been disabled.
+- Arguments: None
+
+#### /midi_feedback_detected
+- Description: MIDI feedback has been detected. Ie: A copy of a recently-sent MIDI messages has been received.
+- Arguments: None
 
 ### MIDI Output Ports
 

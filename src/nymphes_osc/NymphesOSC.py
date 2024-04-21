@@ -233,6 +233,16 @@ class NymphesOSC:
             needs_reply_address=True
         )
         self._dispatcher.map(
+            '/enable_midi_feedback_suppression',
+            self._on_osc_message_enable_midi_feedback_suppression,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/disable_midi_feedback_suppression',
+            self._on_osc_message_disable_midi_feedback_suppression,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
             '/connect_midi_output',
             self._on_osc_message_connect_midi_output,
             needs_reply_address=True
@@ -384,6 +394,17 @@ class NymphesOSC:
         for port_name in self._nymphes_midi.connected_midi_outputs:
             msg = OscMessageBuilder(address='/midi_output_connected')
             msg.add_arg(port_name)
+            msg = msg.build()
+            client.send(msg)
+
+        # Send notification about whether MIDI feedback suppression
+        # is enabled
+        if self._nymphes_midi.midi_feedback_suppression_enabled:
+            msg = OscMessageBuilder(address='/midi_feedback_suppression_enabled')
+            msg = msg.build()
+            client.send(msg)
+        else:
+            msg = OscMessageBuilder(address='/midi_feedback_suppression_disabled')
             msg = msg.build()
             client.send(msg)
 
@@ -682,7 +703,7 @@ class NymphesOSC:
                 self._nymphes_midi.load_file(filepath=filepath)
 
             elif filepath.suffix == '.syx':
-                # This may be a sysex file containing a preset
+                # This may be a sysex file containing one or more presets
                 self._nymphes_midi.load_syx_file(filepath=filepath)
 
             else:
@@ -965,6 +986,20 @@ class NymphesOSC:
             status = f'Failed to disconnect MIDI Input port'
             self._send_error_message_to_osc_clients(status, str(e))
             self.logger.warning(f'{status}: {e}')
+
+    def _on_osc_message_enable_midi_feedback_suppression(self, sender_ip, address, *args):
+        """
+        Enable MIDI feedback suppression
+        """
+        self.logger.info(f'Received {address} from {sender_ip[0]}')
+        self._nymphes_midi.enable_midi_feedback_suppression()
+
+    def _on_osc_message_disable_midi_feedback_suppression(self, sender_ip, address, *args):
+        """
+        Disable MIDI feedback suppression
+        """
+        self.logger.info(f'Received {address} from {sender_ip[0]}')
+        self._nymphes_midi.disable_midi_feedback_suppression()
 
     def _on_osc_message_connect_midi_output(self, sender_ip, address, *args):
         """
