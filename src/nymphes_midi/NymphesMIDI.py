@@ -1118,35 +1118,6 @@ class NymphesMIDI:
                 except Exception as e:
                     self.logger.warning(f'Failed to create folder for presets at {destination_folder_path}')
 
-
-
-
-
-
-
-
-
-
-
-                # # Load the preset file as the current preset
-                # self._curr_preset_object =
-                #
-                # # Reset the unsaved changes flag
-                # self._unsaved_changes = False
-                #
-                # # Notify Client
-                # self.add_notification(
-                #     PresetEvents.loaded_file.value,
-                #     str(filepath)
-                # )
-                #
-                # # Send all parameters to the client
-                # self.send_current_preset_notifications()
-                #
-                # # Send the preset to Nymphes and connected MIDI Output ports
-                # self._preset_snapshot_needed = True
-
-
     def load_init_file(self):
         """
         Load init.txt
