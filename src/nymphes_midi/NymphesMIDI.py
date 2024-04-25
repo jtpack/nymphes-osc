@@ -190,9 +190,13 @@ class NymphesMIDI:
         # MIDI CC.
         #
 
-        # Once a preset has been loaded, this will be
-        # either 'user' or 'factory'
-        self._curr_preset_type = None
+        # When a preset is been loaded, this will be
+        # either 'user' or 'factory'. We default to
+        # 'user', as it is possible that a program
+        # change will come in without a bank MSB
+        # messages to set the bank. In this case we
+        # guess that it is the last one used.
+        self._curr_preset_type = 'user'
 
         # Once a preset has been loaded, this will contain
         # the bank name ('A' to 'G') and preset number (1 to 7)

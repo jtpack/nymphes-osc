@@ -2,7 +2,7 @@
   - When enabled (the default), MIDI inputs ignore any copies they receive of MIDI messages recently sent to connected MIDI outputs
     - By default, "recent" is defined as 0.1 seconds
 - Added support for .syx files that contain more than one Nymphes preset (as separate SYSEX messages)
-
+- Fixed bug that would cause Exception if a program change message is received from a MIDI input port without ever having received a bank MSB message to change the current preset type from None.
 
 ## v0.1.8-beta
 
