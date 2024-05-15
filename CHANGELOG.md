@@ -3,6 +3,11 @@
     - By default, "recent" is defined as 0.1 seconds
 - Added support for .syx files that contain more than one Nymphes preset (as separate SYSEX messages)
 - Fixed bug that would cause Exception if a program change message is received from a MIDI input port without ever having received a bank MSB message to change the current preset type from None.
+- Added reception of polyphonic aftertouch messages
+- Fixed bug where MIDI CC messages with incorrect ranges for a Nymphes preset parameter would raise an Exception
+- Fixed bug in legato MIDI CC handling (CC 68):
+  - Nymphes uses MIDI CC value 127 to enable legato, but protobuf preset has it as bool, so its values are 0 or 1
+  - Now we handle legato specially
 
 ## v0.1.8-beta
 

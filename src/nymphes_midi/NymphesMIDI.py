@@ -412,7 +412,14 @@ class NymphesMIDI:
         # Get the type for this parameter
         param_type = NymphesPreset.type_for_param_name(param_name)
 
-        if param_type == int:
+        if param_name == 'osc.legato.value':
+            # Handle legato differently than other parameters, as its protobuf value
+            # range is only 0 to 1, while Nymphes uses MIDI values of 0 or 127.
+            #
+            type_string = 'int_param'
+            value = 127 if self.curr_preset_object.get_int(param_name) == 1 else 0
+
+        elif param_type == int:
             type_string = 'int_param'
             value = self.curr_preset_object.get_int(param_name)
 
@@ -1841,28 +1848,64 @@ class NymphesMIDI:
                         # This is a non mod-matrix parameter
                         #
 
-                        # Set the parameter value in the current preset
-                        try:
-                            if self._curr_preset_object.set_int(param_names_for_this_cc[0], msg.value):
-                                #
-                                # This was a new value for the parameter
-                                #
+                        if param_names_for_this_cc[0] == 'osc.legato.value':
+                            # Legato needs to be handled differently than the other parameters, as
+                            # it has a MIDI value range of 0 or 127 but is stored inside the protobuf
+                            # preset as 0 or 1
+                            #
 
-                                # If this was the first new value since loading
-                                # or saving a preset, then send an unsaved changes
-                                # notification
-                                if not self._unsaved_changes:
-                                    self._unsaved_changes = True
-                                    self.add_notification(PresetEvents.unsaved_changes.value)
+                            # Set the parameter value in the current preset
+                            if msg.value in [0, 127]:
+                                try:
+                                    if self._curr_preset_object.set_int(param_names_for_this_cc[0], 1 if msg.value == 127 else 0):
+                                        #
+                                        # This was a new value for the parameter
+                                        #
 
-                                # Send a notification
-                                self.add_curr_preset_param_notification(param_names_for_this_cc[0])
+                                        # If this was the first new value since loading
+                                        # or saving a preset, then send an unsaved changes
+                                        # notification
+                                        if not self._unsaved_changes:
+                                            self._unsaved_changes = True
+                                            self.add_notification(PresetEvents.unsaved_changes.value)
 
-                                # Log the message
-                                self.logger.debug(f'{input_port_name}: {param_names_for_this_cc[0]}: {msg.value}')
+                                        # Send a notification
+                                        self.add_curr_preset_param_notification(param_names_for_this_cc[0])
 
-                        except Exception as e:
-                            self.logger.warning(f'Invalid value received from {input_port_name} for {param_names_for_this_cc[0]}: {msg.value} ({e})')
+                                        # Log the message
+                                        self.logger.debug(f'{input_port_name}: {param_names_for_this_cc[0]}: {msg.value}')
+
+                                except Exception as e:
+                                    self.logger.warning(
+                                        f'Invalid value received from {input_port_name} for {param_names_for_this_cc[0]}: {msg.value} ({e})')
+
+                        else:
+                            # This is a normal preset parameter, with a protobuf value range
+                            # matching its MIDI value range.
+                            #
+
+                            # Set the parameter value in the current preset
+                            try:
+                                if self._curr_preset_object.set_int(param_names_for_this_cc[0], msg.value):
+                                    #
+                                    # This was a new value for the parameter
+                                    #
+
+                                    # If this was the first new value since loading
+                                    # or saving a preset, then send an unsaved changes
+                                    # notification
+                                    if not self._unsaved_changes:
+                                        self._unsaved_changes = True
+                                        self.add_notification(PresetEvents.unsaved_changes.value)
+
+                                    # Send a notification
+                                    self.add_curr_preset_param_notification(param_names_for_this_cc[0])
+
+                                    # Log the message
+                                    self.logger.debug(f'{input_port_name}: {param_names_for_this_cc[0]}: {msg.value}')
+
+                            except Exception as e:
+                                self.logger.warning(f'Invalid value received from {input_port_name} for {param_names_for_this_cc[0]}: {msg.value} ({e})')
 
                     else:
                         #
