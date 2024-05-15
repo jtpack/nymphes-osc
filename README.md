@@ -1271,6 +1271,19 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 - Description: A channel aftertouch MIDI message has been received from a MIDI Input Port
 - Arguments:
   - 0
+    - Description: Aftertouch Amount
+    - Type: Int
+    - Range: 0 to 127
+
+#### /poly_aftertouch
+- Description: A poly aftertouch MIDI message has been received from a MIDI Input Port
+- Arguments:
+  - 0
+    - Description: MIDI Channel
+    - Type: Int
+    - Range: 1 to 16
+  - 1
+    - Description: Aftertouch Amount
     - Type: Int
     - Range: 0 to 127
 

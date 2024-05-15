@@ -1573,27 +1573,31 @@ class NymphesMIDI:
                             #
 
                             # Set the parameter value in the current preset
-                            was_new_value = self._curr_preset_object.set_int(param_names_for_this_cc[0], msg.value)
-                            if was_new_value or self._waiting_for_preset_data_from_nymphes:
-                                #
-                                # This was a new value for the parameter,
-                                # or we are currently not ignoring duplicate
-                                # MIDI CC messages because we are waiting for
-                                # preset data from Nymphes
-                                #
+                            try:
+                                was_new_value = self._curr_preset_object.set_int(param_names_for_this_cc[0], msg.value)
+                                if was_new_value or self._waiting_for_preset_data_from_nymphes:
+                                    #
+                                    # This was a new value for the parameter,
+                                    # or we are currently not ignoring duplicate
+                                    # MIDI CC messages because we are waiting for
+                                    # preset data from Nymphes
+                                    #
 
-                                # If this was the first new value since loading
-                                # or saving a preset, then send an unsaved changes
-                                # notification
-                                if not self._unsaved_changes:
-                                    self._unsaved_changes = True
-                                    self.add_notification(PresetEvents.unsaved_changes.value)
+                                    # If this was the first new value since loading
+                                    # or saving a preset, then send an unsaved changes
+                                    # notification
+                                    if not self._unsaved_changes:
+                                        self._unsaved_changes = True
+                                        self.add_notification(PresetEvents.unsaved_changes.value)
 
-                                # Send a notification
-                                self.add_notification('int_param', (param_names_for_this_cc[0], msg.value))
+                                    # Send a notification
+                                    self.add_notification('int_param', (param_names_for_this_cc[0], msg.value))
 
-                                # Log the message
-                                self.logger.debug(f'{param_names_for_this_cc[0]}: {msg.value}')
+                                    # Log the message
+                                    self.logger.debug(f'{param_names_for_this_cc[0]}: {msg.value}')
+
+                            except Exception as e:
+                                self.logger.warning(f'Invalid value received from Nymphes for {param_names_for_this_cc[0]}: {msg.value} ({e})')
 
                         else:
                             #
@@ -1611,27 +1615,31 @@ class NymphesMIDI:
                                 if NymphesPreset.target_for_param(param_name) == curr_mod_source_name:
 
                                     # Set the parameter value in the current preset
-                                    was_new_value = self._curr_preset_object.set_int(param_name, msg.value)
-                                    if was_new_value or self._waiting_for_preset_data_from_nymphes:
-                                        #
-                                        # This was a new value for the parameter,
-                                        # or we are currently not ignoring duplicate
-                                        # MIDI CC messages because we are waiting for
-                                        # preset data from Nymphes
-                                        #
+                                    try:
+                                        was_new_value = self._curr_preset_object.set_int(param_name, msg.value)
+                                        if was_new_value or self._waiting_for_preset_data_from_nymphes:
+                                            #
+                                            # This was a new value for the parameter,
+                                            # or we are currently not ignoring duplicate
+                                            # MIDI CC messages because we are waiting for
+                                            # preset data from Nymphes
+                                            #
 
-                                        # If this was the first new value since loading
-                                        # or saving a preset, then send an unsaved changes
-                                        # notification
-                                        if not self._unsaved_changes:
-                                            self._unsaved_changes = True
-                                            self.add_notification(PresetEvents.unsaved_changes.value)
+                                            # If this was the first new value since loading
+                                            # or saving a preset, then send an unsaved changes
+                                            # notification
+                                            if not self._unsaved_changes:
+                                                self._unsaved_changes = True
+                                                self.add_notification(PresetEvents.unsaved_changes.value)
 
-                                        # Send a notification
-                                        self.add_notification('int_param', (param_name, msg.value))
+                                            # Send a notification
+                                            self.add_notification('int_param', (param_name, msg.value))
 
-                                        # Log the message
-                                        self.logger.debug(f'{param_name}: {msg.value}')
+                                            # Log the message
+                                            self.logger.debug(f'{param_name}: {msg.value}')
+
+                                    except Exception as e:
+                                        self.logger.warning(f'Invalid value received from Nymphes for {param_name}: {msg.value} ({e})')
 
         elif msg.type == 'program_change':
             if msg.channel == self._nymphes_midi_channel - 1:
@@ -1834,23 +1842,27 @@ class NymphesMIDI:
                         #
 
                         # Set the parameter value in the current preset
-                        if self._curr_preset_object.set_int(param_names_for_this_cc[0], msg.value):
-                            #
-                            # This was a new value for the parameter
-                            #
+                        try:
+                            if self._curr_preset_object.set_int(param_names_for_this_cc[0], msg.value):
+                                #
+                                # This was a new value for the parameter
+                                #
 
-                            # If this was the first new value since loading
-                            # or saving a preset, then send an unsaved changes
-                            # notification
-                            if not self._unsaved_changes:
-                                self._unsaved_changes = True
-                                self.add_notification(PresetEvents.unsaved_changes.value)
+                                # If this was the first new value since loading
+                                # or saving a preset, then send an unsaved changes
+                                # notification
+                                if not self._unsaved_changes:
+                                    self._unsaved_changes = True
+                                    self.add_notification(PresetEvents.unsaved_changes.value)
 
-                            # Send a notification
-                            self.add_curr_preset_param_notification(param_names_for_this_cc[0])
+                                # Send a notification
+                                self.add_curr_preset_param_notification(param_names_for_this_cc[0])
 
-                            # Log the message
-                            self.logger.debug(f'{input_port_name}: {param_names_for_this_cc[0]}: {msg.value}')
+                                # Log the message
+                                self.logger.debug(f'{input_port_name}: {param_names_for_this_cc[0]}: {msg.value}')
+
+                        except Exception as e:
+                            self.logger.warning(f'Invalid value received from {input_port_name} for {param_names_for_this_cc[0]}: {msg.value} ({e})')
 
                     else:
                         #
@@ -1868,23 +1880,27 @@ class NymphesMIDI:
                             if NymphesPreset.target_for_param(param_name) == curr_mod_source_name:
 
                                 # Set the parameter value in the current preset
-                                if self._curr_preset_object.set_int(param_name, msg.value):
-                                    #
-                                    # This was a new value for the parameter
-                                    #
+                                try:
+                                    if self._curr_preset_object.set_int(param_name, msg.value):
+                                        #
+                                        # This was a new value for the parameter
+                                        #
 
-                                    # If this was the first new value since loading
-                                    # or saving a preset, then send an unsaved changes
-                                    # notification
-                                    if not self._unsaved_changes:
-                                        self._unsaved_changes = True
-                                        self.add_notification(PresetEvents.unsaved_changes.value)
+                                        # If this was the first new value since loading
+                                        # or saving a preset, then send an unsaved changes
+                                        # notification
+                                        if not self._unsaved_changes:
+                                            self._unsaved_changes = True
+                                            self.add_notification(PresetEvents.unsaved_changes.value)
 
-                                    # Send a notification
-                                    self.add_curr_preset_param_notification(param_name)
+                                        # Send a notification
+                                        self.add_curr_preset_param_notification(param_name)
 
-                                    # Log the message
-                                    self.logger.debug(f'{input_port_name}: {param_name}: {msg.value}')
+                                        # Log the message
+                                        self.logger.debug(f'{input_port_name}: {param_name}: {msg.value}')
+
+                                except Exception as e:
+                                    self.logger.warning(f'Invalid value received from {input_port_name} for {param_name}: {msg.value} ({e})')
 
         elif msg.type == 'program_change':
             if msg.channel == self._nymphes_midi_channel - 1:
@@ -1932,6 +1948,13 @@ class NymphesMIDI:
 
             # Log the message
             self.logger.debug(f'{input_port_name}: aftertouch: {msg.value}')
+
+        elif msg.type == 'polytouch':
+            # Send poly aftertouch to clients so they can display it to the user
+            self.add_notification('poly_aftertouch', (msg.channel+1, msg.value))
+
+            # Log the message
+            self.logger.debug(f'{input_port_name}: poly_aftertouch: {msg.channel+1}, {msg.value}')
 
         # Send a copy of the message to Nymphes
         self._send_to_nymphes(msg)
