@@ -659,7 +659,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -691,7 +691,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -728,7 +728,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -762,7 +762,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -798,7 +798,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -826,7 +826,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -860,7 +860,7 @@ class NymphesOSC:
         :return:
         """
         try:
-            self.logger.info(f'Received {address} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} from client at {sender_ip[0]}')
             self._nymphes_midi.load_init_file()
 
         except Exception as e:
@@ -877,7 +877,7 @@ class NymphesOSC:
         :param *args: The OSC message's arguments
         :return:
         """
-        self.logger.info(f'Received {address} from {sender_ip[0]}')
+        self.logger.info(f'Received {address} from client at {sender_ip[0]}')
 
         # Send the dump request
         self._nymphes_midi.request_preset_dump()
@@ -892,7 +892,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -919,7 +919,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -949,7 +949,7 @@ class NymphesOSC:
         :return:
         """
         try:
-            self.logger.info(f'Received {address} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} from client at {sender_ip[0]}')
 
             # Disconnect Nymphes ports
             self._nymphes_midi.disconnect_nymphes()
@@ -970,7 +970,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -991,14 +991,14 @@ class NymphesOSC:
         """
         Enable MIDI feedback suppression
         """
-        self.logger.info(f'Received {address} from {sender_ip[0]}')
+        self.logger.info(f'Received {address} from client at {sender_ip[0]}')
         self._nymphes_midi.enable_midi_feedback_suppression()
 
     def _on_osc_message_disable_midi_feedback_suppression(self, sender_ip, address, *args):
         """
         Disable MIDI feedback suppression
         """
-        self.logger.info(f'Received {address} from {sender_ip[0]}')
+        self.logger.info(f'Received {address} from client at {sender_ip[0]}')
         self._nymphes_midi.disable_midi_feedback_suppression()
 
     def _on_osc_message_connect_midi_output(self, sender_ip, address, *args):
@@ -1011,7 +1011,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -1038,7 +1038,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -1066,7 +1066,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -1093,7 +1093,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -1119,7 +1119,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -1146,7 +1146,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
             return
 
         try:
