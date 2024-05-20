@@ -1,3 +1,5 @@
+## v0.1.9-beta
+
 - Added MIDI feedback suppression, to prevent feedback from connected MIDI outputs and inputs
   - When enabled (the default), MIDI inputs ignore any copies they receive of MIDI messages recently sent to connected MIDI outputs
     - By default, "recent" is defined as 0.1 seconds
@@ -8,6 +10,9 @@
 - Fixed bug in legato MIDI CC handling (CC 68):
   - Nymphes uses MIDI CC value 127 to enable legato, but protobuf preset has it as bool, so its values are 0 or 1
   - Now we handle legato specially
+- Updated version in pyproject.toml
+  - Wasn't doing this before
+
 
 ## v0.1.8-beta
 
