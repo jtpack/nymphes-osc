@@ -1099,7 +1099,7 @@ class NymphesOSC:
         try:
             value = args[0]
 
-            self.logger.info(f'Received {address} {value} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {value} from client at {sender_ip[0]}')
 
             self._nymphes_midi.set_mod_wheel(value)
 
@@ -1125,7 +1125,7 @@ class NymphesOSC:
         try:
             value = args[0]
 
-            self.logger.info(f'Received {address} {value} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {value} from client at {sender_ip[0]}')
 
             self._nymphes_midi.set_channel_aftertouch(value)
 
@@ -1152,7 +1152,7 @@ class NymphesOSC:
         try:
             value = args[0]
 
-            self.logger.info(f'Received {address} {value} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {value} from client at {sender_ip[0]}')
 
             self._nymphes_midi.set_sustain_pedal(value)
 
@@ -1184,13 +1184,13 @@ class NymphesOSC:
 
             # Make sure that an argument was supplied
             if len(args) == 0:
-                self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+                self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
                 return
 
             # Get the value
             value = args[0]
 
-            self.logger.info(f'Received {address} {value} from {sender_ip[0]}')
+            self.logger.info(f'Received {address} {value} from client at {sender_ip[0]}')
 
             if isinstance(value, int):
                 try:
@@ -1223,7 +1223,7 @@ class NymphesOSC:
             # This is not a Nymphes parameter
             #
             # Send status update and log it
-            status = f'Unknown OSC message received ({address} from {sender_ip[0]})'
+            status = f'Unknown OSC message received ({address} from client at {sender_ip[0]})'
             self._send_status_to_osc_clients(status)
             self.logger.warning(status)
 
