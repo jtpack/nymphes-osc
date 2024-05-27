@@ -1,3 +1,10 @@
+## v0.2.0-beta
+
+- Fixed bug where /loaded_preset_dump_from_midi_input_port and /saved_preset_dump_from_midi_input_port_to_preset OSC messages were not being sent with the MIDI port name
+- Added virtual MIDI ports on macOS so that DAWs can directly communicate via MIDI with nymphes-osc
+- Added separate feedback suppression time for SYSEX messages, as they appear to sometimes be echoed back after a very long delay (many seconds) 
+
+
 ## v0.1.9-beta
 
 - Added MIDI feedback suppression, to prevent feedback from connected MIDI outputs and inputs
