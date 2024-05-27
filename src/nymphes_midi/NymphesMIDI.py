@@ -168,7 +168,10 @@ class NymphesMIDI:
         self._midi_feedback_suppression_enabled = True
 
         # How long to keep recently-sent MIDI messages
-        self._midi_feedback_suppression_messages_list_retention_time_sec = 0.5
+        self._midi_feedback_suppression_messages_list_retention_time_sec = 0.1
+
+        # SYSEX messages can take a lot longer to be echoed back
+        self._midi_feedback_suppression_messages_list_sysex_retention_time_sec = 60.0
 
         # List containing MIDI messages recently sent to connected
         # MIDI output ports.
@@ -1473,7 +1476,11 @@ class NymphesMIDI:
         # the recently-sent messages list with an expiry time
         #
         if self._midi_feedback_suppression_enabled:
-            msg.time = time.time() + self._midi_feedback_suppression_messages_list_retention_time_sec
+            if msg.type != 'sysex':
+                msg.time = time.time() + self._midi_feedback_suppression_messages_list_retention_time_sec
+            else:
+                msg.time = time.time() + self._midi_feedback_suppression_messages_list_sysex_retention_time_sec
+
             self._midi_feedback_suppression_messages_list.append(msg)
 
     def _on_message_from_nymphes(self, msg):
@@ -1737,6 +1744,7 @@ class NymphesMIDI:
         #
 
         if self._midi_feedback_suppression_enabled:
+            num_messages = len(self._midi_feedback_suppression_messages_list)
             for recent_msg in self._midi_feedback_suppression_messages_list:
                 if msg.bytes() == recent_msg.bytes():
                     #
