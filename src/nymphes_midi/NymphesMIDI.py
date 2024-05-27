@@ -5,6 +5,7 @@ from pathlib import Path
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+import platform
 import mido
 import mido.backends.rtmidi
 from rtmidi import InvalidPortError
@@ -116,6 +117,16 @@ class NymphesMIDI:
         self._midi_port_scan_interval_sec = 0.5
         self._midi_port_scan_last_timestamp = None
 
+        # Virtual MIDI ports (macOS)
+        self.should_create_virtual_midi_ports = True if platform.system() == 'Darwin' else False
+
+        if self.should_create_virtual_midi_ports:
+            self._virtual_midi_input_port_object = mido.open_input('Blue and Pink Synth Editor', virtual=True)
+            self._virtual_midi_output_port_object = mido.open_output('Blue and Pink Synth Editor', virtual=True)
+        else:
+            self._virtual_midi_input_port_object = None
+            self._virtual_midi_output_port_object = None
+
         # Names of Detected Non-Nymphes MIDI Ports
         self._detected_midi_inputs = []
         self._detected_midi_outputs = []
@@ -144,6 +155,10 @@ class NymphesMIDI:
         # When a MIDI output port is disconnected its queue is deleted.
         self._midi_message_send_queues_dict = {}
 
+        # Add a queue for the virtual output port (if it exists)
+        if self.should_create_virtual_midi_ports:
+            self._midi_message_send_queues_dict[self._virtual_midi_output_port_object] = Queue()
+
         #
         # MIDI Feedback Suppression
         #
@@ -153,7 +168,7 @@ class NymphesMIDI:
         self._midi_feedback_suppression_enabled = True
 
         # How long to keep recently-sent MIDI messages
-        self._midi_feedback_suppression_messages_list_retention_time_sec = 0.1
+        self._midi_feedback_suppression_messages_list_retention_time_sec = 0.5
 
         # List containing MIDI messages recently sent to connected
         # MIDI output ports.
@@ -457,6 +472,11 @@ class NymphesMIDI:
             if self.nymphes_connected:
                 for midi_message in self._nymphes_midi_input_port_object.iter_pending():
                     self._on_message_from_nymphes(midi_message)
+
+            # Handle incoming MIDI messages from the virtual MIDI input port
+            if self._virtual_midi_input_port_object is not None:
+                for midi_message in self._virtual_midi_input_port_object.iter_pending():
+                    self._on_message_from_midi_input_port(midi_message, self._virtual_midi_input_port_object.name)
 
             # Handle Incoming MIDI Messages from Connected MIDI input ports
             #
@@ -1427,7 +1447,7 @@ class NymphesMIDI:
         :param port_object: A mido output port object
         :return:
         """
-        if port_object not in self._connected_midi_output_port_objects:
+        if port_object != self._virtual_midi_output_port_object and port_object not in self._connected_midi_output_port_objects:
             raise Exception(f'Invalid MIDI output port object: {port_object} (There is no message send queue for this port)')
 
         # Add the message to the queue for the port
@@ -1441,6 +1461,10 @@ class NymphesMIDI:
         :param msg: A mido MIDI message
         :return:
         """
+        # Send to the virtual MIDI output port if it exists
+        if self._virtual_midi_output_port_object is not None:
+            self._send_to_midi_output_port(msg, self._virtual_midi_output_port_object)
+
         # Send to all connected MIDI ports
         for port_object in self._connected_midi_output_port_objects:
             self._send_to_midi_output_port(msg, port_object)
@@ -1699,6 +1723,15 @@ class NymphesMIDI:
         port that received the message
         :return:
         """
+        # If this message was received by the virtual input port,
+        # then use the name 'Virtual Input Port' when logging rather
+        # than its actual name ('Blue and Pink Synth Editor') which
+        # is confusing.
+        #
+        if self._virtual_midi_input_port_object is not None:
+            if input_port_name == self._virtual_midi_input_port_object.name:
+                input_port_name = 'Virtual Input Port'
+
         #
         # MIDI Feedback Suppression (if enabled)
         #
@@ -1737,7 +1770,10 @@ class NymphesMIDI:
 
                     # Send a notification that the current preset parameters
                     # were received from a MIDI input port
-                    self.add_notification(PresetEvents.loaded_preset_dump_from_midi_input_port.value)
+                    self.add_notification(
+                        PresetEvents.loaded_preset_dump_from_midi_input_port.value,
+                        (input_port_name, *preset_key)
+                    )
 
                     # Send notifications for all preset parameters
                     for param_name in NymphesPreset.all_param_names():
@@ -1761,7 +1797,7 @@ class NymphesMIDI:
                     # Send a notification
                     self.add_notification(
                         PresetEvents.saved_preset_dump_from_midi_input_port_to_preset.value,
-                        preset_key
+                        (input_port_name, *preset_key)
                     )
 
             except Exception as e:
@@ -2222,6 +2258,11 @@ class NymphesMIDI:
             # Perhaps this is a bug in mido.
             port_names = [port_name for port_name in port_names if port_name is not None]
 
+            # Remove the virtual input port if it exists
+            if self._virtual_midi_input_port_object is not None:
+                if self._virtual_midi_input_port_object.name in port_names:
+                    port_names.remove(self._virtual_midi_input_port_object.name)
+
             #
             # Create separate lists of nymphes
             # and non-nymphes port names
@@ -2301,6 +2342,11 @@ class NymphesMIDI:
             # A recently-disconnected port may be added as None.
             # Perhaps this is a bug in mido.
             port_names = [port_name for port_name in port_names if port_name is not None]
+
+            # Remove the virtual output port if it exists
+            if self._virtual_midi_output_port_object is not None:
+                if self._virtual_midi_output_port_object.name in port_names:
+                    port_names.remove(self._virtual_midi_output_port_object.name)
 
             #
             # Create separate lists of nymphes

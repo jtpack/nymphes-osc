@@ -1,3 +1,5 @@
+- Fixed bug where /loaded_preset_dump_from_midi_input_port and /saved_preset_dump_from_midi_input_port_to_preset OSC messages were not being sent with the MIDI port name
+
 ## v0.1.9-beta
 
 - Added MIDI feedback suppression, to prevent feedback from connected MIDI outputs and inputs
