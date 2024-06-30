@@ -1,3 +1,10 @@
+## v0.2.1-beta
+
+- Created new preset file version (v2.0.0), which removes all rows that aren't actual preset parameters
+  - We weren't doing anything with those rows anyways
+  - I didn't want people to who edit those values to be frustrated when nothing happens
+
+
 ## v0.2.0-beta
 
 - Fixed bug where /loaded_preset_dump_from_midi_input_port and /saved_preset_dump_from_midi_input_port_to_preset OSC messages were not being sent with the MIDI port name

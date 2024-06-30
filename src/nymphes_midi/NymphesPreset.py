@@ -5,7 +5,12 @@ import csv
 
 class NymphesPreset:
 
-    _csv_header_string = 'nymphes-midi preset v1.0.0'
+    _csv_header_strings_version_map = {
+        'nymphes-midi preset v1.0.0': 'v1.0.0',
+        'Blue and Pink Synth Editor Preset v2.0.0': 'v2.0.0'
+    }
+
+    _curr_version_csv_header_string = list(_csv_header_strings_version_map.keys())[-1]
     float_precision_num_decimals = 1
 
     _preset_params_map = {
@@ -2791,15 +2796,16 @@ class NymphesPreset:
         if not isinstance(filepath, Path):
             raise Exception(f'file_path is neither a Path nor a string ({filepath})')
 
-        # Write all parameters to a CSV text file
+        # Write all preset parameters to a CSV text file
         #
         with open(filepath, 'w') as file:
             # Write header row
-            file.write(NymphesPreset._csv_header_string + '\n')
+            file.write(NymphesPreset._curr_version_csv_header_string + '\n')
 
             # Write parameters to the file
             for name, value in self.all_params_dict().items():
-                file.write(f'{name}, {value}' + '\n')
+                if name in NymphesPreset.all_param_names():
+                    file.write(f'{name}, {value}' + '\n')
 
     def generate_sysex_data(self, preset_import_type, preset_type, bank_name, preset_number):
         """
@@ -3406,7 +3412,8 @@ class NymphesPreset:
     @staticmethod
     def _protobuf_preset_from_file(file_path):
         """
-        Read the CSV file at file_path and return a protobuf
+        Determine the version of the NymphesPreset in the CSV
+        file at file_path, load its contents and return a protobuf
         preset object with the parameter values from the file.
         Raises an Exception if the file is invalid.
         file_path is a Path or a string
@@ -3424,15 +3431,62 @@ class NymphesPreset:
         # Create a dict to contain the values found in the preset file
         params_dict = {}
 
+        header_string = ''
+
         # Read from the file
         with open(file_path) as file:
             # Create a CSV reader
             csv_reader = csv.reader(file)
 
-            # Make sure the header row is correct
-            header = next(csv_reader, None)[0]
-            if header != NymphesPreset._csv_header_string:
-                raise Exception(f'Preset file at {file_path} is invalid (unrecognized header row: {header})')
+            #
+            # Check the header row to make sure this is a
+            # Nymphes preset, and to get its version
+            #
+            header_string = next(csv_reader, None)[0]
+            if header_string not in NymphesPreset._csv_header_strings_version_map.keys():
+                raise Exception(f'Preset file at {file_path} is invalid (unrecognized header string: {header_string})')
+
+        # Load the preset using the correct function for
+        # the file version
+        version_string = NymphesPreset._csv_header_strings_version_map[header_string]
+        if version_string == 'v1.0.0':
+            return NymphesPreset._protobuf_preset_from_file_v1_0_0(file_path)
+
+        elif version_string == 'v2.0.0':
+            return NymphesPreset._protobuf_preset_from_file_v2_0_0(file_path)
+
+
+    @staticmethod
+    def _protobuf_preset_from_file_v1_0_0(file_path):
+        """
+        Read the v1.0.0 CSV file at file_path and return a protobuf
+        preset object with the parameter values from the file.
+        Raises an Exception if the file is invalid, or if it is
+        the wrong version.
+        file_path is a Path or a string
+        """
+        # Create a dict to contain the values found in the preset file
+        params_dict = {}
+
+        # The version supported by this function
+        supported_version_string = 'v1.0.0'
+
+        with open(file_path) as file:
+            # Create a CSV reader
+            csv_reader = csv.reader(file)
+
+            #
+            # Make sure the header is valid, and correct for this version
+            # of Nymphes Preset file
+            #
+            header_string = next(csv_reader, None)[0]
+            if header_string not in NymphesPreset._csv_header_strings_version_map.keys():
+                raise Exception(f'Preset file at {file_path} is invalid (unrecognized header string: {header_string})')
+
+            # Get the version string for this header
+            version_string = NymphesPreset._csv_header_strings_version_map[header_string]
+            if version_string != supported_version_string:
+                raise Exception(f'Preset file at {file_path} is not {supported_version_string}. It is {version_string}')
 
             # Read rows of the file into the params dict
             for row in csv_reader:
@@ -3442,12 +3496,83 @@ class NymphesPreset:
                 name = name.strip()
                 value = value.strip()
 
-                # Handle values of None
-                if value == 'None':
-                    value = None
+                if name in NymphesPreset.all_param_names():
+                    if value == 'None':
+                        params_dict[name] = None
 
-                # Get correct values for each parameter
-                elif name in NymphesPreset.all_param_names():
+                    else:
+                        # Get the type for this parameter
+                        param_type = NymphesPreset.type_for_param_name(name)
+
+                        if param_type == float:
+                            value = float(value) / 127.0
+
+                        elif param_type == int:
+                            value = int(value)
+
+                        # Store the value
+                        params_dict[name] = value
+
+                else:
+                    # This isn't an actual parameter.
+                    # Ignore it.
+                    pass
+
+        # Create empty protobuf preset object
+        p = NymphesPreset._create_default_protobuf_preset()
+
+        # Populate it with the parameters from the file
+        for param_name, value in params_dict.items():
+            # Get the protobuf preset name for this parameter
+            protobuf_preset_name = NymphesPreset._protobuf_preset_name_for_param_name(param_name)
+
+            # Set the value
+            NymphesPreset._set_protobuf_preset_value(p, protobuf_preset_name, value)
+
+        # Return the protobuf preset
+        return p
+
+    @staticmethod
+    def _protobuf_preset_from_file_v2_0_0(file_path):
+        """
+        Read the v2.0.0 CSV file at file_path and return a protobuf
+        preset object with the parameter values from the file.
+        Raises an Exception if the file is invalid, or if it is
+        the wrong version.
+        file_path is a Path or a string
+        """
+        # Create a dict to contain the values found in the preset file
+        params_dict = {}
+
+        # The version supported by this function
+        supported_version_string = 'v2.0.0'
+
+        with open(file_path) as file:
+            # Create a CSV reader
+            csv_reader = csv.reader(file)
+
+            #
+            # Make sure the header is valid, and correct for this version
+            # of Nymphes Preset file
+            #
+            header_string = next(csv_reader, None)[0]
+            if header_string not in NymphesPreset._csv_header_strings_version_map.keys():
+                raise Exception(f'Preset file at {file_path} is invalid (unrecognized header string: {header_string})')
+
+            # Get the version string for this header
+            version_string = NymphesPreset._csv_header_strings_version_map[header_string]
+            if version_string != supported_version_string:
+                raise Exception(f'Preset file at {file_path} is not {supported_version_string}. It is {version_string}')
+
+            # Read rows of the file into the params dict
+            for row in csv_reader:
+                name, value = row
+
+                # Remove leading and trailing whitespace
+                name = name.strip()
+                value = value.strip()
+
+                if name in NymphesPreset.all_param_names():
                     # Get the type for this parameter
                     param_type = NymphesPreset.type_for_param_name(name)
 
@@ -3457,23 +3582,24 @@ class NymphesPreset:
                     elif param_type == int:
                         value = int(value)
 
-                # Store the value
-                params_dict[name] = value
+                    # Store the value
+                    params_dict[name] = value
 
-        # Create protobuf preset object and populate
-        # it with the values read from the file
+                else:
+                    # This isn't an actual parameter.
+                    # Ignore it.
+                    pass
+
+        # Create empty protobuf preset object
         p = NymphesPreset._create_default_protobuf_preset()
 
+        # Populate it with the parameters from the file
         for param_name, value in params_dict.items():
-            # Only include parameters contained in a preset,
-            # not NymphesPreset metadata.
-            #
-            if param_name in NymphesPreset.all_param_names():
-                # Get the protobuf preset name for this parameter
-                protobuf_preset_name = NymphesPreset._protobuf_preset_name_for_param_name(param_name)
+            # Get the protobuf preset name for this parameter
+            protobuf_preset_name = NymphesPreset._protobuf_preset_name_for_param_name(param_name)
 
-                # Set the value
-                NymphesPreset._set_protobuf_preset_value(p, protobuf_preset_name, value)
+            # Set the value
+            NymphesPreset._set_protobuf_preset_value(p, protobuf_preset_name, value)
 
         # Return the protobuf preset
         return p
