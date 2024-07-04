@@ -1,3 +1,11 @@
+## v0.2.2-beta
+
+- Finally discovered the nature of a strange voice mode behavior that I first noticed a few months ago: When sending a preset to Nymphes via SYSEX, if the voice mode was set to 3 (TRI), we would actually hear three voices, which is wrong. And if voice mode was set to 4 (DUO), then we would hear two voices, which also is wrong.
+  - Turns out the order of these two modes is reversed in the protobuf definition (preset_pb2.pyi)
+    - In the protobuf definition, they refer to these modes as uni_3 and uni_2, which would be the same as DUO and TRI, respectively, not the other way around
+  - Now we compensate for this when sending and receiving SYSEX, and everything behaves as it should
+
+
 ## v0.2.1-beta
 
 - Created new preset file version (v2.0.0), which removes all rows that aren't actual preset parameters

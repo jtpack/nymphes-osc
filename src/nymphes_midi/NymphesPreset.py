@@ -2710,11 +2710,22 @@ class NymphesPreset:
         if value < min_val or value > max_val:
             raise Exception(f'Invalid value: {value} (should be between {min_val} and {max_val}')
 
-        # Get the preset_param_name for this parameter
-        preset_param_name = self._protobuf_preset_name_for_param_name(param_name)
+        # Get the preset_preset_name for this parameter
+        preset_preset_name = self._protobuf_preset_name_for_param_name(param_name)
+
+        if preset_preset_name == 'voice_mode':
+            #
+            # In the protobuf definition, voice modes 3 and 4 are swapped
+            # compared to the MIDI CC mapping and Nymphes front panel.
+            # We will convert from the protobuf mapping here.
+            #
+            if value == 3:
+                value = 4
+            elif value == 4:
+                value = 3
 
         # Set the value in the preset
-        return self._set_protobuf_preset_value(self._protobuf_preset, preset_param_name, value)
+        return self._set_protobuf_preset_value(self._protobuf_preset, preset_preset_name, value)
 
     def get_float(self, param_name):
         """
@@ -2756,9 +2767,23 @@ class NymphesPreset:
         # Make sure param_name is valid
         if param_name not in self.all_param_names():
             raise Exception(f'Invalid param_name: {param_name}')
-
+        
+        # Get the name used in the protobuf preset
+        protobuf_preset_name = self._protobuf_preset_name_for_param_name(param_name)
+        
         # Get the value
-        value = int(self._get_protobuf_preset_value(self._protobuf_preset, self._protobuf_preset_name_for_param_name(param_name)))
+        value = int(self._get_protobuf_preset_value(self._protobuf_preset, protobuf_preset_name))
+
+        if protobuf_preset_name == 'voice_mode':
+            #
+            # In the protobuf definition, voice modes 3 and 4 are swapped
+            # compared to the MIDI CC mapping and Nymphes front panel.
+            # We will convert from the protobuf mapping here.
+            #
+            if value == 3:
+                value = 4
+            elif value == 4:
+                value = 3
 
         # Convert to int if this is a float param
         if self.type_for_param_name(param_name) == float:
@@ -3526,6 +3551,17 @@ class NymphesPreset:
             # Get the protobuf preset name for this parameter
             protobuf_preset_name = NymphesPreset._protobuf_preset_name_for_param_name(param_name)
 
+            if protobuf_preset_name == 'voice_mode':
+                #
+                # In the protobuf definition, voice modes 3 and 4 are swapped
+                # compared to the MIDI CC mapping and Nymphes front panel.
+                # We will convert from the protobuf mapping here.
+                #
+                if value == 3:
+                    value = 4
+                elif value == 4:
+                    value = 3
+
             # Set the value
             NymphesPreset._set_protobuf_preset_value(p, protobuf_preset_name, value)
 
@@ -3597,6 +3633,17 @@ class NymphesPreset:
         for param_name, value in params_dict.items():
             # Get the protobuf preset name for this parameter
             protobuf_preset_name = NymphesPreset._protobuf_preset_name_for_param_name(param_name)
+
+            if protobuf_preset_name == 'voice_mode':
+                #
+                # In the protobuf definition, voice modes 3 and 4 are swapped
+                # compared to the MIDI CC mapping and Nymphes front panel.
+                # We will convert from the protobuf mapping here.
+                #
+                if value == 3:
+                    value = 4
+                elif value == 4:
+                    value = 3
 
             # Set the value
             NymphesPreset._set_protobuf_preset_value(p, protobuf_preset_name, value)
