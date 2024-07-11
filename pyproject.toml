@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nymphes-osc"
-version = "0.2.2-beta"
+version = "0.2.3-beta"
 description = "A command-line app which allows OSC communication with the Dreadbox Nymphes MIDI synthesizer"
 readme = "README.md"
 authors = [{name = "Scott Lumsden", email = "jtpack@gmail.com"}]
