@@ -1573,7 +1573,7 @@ class NymphesPreset:
         'lfo2.type.value':
             {'cc': 28,
              'mod_source': None,
-             'preset_name': 'lfo_settings.lfo_1_speed_mode',
+             'preset_name': 'lfo_settings.lfo_2_speed_mode',
              'type': int,
              'min': 0,
              'max': 3
@@ -1583,7 +1583,7 @@ class NymphesPreset:
         'lfo2.key_sync.value':
             {'cc': 29,
              'mod_source': None,
-             'preset_name': 'lfo_settings.lfo_1_sync_mode',
+             'preset_name': 'lfo_settings.lfo_2_sync_mode',
              'type': int,
              'min': 0,
              'max': 1

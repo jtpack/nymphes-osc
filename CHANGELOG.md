@@ -1,3 +1,10 @@
+## v0.2.3-beta
+
+- Fixed a bug that was causing LFO2 type and key sync to not be set when loading a preset file or when using fine mode
+  - It was a typo
+    - LFO1 was being set instead
+
+
 ## v0.2.2-beta
 
 - Finally discovered the nature of a strange voice mode behavior that I first noticed a few months ago: When sending a preset to Nymphes via SYSEX, if the voice mode was set to 3 (TRI), we would actually hear three voices, which is wrong. And if voice mode was set to 4 (DUO), then we would hear two voices, which also is wrong.
