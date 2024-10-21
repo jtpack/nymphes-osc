@@ -698,7 +698,7 @@ class NymphesOSC:
             filepath = Path(args[0])
             self.logger.info(f'Received {address} {filepath} from {sender_ip[0]}')
 
-            if filepath.suffix == '.txt':
+            if filepath.suffix in ['.txt', '.TXT']:
                 # This might be a preset file
                 self._nymphes_midi.load_file(filepath=filepath)
 

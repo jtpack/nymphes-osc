@@ -1,3 +1,9 @@
+## v0.2.4-beta
+
+- Fixed bug where only preset files with a lowercase file extension could be loaded
+  - Now both .txt and .TXT file will be accepted
+
+
 ## v0.2.3-beta
 
 - Fixed a bug that was causing LFO2 type and key sync to not be set when loading a preset file or when using fine mode

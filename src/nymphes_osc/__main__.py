@@ -5,7 +5,7 @@ import time
 import argparse
 from pathlib import Path
 
-app_version_string = '0.1.3-beta'
+app_version_string = '0.2.4-beta'
 
 def main():
     # Get logger
