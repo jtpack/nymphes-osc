@@ -702,7 +702,7 @@ class NymphesOSC:
                 # This might be a preset file
                 self._nymphes_midi.load_file(filepath=filepath)
 
-            elif filepath.suffix == '.syx':
+            elif filepath.suffix in ['.syx', '.SYX']:
                 # This may be a sysex file containing one or more presets
                 self._nymphes_midi.load_syx_file(filepath=filepath)
 

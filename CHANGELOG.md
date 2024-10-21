@@ -2,6 +2,7 @@
 
 - Fixed bug where only preset files with a lowercase file extension could be loaded
   - Now both .txt and .TXT file will be accepted
+- Did the same for .syx and .SYX files
 
 
 ## v0.2.3-beta
