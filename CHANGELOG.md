@@ -1,3 +1,8 @@
+## v0.2.5-beta
+
+- Fixed bug: After importing a sysex file, the last file was being loaded instead of the first
+
+
 ## v0.2.4-beta
 
 - Fixed bug where only preset files with a lowercase file extension could be loaded

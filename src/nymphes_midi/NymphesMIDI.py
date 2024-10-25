@@ -1059,7 +1059,7 @@ class NymphesMIDI:
             try:
                 sysex_messages = mido.read_syx_file(filepath)
             except Exception as e:
-                Logger.warning(f'Failed to load .syx file at {filepath}: {e}')
+                self.logger.warning(f'Failed to load .syx file at {filepath}: {e}')
                 return
 
             #
@@ -1074,7 +1074,7 @@ class NymphesMIDI:
                     new_preset = NymphesPreset(sysex_data=msg.data)
                     nymphes_presets.append(new_preset)
                 except Exception as e:
-                    Logger.warning(f'Failed to create Nymphes preset from message {i} in .syx file: {e}')
+                    self.logger.warning(f'Failed to create Nymphes preset from message {i} in .syx file: {e}')
 
             #
             # Write the presets to disk
@@ -1147,7 +1147,7 @@ class NymphesMIDI:
                             self.logger.warning(f'Failed to store nymphes preset as a file: {destination_filepath}, {e}')
 
                     # Load the first preset
-                    self.load_file(destination_folder_path / f'{str(Path(filepath).stem)}_{str(i+1).zfill(num_digits)}.txt')
+                    self.load_file(destination_folder_path / f'{str(Path(filepath).stem)}_01.txt')
 
                 except Exception as e:
                     self.logger.warning(f'Failed to create folder for presets at {destination_folder_path}')
