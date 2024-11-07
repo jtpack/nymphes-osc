@@ -181,7 +181,6 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Type: String
     - Description: Preset Type
     - Possible Values: 'user' or 'factory'
-    - Possible Values: 'user' or 'factory'
   - 1
     - Type: String
     - Description: Preset Bank 
