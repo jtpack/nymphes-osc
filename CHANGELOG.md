@@ -1,3 +1,6 @@
+- Fixed bug where unsaved changes flag was not being reset after saving to a preset slot
+
+
 ## v0.2.5-beta
 
 - Fixed bug: After importing a sysex file, the last file was being loaded instead of the first

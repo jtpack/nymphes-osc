@@ -943,6 +943,16 @@ class NymphesMIDI:
             preset_number=preset_number
         )
 
+        if self.nymphes_connected:
+            # Store the preset type
+            self._curr_preset_type = preset_type
+
+            # Store the bank and preset number
+            self._curr_preset_bank_and_number = bank_name, preset_number
+
+            # Reset the unsaved changes flag
+            self._unsaved_changes = False
+
         # Notify Client that we've just loaded the current settings into
         # one of Nymphes' preset slots
         self.add_notification(
