@@ -1,3 +1,5 @@
+## v0.2.6
+
 - Fixed bug where unsaved changes flag was not being reset after saving to a preset slot
 
 
