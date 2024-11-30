@@ -1695,6 +1695,10 @@ class NymphesMIDI:
                 # We have received a program change message from Nymphes.
                 #
 
+                if msg.program > 97:
+                    # This is an invalid program for Nymphes
+                    return
+
                 # Parse into bank name and preset number
                 bank_name, preset_number = self._parse_midi_program_change_message(msg)
 
@@ -2006,6 +2010,10 @@ class NymphesMIDI:
                 # Pass it on to Nymphes.
                 #
 
+                if msg.program > 97:
+                    # This is an invalid program for Nymphes
+                    return
+
                 # Parse into bank name and preset number
                 bank_name, preset_number = self._parse_midi_program_change_message(msg)
 
@@ -2106,8 +2114,7 @@ class NymphesMIDI:
         except Exception as e:
             pass
 
-    @staticmethod
-    def _parse_midi_program_change_message(msg):
+    def _parse_midi_program_change_message(self, msg):
         """
         Attempt to interpret the supplied MIDI Program Change message
         as a Nymphes bank/preset number.
@@ -2120,6 +2127,8 @@ class NymphesMIDI:
 
         # Get the raw program change value
         program_num = msg.program
+
+        self.logger.info(f'_parse_midi_program_change_message: {program_num}')
 
         # Determine the bank name (A to G)
         bank_num = int(program_num / 7)

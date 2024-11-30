@@ -1,3 +1,9 @@
+## v0.2.7
+
+- Fixed bug where MIDI Program Change messages above 97 were being accepted and then causing a crash
+  - Now these are ignored.
+
+
 ## v0.2.6
 
 - Fixed bug where unsaved changes flag was not being reset after saving to a preset slot
