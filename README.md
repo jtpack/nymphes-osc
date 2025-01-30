@@ -33,8 +33,7 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
 We hope to be able to support Windows in the future.
 
 # Projects Which Use nymphes-osc:
-Coming soon...
-[Blue and Pink Synth Editor](https://github.com/jtpack/Blue-and-Pink-Synth-Editor)
+- [Blue and Pink Synth Editor](https://github.com/jtpack/Blue-and-Pink-Synth-Editor)
 
 # How to Get Started:
 
