@@ -3,14 +3,8 @@
 ### A command-line application which provides full control of the Dreadbox Nymphes synthesizer, via OSC (Open Sound Control) messages.
 ### Written in python
 
-# A Warning: This is alpha software, and it's my first open source project
-- Beta testing is just about to get started
-- There definitely will be bugs and features that don't quite work
-- You will probably see code that could have been written a lot better
-- You might be surprised by the things I don't know about open source, or git, etc. Please be patient.
-
 # Why did I make this?
-I have a Dreadbox Nymphes synthesizer, and I love it. Its huge and real sound continues to surprise and delight me even after owning it for a year and a half. The modulation matrix is immense, and every time I play with it I'm impressed with what I hear.
+I have a Dreadbox Nymphes synthesizer, and I love it. Its huge and real sound continues to surprise and delight me even after owning it for a couple of years. The modulation matrix is immense, and every time I play with it I'm impressed with what I hear.
 
 Early experiments with MIDI controlling the Nymphes led to this project. 
 - I wanted a way to view all of Nymphes' parameters when I recall a preset, including the modulation matrix and chord settings. I felt that if I could really dig into the details of a preset, amazing things might happen. 
@@ -18,7 +12,7 @@ Early experiments with MIDI controlling the Nymphes led to this project.
 - I also wanted a way to easily pass messages from USB MIDI controllers to Nymphes. 
 - Along the way, I learned that most parameters are controllable using greater than 0-127 integer resolution using SYSEX, so I also wanted to be able to take advantage of this. 
 
-# What exactly is nymphes-osc?
+# What is nymphes-osc?
 nymphes-osc is a command-line application. It detects and manages a USB MIDI connection with the Nymphes synthesizer and handles all of the complexity of using the right kinds of MIDI messages for each parameter, and it acts as an OSC server, allowing clients to send and receive OSC messages to control the Nymphes and be informed of all of its parameters.
 
 # Why OSC?
@@ -35,12 +29,12 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
 - macOS
 - Linux
    - Including Raspberry Pi OS
-- Windows
-   - Though only a small amount of initial testing has been done so far...
+
+We hope to be able to support Windows in the future.
 
 # Projects Which Use nymphes-osc:
 Coming soon...
-[nymphes-gui - A graphical editor for the Dreadbox Nymphes Synthesizer]()
+[Blue and Pink Synth Editor](https://github.com/jtpack/Blue-and-Pink-Synth-Editor)
 
 # How to Get Started:
 
@@ -50,14 +44,8 @@ Coming soon...
 
 ## 2. Create a virtual environment and activate it
 - `cd nymphes-osc`
-
-- #### Mac OS / Linux:
-  - `python3 -m venv venv`
-  - `source venv/bin/activate`
-
-- #### Windows:
-  - `py -3 -m venv venv`
-  - `venv\scripts\activate`
+- `python3 -m venv venv`
+- `source venv/bin/activate`
 
 ## 3. Install the nymphes-osc package into the virtual environment
 `pip install -e .`
