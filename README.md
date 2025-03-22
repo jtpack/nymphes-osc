@@ -1321,3 +1321,9 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
   - 0
     - Type: String
  
+#### /mod_source
+- Description: Nymphes' current modulation source has changed (NymphesMIDI received MIDI CC #30 from Nymphes)
+- Arguments:
+  - 0
+    - Type: Int
+    - Values: 0 to 3

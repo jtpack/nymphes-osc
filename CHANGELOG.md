@@ -1,3 +1,7 @@
+- Added /mod_source to the README
+  - NymphesOSC sends /mod_source when it receives MIDI CC #30 from Nymphes, but it wasn't documented
+- Added exception handling when sending MIDI messages, as this seems to happen on Windows
+
 ## v0.2.7
 
 - Fixed bug where MIDI Program Change messages above 97 were being accepted and then causing a crash

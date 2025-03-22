@@ -8,6 +8,7 @@ import os
 import platform
 import mido
 import mido.backends.rtmidi
+import rtmidi
 from rtmidi import InvalidPortError
 from nymphes_midi.NymphesPreset import NymphesPreset
 from nymphes_midi.PresetEvents import PresetEvents
@@ -586,7 +587,10 @@ class NymphesMIDI:
         if self._nymphes_midi_message_send_queue is not None:
             while not self._nymphes_midi_message_send_queue.empty():
                 msg = self._nymphes_midi_message_send_queue.get()
-                self._nymphes_midi_output_port_object.send(msg)
+                try:
+                    self._nymphes_midi_output_port_object.send(msg)
+                except rtmidi.SystemError as e:
+                    self.logger.error(f'Failed to send MIDI message to Nymphes ({e})')
 
         # Send All Queued Messages to MIDI output ports
         #
@@ -596,7 +600,10 @@ class NymphesMIDI:
                 msg = queue.get()
 
                 # Send it
-                port.send(msg)
+                try:
+                    port.send(msg)
+                except rtmidi.SystemError as e:
+                    self.logger.error(f'Failed to send MIDI message to port {port.name} ({e})')
 
         # Clear all expired messages from the feedback suppression messages list
         if self._midi_feedback_suppression_enabled:
