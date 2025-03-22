@@ -18,7 +18,6 @@ keywords = ["MIDI", "OSC", "Nymphes"]
 dependencies = [
     "mido",
     "python-osc",
-    "python-rtmidi",
     "protobuf",
     "netifaces",
     "zeroconf",
