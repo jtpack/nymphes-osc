@@ -28,7 +28,7 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
 # What platforms are supported?
 - macOS
 - Windows (Experimental)
-  - Seems to be working, but testing is ongoing as late March 2025
+  - Seems to be working, but testing is ongoing as of late March 2025
 - Linux (Experimental)
    - Including Raspberry Pi OS
 
