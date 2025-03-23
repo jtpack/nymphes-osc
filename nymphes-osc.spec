@@ -1,12 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+hidden_imports=['zeroconf._utils.ipaddress', 'zeroconf._handlers.answers']
+
+if sys.platform == "win32":
+    hidden_imports.append('win32timezone')
 
 a = Analysis(
     ['run.py'],
     pathex=[],
     binaries=[],
     datas=[('config.txt', '.')],
-    hiddenimports=['zeroconf._utils.ipaddress', 'zeroconf._handlers.answers', 'win32timezone'],
+    hiddenimports=hidden_imports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

@@ -58,21 +58,24 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
 ### Windows: Manual Installation of python-rtmidi
 Make sure you have Cmake installed
 - Download python-rtmidi source code
+  - `$ cd ~/nymphes-osc`
   - `$ git clone --recurse-submodules https://github.com/SpotlightKid/python-rtmidi.git`
 - Increase the RtMidiInData bufferSize in RtMidi.h
-  - `$ cd python-rtmidi/src/rtmidi`
+  - `$ cd ~/nymphes-osc/python-rtmidi/src/rtmidi`
   - Open RtMidi.h and find the RtMidiInData Default constructor
     - Change `bufferSize(1024)` to `bufferSize(8196)`
-  - Save the file
+    - Save the file
   - Commit the changes to the local python-midi and rtmidi repositories
     - This appears to be necessary for the changes to work
+    - `$ cd ~/nymphes-osc/python-rtmidi/src/rtmidi`
     - `$ git add RtMidi.h`
     - `$ git commit -m "Increased bufferSize to 8196 in RtMidiInData default constructor"`
-    - `$ cd ..`
+    - `$ cd ~/nymphes-osc/python-rtmidi`
     - `$ git add -A`
     - `$ git commit -m "Increased bufferSize to 8196 in RtMidiInData default constructor"`
-- Build the wheel
+- Install packages needed to build a wheel and install it
   - `$ pip install build installer`
+- Build the wheel
   - `$ cd ~/nymphes-osc/python-rtmidi`
   - `$ python -m build`
 - Install the newly-built wheel into the virtual environment
