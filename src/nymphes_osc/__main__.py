@@ -5,7 +5,7 @@ import time
 import argparse
 from pathlib import Path
 
-app_version_string = '0.2.8'
+app_version_string = '1.0.1'
 
 
 def main():

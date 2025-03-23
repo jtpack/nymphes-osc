@@ -1,4 +1,4 @@
-## v0.2.8
+## v1.0.1
 
 - Windows is now supported (experimentally)
   - Now python-rtmidi is only installed automatically if the platform is not Windows
