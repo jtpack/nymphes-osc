@@ -27,10 +27,10 @@ nymphes-osc is a command-line application. It detects and manages a USB MIDI con
 
 # What platforms are supported?
 - macOS
-- Linux
+- Windows (Experimental)
+  - Seems to be working, but testing is ongoing as late March 2025
+- Linux (Experimental)
    - Including Raspberry Pi OS
-
-We hope to be able to support Windows in the future.
 
 # Projects Which Use nymphes-osc:
 - [Blue and Pink Synth Editor](https://github.com/jtpack/Blue-and-Pink-Synth-Editor)
@@ -38,29 +38,59 @@ We hope to be able to support Windows in the future.
 # How to Get Started:
 
 ## 1. Clone this repository to your home directory
-   - `cd ~`
-   - `git clone https://github.com/jtpack/nymphes-osc.git`
+   - `$ cd ~`
+   - `$ git clone https://github.com/jtpack/nymphes-osc.git`
 
 ## 2. Create a virtual environment and activate it
-- `cd nymphes-osc`
-- `python3 -m venv venv`
-- `source venv/bin/activate`
+- `$ cd nymphes-osc`
+- macOS and Linux: 
+  - `$ python3 -m venv venv`
+  - `$ source venv/bin/activate`
+- Windows: 
+  - `$ py -3 -m venv venv`
+  - `$ venv\Scripts\activate`
+  - _If you are using Windows PowerShell and get an error message, you may need to first use the following command:_ 
+    - `$ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process`
 
 ## 3. Install the nymphes-osc package into the virtual environment
 `pip install -e .`
 
+### Windows: Manual Installation of python-rtmidi
+Make sure you have Cmake installed
+- Download python-rtmidi source code
+  - `$ git clone --recurse-submodules https://github.com/SpotlightKid/python-rtmidi.git`
+- Increase the RtMidiInData bufferSize in RtMidi.h
+  - `$ cd python-rtmidi/src/rtmidi`
+  - Open RtMidi.h and find the RtMidiInData Default constructor
+    - Change `bufferSize(1024)` to `bufferSize(8196)`
+  - Save the file
+  - Commit the changes to the local python-midi and rtmidi repositories
+    - This appears to be necessary for the changes to work
+    - `$ git add RtMidi.h`
+    - `$ git commit -m "Increased bufferSize to 8196 in RtMidiInData default constructor"`
+    - `$ cd ..`
+    - `$ git add -A`
+    - `$ git commit -m "Increased bufferSize to 8196 in RtMidiInData default constructor"`
+- Build the wheel
+  - `$ pip install build installer`
+  - `$ cd ~/nymphes-osc/python-rtmidi`
+  - `$ python -m build`
+- Install the newly-built wheel into the virtual environment
+  - `$ python -m installer <Full absolute path to the .whl file that was just built>`
+    - example: `$ python -m installer C:\Users\scott\nymphes-osc\python-rtmidi\dist\python_rtmidi-1.5.8-cp312-cp312-win_amd64.whl`
+
 ## 4. Run nymphes-osc
-`python run.py`
+- `$ cd ~/nymphes-osc`
+- `$ python -m nymphes_osc`
 
 ## 5. Build an executable
 - `pyinstaller nymphes-osc.spec`
   - The executable file will be in the dist folder:
-    - ie: nymphes-osc/dist/nymphes-osc
+    - ie: nymphes-osc/dist/nymphes-osc (nymphes-osc.exe on Windows)
 
 # Using nymphes-osc:
-- Run it on the command line and send it OSC messages.
-  - `nymphes-osc`
-- Register as an OSC client to receive OSC messages from nymphes-osc.
+- Run it on the command line and send it OSC messages
+  - Register as an OSC client to receive OSC messages from nymphes-osc
 - Write a program which runs nymphes-osc in the background
 
 # Command Line Arguments
@@ -1321,3 +1351,9 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
   - 0
     - Type: String
  
+#### /mod_source
+- Description: Nymphes' current modulation source has changed (NymphesMIDI received MIDI CC #30 from Nymphes)
+- Arguments:
+  - 0
+    - Type: Int
+    - Values: 0 to 3

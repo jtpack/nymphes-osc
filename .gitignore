@@ -11,3 +11,4 @@ curr_preset.txt
 src/nymphes_osc/logs/
 src/nymphes_midi/logs/
 src/nymphes_midi/presets/
+python-rtmidi/
