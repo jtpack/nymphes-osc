@@ -1,6 +1,13 @@
-- Added /mod_source to the README
-  - NymphesOSC sends /mod_source when it receives MIDI CC #30 from Nymphes, but it wasn't documented
-- Added exception handling when sending MIDI messages, as this seems to happen on Windows
+## v0.2.8
+
+- Windows is now supported (experimentally)
+  - Now python-rtmidi is only installed automatically if the platform is not Windows
+    - On Windows we need to download python-rtmidi source so we can increase the max midi input message size and then compile it ourselves
+  - Updated README with Windows installation instructions
+  - Added exception handling when sending MIDI messages, as this seems to happen on Windows
+- Added /mod_source to the README, as it was previously undocumented
+- NymphesOSC sends /mod_source when it receives MIDI CC #30 from Nymphes, but it wasn't documented
+
 
 ## v0.2.7
 

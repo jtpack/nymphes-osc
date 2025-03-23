@@ -633,13 +633,13 @@ class NymphesMIDI:
                 # Close the currently-connected input port
                 self._nymphes_midi_input_port_object.close()
                 self._nymphes_midi_input_port_object = None
-                self.logger.info(f'Disconnected Nymphes MIDI input port {curr_input_port_name}')
+                self.logger.info(f'Disconnected Nymphes MIDI input port ({curr_input_port_name})')
 
                 # Close the currently-connected output port
                 self._nymphes_midi_output_port_object.close()
                 self._nymphes_midi_output_port_object = None
                 self._nymphes_midi_message_send_queue = None
-                self.logger.info(f'Disconnected Nymphes MIDI output port {curr_output_port_name}')
+                self.logger.info(f'Disconnected Nymphes MIDI output port ({curr_output_port_name})')
         else:
             was_connected = False
 
@@ -647,11 +647,11 @@ class NymphesMIDI:
         #
         try:
             self._nymphes_midi_input_port_object = mido.open_input(input_port_name)
-            self.logger.info(f'Connected Nymphes MIDI input port {input_port_name}')
+            self.logger.info(f'Connected Nymphes MIDI input port ({input_port_name})')
 
         except Exception as e:
             self._nymphes_midi_input_port_object = None
-            self.logger.warning(f'Failed to connect Nymphes MIDI input port {input_port_name} ({e})')
+            self.logger.warning(f'Failed to connect Nymphes MIDI input port ({input_port_name}) ({e})')
 
         # Try to connect to the new output port
         #
@@ -661,13 +661,13 @@ class NymphesMIDI:
             # Create a MIDI message send queue for it
             self._nymphes_midi_message_send_queue = Queue()
 
-            self.logger.info(f'Connected Nymphes MIDI output port {output_port_name}')
+            self.logger.info(f'Connected Nymphes MIDI output port ({output_port_name})')
 
         except Exception as e:
             self._nymphes_midi_output_port_object = None
             self._nymphes_midi_message_send_queue = None
 
-            self.logger.warning(f'Failed to connect Nymphes MIDI output port {output_port_name} ({e})')
+            self.logger.warning(f'Failed to connect Nymphes MIDI output port ({output_port_name}) ({e})')
 
         # Check whether we succeeded in connecting to Nymphes ports
         #
