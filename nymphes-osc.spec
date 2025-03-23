@@ -1,5 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import sys
+
 hidden_imports=['zeroconf._utils.ipaddress', 'zeroconf._handlers.answers']
 
 if sys.platform == "win32":
