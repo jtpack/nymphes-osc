@@ -1,3 +1,6 @@
+- Message logging improved when a MIDI CC is received from Nymphes on an unexpected channel.
+
+
 ## v1.0.1
 
 - Windows is now supported (experimentally)
