@@ -1567,8 +1567,10 @@ class NymphesMIDI:
             if not self._ignore_control_change_messages_from_nymphes:
                 # Make sure the message was received on the Nymphes MIDI Channel
                 if msg.channel != self._nymphes_midi_channel - 1:
-                    self.logger.warning(f'Received a MIDI Control Change message from Nymphes on a different channel: {msg}')
-
+                    self.logger.warning(f'Received a MIDI Control Change message from Nymphes on a different channel. ' 
+                                        f'Expected channel={self._nymphes_midi_channel}. ' 
+                                        f'Actual channel={msg.channel + 1}. ' 
+                                        f'Message: {msg}.')
                 else:
                     if msg.control == 0:
                         #
