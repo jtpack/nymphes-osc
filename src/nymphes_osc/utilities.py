@@ -4,12 +4,11 @@ from pathlib import Path
 import csv
 
 
-def generate_parameters_map_csv_file_for_juce(filepath):
+def generate_parameters_map_csv_file_for_audio_plugin(filepath):
     """
     Generate a CSV file containing a full listing of all Nymphes
     parameters and their OSC messages, as well as value types and
-    min/max values, for use in creating a remote control plugin with
-    JUCE.
+    min/max values, for use in creating a remote control plugin.
     Periods in parameter names are replaced with underscores, as some
     plugin hosts don't like to see periods in parameter IDs.
     :param filepath: Str or Path. This is where the CSV file will be written. Raises an Exception if empty.
