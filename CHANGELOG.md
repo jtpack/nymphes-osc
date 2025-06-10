@@ -1,4 +1,6 @@
 - Message logging improved when a MIDI CC is received from Nymphes on an unexpected channel.
+- Fixed bug in NymphesOSC _get_local_ip_address which could cause a crash
+- Added utilities module to nymphes_osc
 
 
 ## v1.0.1

@@ -65,6 +65,13 @@ file_handler.setFormatter(log_formatter)
 logger.addHandler(file_handler)
 
 
+def osc_address_from_parameter_name(parameter_name):
+    return f"/{parameter_name.replace('.', '/')}"
+
+def parameter_name_from_osc_address(osc_address):
+    return osc_address[1:].replace('/', '.')
+
+
 class NymphesOSC:
     """
     An OSC server that uses NymphesMidi to handle MIDI communication with
@@ -1174,7 +1181,7 @@ class NymphesOSC:
         """
         # Create a param name from the address by removing the leading slash
         # and replacing other slashes with periods
-        param_name = address[1:].replace('/', '.')
+        param_name = parameter_name_from_osc_address(address)
 
         # Check whether this is a valid parameter name
         if param_name in NymphesPreset.all_param_names():
@@ -1257,7 +1264,7 @@ class NymphesOSC:
             # The address will start with a /, followed by the param name with periods
             # replaced by /
             # ie: for param_name osc.wave.value, the address will be /osc/wave/value
-            self._send_osc_to_all_clients(f'/{param_name.replace(".", "/")}', float(param_value))
+            self._send_osc_to_all_clients(osc_address_from_parameter_name(param_name), float(param_value))
 
             # Log it
             self.logger.debug(f'{name}: {value}')
@@ -1269,7 +1276,7 @@ class NymphesOSC:
             # The address will start with a /, followed by the param name with periods
             # replaced by /
             # ie: for param_name osc.wave.value, the address will be /osc/wave/value
-            self._send_osc_to_all_clients(f'/{param_name.replace(".", "/")}', int(param_value))
+            self._send_osc_to_all_clients(osc_address_from_parameter_name(param_name), int(param_value))
 
             # Log it
             self.logger.debug(f'{name}: {value}')
@@ -1333,8 +1340,7 @@ class NymphesOSC:
                 # Log the notification
                 self.logger.info(f'{name}: {value}')
 
-    @staticmethod
-    def _get_local_ip_address():
+    def _get_local_ip_address(self):
         """
         Return the local IP address as a string.
         If no address other than 127.0.0.1 can be found, then
