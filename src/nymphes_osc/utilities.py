@@ -35,22 +35,22 @@ def generate_parameters_map_csv_file_for_audio_plugin(filepath):
     for param_name in param_names:
         this_row_dict = {}
 
-        this_row_dict['nymphes-osc parameter name'] = param_name
+        this_row_dict['param_name'] = param_name
+        this_row_dict['param_id'] = param_name.replace('.', '_')
 
-        this_row_dict['parameter id'] = param_name.replace('.', '_')
-
+        # Create display name
+        #
         section = p.section_for_param(param_name).upper()
         feature = p.feature_for_param(param_name).upper()
         mod_source = f" {p.mod_source_for_param_name(param_name).upper()}" if p.mod_source_for_param_name(param_name) is not None else ''
         display_name = f"{section} {feature}{mod_source}".replace("_", " ")
-        this_row_dict['display name'] = display_name
+        this_row_dict['display_name'] = display_name
 
-        this_row_dict['osc address'] = NymphesOSC.osc_address_from_parameter_name(param_name)
-
-        this_row_dict['value type'] = "float" if p.type_for_param_name(param_name) == float else "int"
-        
-        this_row_dict['min value'] = p.min_val_for_param_name(param_name)
-        this_row_dict['max value'] = p.max_val_for_param_name(param_name)
+        this_row_dict['osc_address'] = NymphesOSC.osc_address_from_parameter_name(param_name)
+        this_row_dict['value_type'] = "float" if p.type_for_param_name(param_name) == float else "int"
+        this_row_dict['min_value'] = p.min_val_for_param_name(param_name)
+        this_row_dict['max_value'] = p.max_val_for_param_name(param_name)
+        this_row_dict['default_value'] = p.get_value(param_name)
         
         rows.append(this_row_dict)
 
