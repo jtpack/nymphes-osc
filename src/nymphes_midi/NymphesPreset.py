@@ -2791,6 +2791,18 @@ class NymphesPreset:
 
         return value
 
+    def get_value(self, param_name):
+        """
+        Gets the current value for param_name, as a float or int
+        according to the parameter's native type.
+        :param param_name: Str
+        :return: Float or Int
+        """
+        if self.type_for_param_name(param_name) == float:
+            return self.get_float(param_name)
+        else:
+            return self.get_int(param_name)
+
     @staticmethod
     def float_equals(first_value, second_value):
         """
