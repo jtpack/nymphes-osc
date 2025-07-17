@@ -380,7 +380,7 @@ class NymphesMIDI:
     def all_presets_dict(self):
         """
         Returns a copy of our dict containing all the presets we have received.
-        Returns None if if Nymphes is not connected.
+        Returns None if Nymphes is not connected.
         :return: a dict
         """
         return copy.deepcopy(self._nymphes_memory_slots_dict) if self._nymphes_memory_slots_dict is not None else None
@@ -2488,3 +2488,22 @@ class NymphesMIDI:
         """
         for param_name in NymphesPreset.all_param_names():
             self.add_curr_preset_param_notification(param_name)
+
+    def preset_file_matches_for_preset_slots(self):
+        """
+        Compares all presets in Nymphes' memory slots
+        against all presets files in the presets folder.
+        Returns a dict containing all matches.
+        Dict format:
+            - key is a tuple (preset_type, bank_name, preset_number)
+                example: ('user', 'A', 1)
+            - value is the Path to the matching file
+        If there are no matches then the dict will be empty.
+        :return: Dict
+        """
+        if self.all_presets_dict is None:
+            return {}
+
+        #
+        # Get preset objects for all preset files in the presets folder
+        
