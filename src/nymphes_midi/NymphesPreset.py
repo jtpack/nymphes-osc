@@ -2844,6 +2844,33 @@ class NymphesPreset:
                 if name in NymphesPreset.all_param_names():
                     file.write(f'{name}, {value}' + '\n')
 
+    def equal_preset(self, preset_obj):
+        """
+        Returns True if all values in the supplied preset are equal
+        to those in self.
+        For float parameters, the float_equals() function is used to
+        determine equality.
+        Raises an Exception if preset is None.
+        :param preset_obj: NymphesPreset object
+        :return: True or False
+        """
+        if preset_obj is None:
+            raise Exception("Error: preset was None")
+
+        for name in self.all_param_names():
+            self_param_val = self.get_value(name)
+            preset_param_val = preset_obj.get_value(name)
+
+            if self.type_for_param_name(name) is float:
+                if not self.float_equals(self_param_val, preset_param_val):
+                    return False
+            else:
+                if self_param_val != preset_param_val:
+                    return False
+
+        return True
+
+
     def generate_sysex_data(self, preset_import_type, preset_type, bank_name, preset_number):
         """
         Generates MIDI SYSEX data that can be used to send a full preset
