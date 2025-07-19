@@ -15,6 +15,9 @@ class PresetEvents(Enum):
     saved_to_file = 'saved_to_file'
     saved_preset_to_file = 'saved_preset_to_file'
 
+    # Saving to Preset Pack Files
+    saved_to_preset_pack_file = 'saved_to_preset_pack_file'
+
     # Other
     requested_preset_dump = 'requested_preset_dump'
     received_preset_dump_from_nymphes = 'received_preset_dump_from_nymphes'
@@ -34,6 +37,7 @@ class PresetEvents(Enum):
 
             PresetEvents.saved_to_file.value,
             PresetEvents.saved_preset_to_file.value,
+            PresetEvents.saved_to_preset_pack_file,
             PresetEvents.loaded_file.value,
             PresetEvents.loaded_file_to_preset.value,
             PresetEvents.loaded_init_file.value,

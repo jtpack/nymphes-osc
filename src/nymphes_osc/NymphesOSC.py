@@ -210,6 +210,11 @@ class NymphesOSC:
             needs_reply_address=True
         )
         self._dispatcher.map(
+            '/save_all_slots_as_preset_pack',
+            self._on_osc_message_save_all_slots_as_preset_pack,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
             '/load_init_file',
             self._on_osc_message_load_init_file,
             needs_reply_address=True
@@ -855,6 +860,33 @@ class NymphesOSC:
         except Exception as e:
             # Send status update and log it
             status = f'Failed to save preset from Nymphes preset slot to file'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
+
+    def _on_osc_message_save_all_slots_as_preset_pack(self, sender_ip, address, *args):
+        """
+        An OSC message has just been received to save all presets as a preset pack file on disk.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure an argument was supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            filepath = args[0]
+
+            self.logger.info(f'Received {address} {filepath} from {sender_ip[0]}')
+
+            # Save the file
+            self._nymphes_midi.save_all_slots_as_preset_pack(filepath=filepath)
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to save all presets as a preset pack'
             self._send_error_message_to_osc_clients(status, str(e))
             self.logger.warning(f'{status}: {e}')
 

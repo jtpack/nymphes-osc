@@ -14,6 +14,7 @@ from nymphes_midi.NymphesPreset import NymphesPreset
 from nymphes_midi.PresetEvents import PresetEvents
 from nymphes_midi.MidiConnectionEvents import MidiConnectionEvents
 from nymphes_osc.file_locations import get_data_files_directory_path
+import csv
 
 
 class NymphesMIDI:
@@ -1239,6 +1240,52 @@ class NymphesMIDI:
             PresetEvents.saved_preset_to_file.value,
             (str(filepath), preset_type, bank_name, preset_number)
         )
+
+    def save_all_slots_as_preset_pack(self, filepath):
+        """
+        Save all preset slots as a preset pack CSV file.
+        First requests a full dump of all presets so we
+        can be sure that the data is current, as we don't
+        get notifications when a user saves presets from
+        the Nymphes front panel controls.
+        :param filepath: Path or str
+        """
+        #TODO: request full preset dump
+
+        # Validate file_path
+        #
+        if isinstance(filepath, str):
+            # Create a Path from file_path
+            filepath = Path(filepath).expanduser()
+
+        if not isinstance(filepath, Path):
+            raise Exception(f'file_path is neither a Path nor a string ({filepath})')
+
+        # Create a list of dicts containing parameter values for
+        # all presets, including some metadata like preset slot
+        #
+        rows = []
+        for index, p in self.all_presets_dict.items():
+            curr_preset_data = dict(p.all_params_dict())
+
+            # Remove parameters that we don't need
+            del(curr_preset_data['preset_import_type'])
+            del(curr_preset_data['float_precision_num_decimals'])
+
+            rows.append(curr_preset_data)
+
+        n = NymphesPreset()
+        fieldnames = ['preset_type', 'bank_name', 'preset_number']
+        fieldnames.extend(n.all_param_names())
+
+        with open(filepath, mode='w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+
+            writer.writeheader()
+            writer.writerows(rows)
+
+        # Send a notification
+        self.add_notification(PresetEvents.saved_to_preset_pack_file.value, str(filepath))
 
     def request_preset_dump(self):
         """

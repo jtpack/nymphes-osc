@@ -285,6 +285,16 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Description: Preset Number 
     - Possible Values: 1 through 7
 
+### Preset Packs
+
+#### /save_all_slots_as_preset_pack
+- Description: Save all preset slots as a preset pack CSV file
+- Note: First requests a full dump of all presets so we can be sure that the data is current, as we don't get notifications when a user saves presets from the Nymphes front panel controls.
+- Arguments: 
+  - 0
+    - Type: String
+    - Description: Destination filepath
+
 ### Other
 
 #### /request_preset_dump
@@ -1094,6 +1104,13 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Description: Preset Number
       - Possible Values: 1, 2, 3, 4, 5, 6, 7
 
+#### /saved_to_preset_pack_file
+- Description: All presets have been saved to a preset pack file
+- Arguments:
+  - 0
+    - Type: String
+    - Description: Filepath of preset pack file
+    - 
 ### Other
 
 #### /requested_preset_dump
