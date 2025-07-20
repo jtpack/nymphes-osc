@@ -707,14 +707,15 @@ class NymphesOSC:
             return
 
         try:
-            filepath = Path(args[0]).expanduser().resolve()
+            filepath = args[0]
+
             self.logger.info(f'Received {address} {filepath} from {sender_ip[0]}')
 
-            if filepath.suffix in ['.txt', '.TXT']:
+            if Path(filepath).suffix in ['.txt', '.TXT']:
                 # This might be a preset file
                 self._nymphes_midi.load_file(filepath=filepath)
 
-            elif filepath.suffix in ['.syx', '.SYX']:
+            elif Path(filepath).suffix in ['.syx', '.SYX']:
                 # This may be a sysex file containing one or more presets
                 self._nymphes_midi.load_syx_file(filepath=filepath)
 
@@ -725,7 +726,7 @@ class NymphesOSC:
 
         except Exception as e:
             # Send status update and log it
-            status = f'Failed to load file into current preset: {filepath}'
+            status = f'Failed to load preset file: {filepath}'
             self._send_error_message_to_osc_clients(status, str(e))
             self.logger.warning(f'{status}: {e}')
 

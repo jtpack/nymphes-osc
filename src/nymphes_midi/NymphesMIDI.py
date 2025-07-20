@@ -1036,10 +1036,22 @@ class NymphesMIDI:
     def load_file(self, filepath):
         """
         Load the preset file at filepath
-        :param filepath: A Path or string. The path to the preset file.
+        :param filepath: A Path or string. The path to the preset file. Can be relative.
         :return:
         """
         if self.nymphes_connected:
+            filepath = Path(filepath).expanduser()
+
+            # If a relative path was provided, look inside the presets folder
+            # for the file.
+            if not filepath.is_absolute():
+                filepath = self.presets_directory_path / filepath
+
+            filepath = filepath.resolve()
+
+            if not filepath.exists():
+                raise Exception(f"No file exists at {filepath}")
+
             # Load the preset file as the current preset
             self._curr_preset_object = NymphesPreset(filepath=filepath)
 
