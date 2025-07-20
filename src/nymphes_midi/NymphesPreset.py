@@ -2827,8 +2827,7 @@ class NymphesPreset:
         # Validate file_path
         #
         if isinstance(filepath, str):
-            # Create a Path from file_path
-            filepath = Path(filepath)
+            filepath = Path(filepath).resolve()
 
         if not isinstance(filepath, Path):
             raise Exception(f'file_path is neither a Path nor a string ({filepath})')
@@ -3487,7 +3486,7 @@ class NymphesPreset:
         #
         if isinstance(file_path, str):
             # Create a Path from file_path
-            file_path = Path(file_path)
+            file_path = Path(file_path).expanduser().resolve()
 
         if not isinstance(file_path, Path):
             raise Exception(f'file_path is neither a Path nor a string ({file_path})')

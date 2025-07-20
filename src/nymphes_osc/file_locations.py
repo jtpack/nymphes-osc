@@ -11,10 +11,10 @@ def get_data_files_directory_path():
         #
         # On macOS we use ~/Library/Application Support/nymphes-osc/
         #
-        return Path(os.path.expanduser('~')) / 'Library/Application Support/nymphes-osc'
+        return Path('~/Library/Application Support/nymphes-osc').expanduser().resolve()
 
     else:
         #
         # On all other systems, we use a folder in the user's home folder
         #
-        return Path(os.path.expanduser('~')) / 'nymphes-osc data/'
+        return Path('~/nymphes-osc data/').expanduser().resolve()

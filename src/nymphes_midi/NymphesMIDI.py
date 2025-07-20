@@ -1256,7 +1256,7 @@ class NymphesMIDI:
         #
         if isinstance(filepath, str):
             # Create a Path from file_path
-            filepath = Path(filepath).expanduser()
+            filepath = Path(filepath).expanduser().resolve()
 
         if not isinstance(filepath, Path):
             raise Exception(f'file_path is neither a Path nor a string ({filepath})')

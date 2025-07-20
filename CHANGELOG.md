@@ -3,7 +3,7 @@
 - Added utilities module to nymphes_osc
 - Implementing Preset Pack Feature
   - Added ability to save all presets to a preset pack CSV file
-
+- Now always use expanduser() and resolve() on filesystem Paths
 
 ## v1.0.1
 

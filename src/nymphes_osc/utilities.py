@@ -22,7 +22,7 @@ def generate_parameters_map_csv_file_for_audio_plugin(filepath):
     # Make sure filepath is a Path object, and expand tilde into
     # the home folder path (if present). This might be important
     # on some systems.
-    filepath = Path(filepath).expanduser()
+    filepath = Path(filepath).expanduser().resolve()
 
     p = NymphesPreset()
 

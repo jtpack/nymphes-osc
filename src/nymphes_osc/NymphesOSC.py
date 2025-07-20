@@ -707,7 +707,7 @@ class NymphesOSC:
             return
 
         try:
-            filepath = Path(args[0])
+            filepath = Path(args[0]).expanduser().resolve()
             self.logger.info(f'Received {address} {filepath} from {sender_ip[0]}')
 
             if filepath.suffix in ['.txt', '.TXT']:

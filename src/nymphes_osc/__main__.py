@@ -96,7 +96,7 @@ def main():
     if args.presets_directory_path == '':
         presets_directory_path = None
     else:
-        presets_directory_path = Path(args.presets_directory_path)
+        presets_directory_path = Path(args.presets_directory_path).expanduser().resolve()
 
     logger.info(f'***** Starting nymphes-osc {app_version_string} *****')
 
