@@ -3698,13 +3698,25 @@ class NymphesPreset:
         return [NymphesPreset._preset_params_map[param_name]['preset_name'] for param_name in NymphesPreset._preset_params_map.keys()]
 
 
+class NymphesPresetWithMetadata(NymphesPreset):
+    """
+    A NymphesPreset subclass with extra attributes that are useful when
+    a preset is part of a preset pack.
+    """
+    def __init__(self, sysex_data=None, filepath=None, print_logs_enabled=False, name='', destination_memory_slot=None):
+        """
+        :param name: str. The name of the preset
+        :param destination_memory_slot: None or str. example: user A1. If None, then when the preset pack is sent to Nymphes this preset won't be written to a memory slot.
+        """
+        super().__init__(sysex_data, filepath, print_logs_enabled)
+
+        self._name = name
+        self._destination_memory_slot = destination_memory_slot
+
+
 class NymphesPresetPack:
     """
     A class that contains a collection of presets.
-    Presets can have names, and can also be mapped
-    to Nymphes memory slots, which makes it possible
-    to easily send an entire preset pack to Nymphes
-    in a single operation.
     """
 
     _csv_header_strings_version_map = {
@@ -3717,3 +3729,4 @@ class NymphesPresetPack:
         """
         :param filepath: Path or str. Absolute path to preset pack file
         """
+        pass
