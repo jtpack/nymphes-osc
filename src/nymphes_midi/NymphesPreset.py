@@ -2230,7 +2230,7 @@ class NymphesPreset:
         If filepath is not None, then try to decode the data in
         the file and use it as the underlying protobuf preset object.
         :param sysex_data: A list of bytes
-        :param filepath:
+        :param filepath: Path or str. Absolute path to preset file
         """
         self._print_logs_enabled = print_logs_enabled
 
@@ -3696,3 +3696,24 @@ class NymphesPreset:
         :return: A list of strings
         """
         return [NymphesPreset._preset_params_map[param_name]['preset_name'] for param_name in NymphesPreset._preset_params_map.keys()]
+
+
+class NymphesPresetPack:
+    """
+    A class that contains a collection of presets.
+    Presets can have names, and can also be mapped
+    to Nymphes memory slots, which makes it possible
+    to easily send an entire preset pack to Nymphes
+    in a single operation.
+    """
+
+    _csv_header_strings_version_map = {
+        'Blue and Pink Synth Editor Preset Pack v1.0.0': 'v1.0.0'
+    }
+
+    _curr_version_csv_header_string = list(_csv_header_strings_version_map.keys())[-1]
+
+    def __init__(self, filepath=None):
+        """
+        :param filepath: Path or str. Absolute path to preset pack file
+        """
