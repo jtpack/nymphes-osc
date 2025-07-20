@@ -1030,7 +1030,7 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 - Arguments:
   - 0
     - Type: String
-    - Description: Filepath of loaded file
+    - Description: Absolute filepath of loaded file
 
 #### /loaded_init_file
 - Description: The init preset file (init.txt) has just been loaded
