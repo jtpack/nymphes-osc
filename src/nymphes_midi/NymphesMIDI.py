@@ -1091,10 +1091,22 @@ class NymphesMIDI:
         If the file contains only one preset then it will be written to
         the presets root folder with the same name as the syx file.
         After writing the preset files, the first preset will be loaded.
-        :param filepath: A Path or string. The path to the syx file.
+        :param filepath: A Path or string. The path to the syx file. Can be relative.
         :return:
         """
         if self.nymphes_connected:
+            filepath = Path(filepath).expanduser()
+
+            # If a relative path was provided, look inside the presets folder
+            # for the file.
+            if not filepath.is_absolute():
+                filepath = self.presets_directory_path / filepath
+
+            filepath = filepath.resolve()
+
+            if not filepath.exists():
+                raise Exception(f"No file exists at {filepath}")
+
             #
             # Load the file into a list of MIDI messages
             #

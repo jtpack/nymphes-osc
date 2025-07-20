@@ -4,6 +4,10 @@
 - Implementing Preset Pack Feature
   - Added ability to save all presets to a preset pack CSV file
 - Now always use expanduser() and resolve() on filesystem Paths
+- Added support for relative paths:
+  - /load_file
+  - /load_file_to_preset
+  - load_syx_file()
 
 ## v1.0.1
 
