@@ -1002,13 +1002,25 @@ class NymphesMIDI:
         as a SYSEX message, using a persistent import type to write
         to one of Nymphes' preset slots.
         Overwrites whatever was previously in the slot.
-        :param filepath: A Path or string. The path to the preset file.
+        :param filepath: A Path or string. The path to the preset file. Can be relative to the presets folder path.
         :param preset_type: (str) ['user', 'factory']
         :param bank_name: (str): ['A', 'B', 'C', 'D', 'E', 'F', 'G']
         :param preset_number: (int): 1 to 7
         :return:
         """
         if self.nymphes_connected:
+            filepath = Path(filepath).expanduser()
+
+            # If a relative path was provided, look inside the presets folder
+            # for the file.
+            if not filepath.is_absolute():
+                filepath = self.presets_directory_path / filepath
+
+            filepath = filepath.resolve()
+
+            if not filepath.exists():
+                raise Exception(f"No file exists at {filepath}")
+
             # Load the preset file into a preset object
             preset_object = NymphesPreset(filepath=filepath)
 
