@@ -8,6 +8,10 @@
   - /load_file
   - /load_file_to_preset
   - load_syx_file()
+  - /save_to_file
+  - /save_preset_to_file
+  - Updated README to reflect support for relative paths
+  
 
 ## v1.0.1
 

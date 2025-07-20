@@ -1234,9 +1234,20 @@ class NymphesMIDI:
     def save_to_file(self, filepath):
         """
         Save to a preset file.
-        :param filepath: Path or str
+        :param filepath: Path or str. Can be relative to the presets directory.
         :return:
         """
+        filepath = Path(filepath).expanduser()
+
+        # If a relative path was provided, use the presets folder
+        if not filepath.is_absolute():
+            filepath = self.presets_directory_path / filepath
+
+        filepath = filepath.resolve()
+
+        if not filepath.parent.exists() or not filepath.parent.is_dir():
+            raise Exception(f"Destination folder doesn't exist ({filepath})")
+
         # Save to a preset file at filepath
         self._curr_preset_object.save_preset_file(filepath)
 
@@ -1254,7 +1265,7 @@ class NymphesMIDI:
         Save the contents of a preset slot to a file.
         Raises an Exception if the all_presets dictionary does not
         contain the specified preset.
-        :param filepath: Path or str
+        :param filepath: Path or str. Can be relative to the presets directory.
         :param preset_type:
         :param bank_name:
         :param preset_number:
@@ -1267,6 +1278,17 @@ class NymphesMIDI:
 
         # Get the preset object
         preset_object = self._nymphes_memory_slots_dict[dict_key]
+
+        filepath = Path(filepath).expanduser()
+
+        # If a relative path was provided, use the presets folder
+        if not filepath.is_absolute():
+            filepath = self.presets_directory_path / filepath
+
+        filepath = filepath.resolve()
+
+        if not filepath.parent.exists() or not filepath.parent.is_dir():
+            raise Exception(f"Destination folder doesn't exist ({filepath})")
 
         # Save to disk
         preset_object.save_preset_file(filepath)

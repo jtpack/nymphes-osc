@@ -264,14 +264,14 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 - Arguments:
   - 0
     - Type: String
-    - Description: Destination filepath
+    - Description: Destination filepath. Can be absolute, or relative to the presets folder.
 
 #### /save_preset_to_file
 - Description: Write the contents of a preset slot to a file on disk
 - Arguments:
   - 0
     - Type: String
-    - Description: Destination filepath
+    - Description: Destination filepath. Can be absolute, or relative to the presets folder.
   - 1
     - Type: String
     - Description: Preset Type
@@ -293,7 +293,7 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 - Arguments: 
   - 0
     - Type: String
-    - Description: Destination filepath
+    - Description: Destination filepath. Can be absolute, or relative to the presets folder.
 
 ### Other
 
