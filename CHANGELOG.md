@@ -1,6 +1,7 @@
 - Message logging improved when a MIDI CC is received from Nymphes on an unexpected channel.
 - Fixed bug in NymphesOSC _get_local_ip_address which could cause a crash
 - Added utilities module to nymphes_osc
+- Fixed an issue where mod source midi messages (cc #30) above 3 were accepted, causing a problem for Nymphes, which sees this as Mod Source
 
 
 ## v1.0.1
