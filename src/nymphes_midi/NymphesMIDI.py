@@ -1598,14 +1598,18 @@ class NymphesMIDI:
                         # Nymphes' Modulation Source has just changed
                         #
 
-                        # Store the new mod source
-                        self._curr_mod_source = msg.value
+                        # Store the new mod source if it is valid
+                        if 0 >= msg.value > 4:
+                            self._curr_mod_source = msg.value
 
-                        # Send a notification
-                        self.add_notification('mod_source', msg.value)
+                            # Send a notification
+                            self.add_notification('mod_source', msg.value)
 
-                        # Log the message
-                        self.logger.debug(f'mod_source: {msg.value}')
+                            # Log the message
+                            self.logger.debug(f'mod_source: {msg.value}')
+
+                        else:
+                            self.logger.warning(f'Received invalid mod_source value: {msg.value}')
 
                     else:
                         #
@@ -1873,14 +1877,17 @@ class NymphesMIDI:
                     # This sets Nymphes' Modulation Source
                     #
 
-                    # Store the new mod source
-                    self._curr_mod_source = msg.value
+                    # Store the new mod source if it is valid
+                    if 0 < msg.value < 4:
+                        self._curr_mod_source = msg.value
 
-                    # Send a notification
-                    self.add_notification('mod_source', msg.value)
+                        # Send a notification
+                        self.add_notification('mod_source', msg.value)
 
-                    # Log the message
-                    self.logger.debug(f'{input_port_name}: mod_source: {msg.value}')
+                        # Log the message
+                        self.logger.debug(f'{input_port_name}: mod_source: {msg.value}')
+                    else:
+                        self.logger.warning(f'Received invalid mod source value: {msg.value}')
 
                 elif msg.control == 64:
                     #
