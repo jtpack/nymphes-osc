@@ -1,6 +1,8 @@
 - Message logging improved when a MIDI CC is received from Nymphes on an unexpected channel.
 - Fixed bug in NymphesOSC _get_local_ip_address which could cause a crash
 - Added utilities module to nymphes_osc
+- Added ability to connect to the first detected Nymphes and set it as the default
+- Added /connect_first_detected_nymphes OSC message
 
 
 ## v1.0.1

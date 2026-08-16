@@ -303,6 +303,9 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Type: String
     - Description: The name of the MIDI Output port for Nymphes (as reported by mido.get_output_names())
 
+#### /connect_first_detected_nymphes
+- Description: Connect to the first Nymphes connected to the computer
+
 #### /disconnect_nymphes
 - Description: Disconnect from Nymphes MIDI ports
 - Arguments: None

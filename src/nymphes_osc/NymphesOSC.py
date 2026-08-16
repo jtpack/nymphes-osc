@@ -91,7 +91,8 @@ class NymphesOSC:
             mdns_name=None,
             osc_log_level=logging.DEBUG,
             midi_log_level=logging.DEBUG,
-            presets_directory_path=None
+            presets_directory_path=None,
+            should_connect_first_detected_nymphes=True
     ):
 
         # Get logger
@@ -113,7 +114,8 @@ class NymphesOSC:
         self._nymphes_midi = NymphesMIDI(
             notification_callback_function=self._on_nymphes_notification,
             log_level=midi_log_level,
-            presets_directory_path=presets_directory_path
+            presets_directory_path=presets_directory_path,
+            should_connect_first_detected_nymphes=should_connect_first_detected_nymphes
         )
 
         # The MIDI channel Nymphes is set to use.
@@ -222,6 +224,11 @@ class NymphesOSC:
         self._dispatcher.map(
             '/connect_nymphes',
             self._on_osc_message_connect_nymphes,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/connect_first_detected_nymphes',
+            self._on_osc_message_connect_first_detected_nymphes,
             needs_reply_address=True
         )
         self._dispatcher.map(
@@ -940,6 +947,26 @@ class NymphesOSC:
                 input_port_name=input_port_name,
                 output_port_name=output_port_name
             )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to connect Nymphes'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.warning(f'{status}: {e}')
+
+    def _on_osc_message_connect_first_detected_nymphes(self, sender_ip, address, *args):
+        """
+        Connect to the first Nymphes connected to the computer.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        try:
+            self.logger.info(f'Received {address} from {sender_ip[0]}')
+
+            # Connect to the MIDI ports
+            self._nymphes_midi.connect_first_detected_nymphes()
 
         except Exception as e:
             # Send status update and log it

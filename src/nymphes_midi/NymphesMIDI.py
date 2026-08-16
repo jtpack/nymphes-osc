@@ -25,8 +25,13 @@ class NymphesMIDI:
             self,
             notification_callback_function,
             log_level=logging.WARNING,
-            presets_directory_path=None
+            presets_directory_path=None,
+            should_connect_first_detected_nymphes=True
     ):
+        # If this is True then connect to the first detected Nymphes, when it
+        # is detected
+        self.waiting_to_connect_first_detected_nymphes = should_connect_first_detected_nymphes
+
         # Callback function for us to call with notifications.
         self._notification_callback_function = notification_callback_function
 
@@ -612,6 +617,17 @@ class NymphesMIDI:
                 if curr_time > msg.time:
                     self._midi_feedback_suppression_messages_list.remove(msg)
 
+        if self.waiting_to_connect_first_detected_nymphes:
+            input_port_name = self._detected_nymphes_midi_inputs[0]
+            output_port_name = self._detected_nymphes_midi_outputs[0]
+            if input_port_name is not None and output_port_name is not None:
+                self.logger.info("About to connect to first detected Nymphes...")
+                self.connect_nymphes(
+                    input_port_name=input_port_name,
+                    output_port_name=output_port_name
+                )
+                self.waiting_to_connect_first_detected_nymphes = False
+
     def connect_nymphes(self, input_port_name, output_port_name):
         """
         Connect the specified MIDI input and output ports
@@ -677,6 +693,20 @@ class NymphesMIDI:
         else:
             if was_connected:
                 self._on_nymphes_disconnected()
+
+    def connect_first_detected_nymphes(self):
+        """
+        Connect to the first detected Nymphes
+        :return:
+        """
+        input_port_name = self._detected_nymphes_midi_inputs[0]
+        output_port_name = self._detected_nymphes_midi_outputs[0]
+        if input_port_name is not None and output_port_name is not None:
+            self.logger.info("About to connect to first detected Nymphes...")
+            self.connect_nymphes(
+                input_port_name=input_port_name,
+                output_port_name=output_port_name
+            )
 
     def disconnect_nymphes(self):
         """
