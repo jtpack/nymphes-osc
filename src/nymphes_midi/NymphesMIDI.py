@@ -618,15 +618,16 @@ class NymphesMIDI:
                     self._midi_feedback_suppression_messages_list.remove(msg)
 
         if self.waiting_to_connect_first_detected_nymphes:
-            input_port_name = self._detected_nymphes_midi_inputs[0]
-            output_port_name = self._detected_nymphes_midi_outputs[0]
-            if input_port_name is not None and output_port_name is not None:
-                self.logger.info("About to connect to first detected Nymphes...")
-                self.connect_nymphes(
-                    input_port_name=input_port_name,
-                    output_port_name=output_port_name
-                )
-                self.waiting_to_connect_first_detected_nymphes = False
+            if len(self._detected_nymphes_midi_inputs) > 0 and len(self._detected_nymphes_midi_outputs) > 0:
+                input_port_name = self._detected_nymphes_midi_inputs[0]
+                output_port_name = self._detected_nymphes_midi_outputs[0]
+                if input_port_name is not None and output_port_name is not None:
+                    self.logger.info("About to connect to first detected Nymphes...")
+                    self.connect_nymphes(
+                        input_port_name=input_port_name,
+                        output_port_name=output_port_name
+                    )
+                    self.waiting_to_connect_first_detected_nymphes = False
 
     def connect_nymphes(self, input_port_name, output_port_name):
         """
@@ -696,17 +697,18 @@ class NymphesMIDI:
 
     def connect_first_detected_nymphes(self):
         """
-        Connect to the first detected Nymphes
+        Connect to the first detected Nymphes, if there is one
         :return:
         """
-        input_port_name = self._detected_nymphes_midi_inputs[0]
-        output_port_name = self._detected_nymphes_midi_outputs[0]
-        if input_port_name is not None and output_port_name is not None:
-            self.logger.info("About to connect to first detected Nymphes...")
-            self.connect_nymphes(
-                input_port_name=input_port_name,
-                output_port_name=output_port_name
-            )
+        if len(self._detected_nymphes_midi_inputs) > 0 and len(self._detected_nymphes_midi_outputs) > 0:
+            input_port_name = self._detected_nymphes_midi_inputs[0]
+            output_port_name = self._detected_nymphes_midi_outputs[0]
+            if input_port_name is not None and output_port_name is not None:
+                self.logger.info("About to connect to first detected Nymphes...")
+                self.connect_nymphes(
+                    input_port_name=input_port_name,
+                    output_port_name=output_port_name
+                )
 
     def disconnect_nymphes(self):
         """

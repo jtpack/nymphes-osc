@@ -3,6 +3,7 @@
 - Added utilities module to nymphes_osc
 - Added ability to connect to the first detected Nymphes and set it as the default
 - Added /connect_first_detected_nymphes OSC message
+- Fixed bug where an attempt would be made to connect even if there were no detected Nymphes ports
 
 
 ## v1.0.1
