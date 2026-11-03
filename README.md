@@ -189,6 +189,9 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Type: Int
     - Description: Client port
 
+#### TODO: Get list of clients
+
+
 ## Preset Handling
 
 ### Loading Presets
