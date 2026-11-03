@@ -332,7 +332,7 @@ class NymphesOSC:
             self._osc_clients_dict[(host, port)] = client
 
             # Send status update and log it
-            status = f'Registered client ({host}:{port})'
+            status = f'Registered OSC client ({host}:{port})'
             self._send_status_to_osc_clients(status)
             self.logger.info(status)
         else:
@@ -340,7 +340,7 @@ class NymphesOSC:
             client = self._osc_clients_dict[(host, port)]
 
             # Send status update and log it
-            status = f'Client already registered ({host}:{client._port})'
+            status = f'OSC client already registered ({host}:{client._port})'
             self._send_status_to_osc_clients(status)
             self.logger.info(status)
 
@@ -1257,7 +1257,7 @@ class NymphesOSC:
             # This is not a Nymphes parameter
             #
             # Send status update and log it
-            status = f'Unknown OSC message received ({address} from client at {sender_ip[0]})'
+            status = f'Unknown OSC message received from client at {sender_ip[0]}: {address}'
             self._send_status_to_osc_clients(status)
             self.logger.warning(status)
 
@@ -1277,7 +1277,7 @@ class NymphesOSC:
             self._send_osc_to_all_clients(f'/{name}', value)
 
             # Log it
-            self.logger.debug(f'{name}: {value}')
+            self.logger.debug(f'{name} {value}')
 
         elif name == 'float_param':
             #
@@ -1294,7 +1294,7 @@ class NymphesOSC:
             self._send_osc_to_all_clients(osc_address_from_parameter_name(param_name), float(param_value))
 
             # Log it
-            self.logger.debug(f'{name}: {value}')
+            self.logger.debug(f'{name} {value}')
 
         elif name == 'int_param':
             param_name, param_value = value
@@ -1306,14 +1306,14 @@ class NymphesOSC:
             self._send_osc_to_all_clients(osc_address_from_parameter_name(param_name), int(param_value))
 
             # Log it
-            self.logger.debug(f'{name}: {value}')
+            self.logger.debug(f'{name} {value}')
 
         elif name in PresetEvents.all_values():
             if isinstance(value, tuple):
                 self._send_osc_to_all_clients(f'/{name}', *value)
 
                 # Log the notification
-                self.logger.info(f'{name}: {value}')
+                self.logger.info(f'{name} {value}')
 
             elif value is None:
                 self._send_osc_to_all_clients(f'/{name}')
@@ -1325,14 +1325,14 @@ class NymphesOSC:
                 self._send_osc_to_all_clients(f'/{name}', value)
 
                 # Log the notification
-                self.logger.info(f'{name}: {value}')
+                self.logger.info(f'{name} {value}')
 
         elif name in MidiConnectionEvents.all_values():
             if isinstance(value, tuple):
                 self._send_osc_to_all_clients(f'/{name}', *value)
 
                 # Log the notification
-                self.logger.info(f'{name}: {value}')
+                self.logger.info(f'{name} {value}')
 
             elif value is None:
                 self._send_osc_to_all_clients(f'/{name}')
@@ -1344,7 +1344,7 @@ class NymphesOSC:
                 self._send_osc_to_all_clients(f'/{name}', value)
 
                 # Log the notification
-                self.logger.info(f'{name}: {value}')
+                self.logger.info(f'{name} {value}')
 
         else:
             # This is some other notification
@@ -1353,7 +1353,7 @@ class NymphesOSC:
                 self._send_osc_to_all_clients(f'/{name}', *value)
 
                 # Log the notification
-                self.logger.info(f'{name}: {value}')
+                self.logger.info(f'{name} {value}')
 
             elif value is None:
                 self._send_osc_to_all_clients(f'/{name}')
@@ -1365,7 +1365,7 @@ class NymphesOSC:
                 self._send_osc_to_all_clients(f'/{name}', value)
 
                 # Log the notification
-                self.logger.info(f'{name}: {value}')
+                self.logger.info(f'{name} {value}')
 
     def _get_local_ip_address(self):
         """

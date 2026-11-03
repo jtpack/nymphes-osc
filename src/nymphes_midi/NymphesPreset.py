@@ -2358,7 +2358,7 @@ class NymphesPreset:
         #
         params_string = ''
         for name, value in self.all_params_dict().items():
-            params_string += (f'{name}: {value}' + '\n')
+            params_string += (f'{name} {value}' + '\n')
 
         # Return it
         return params_string
