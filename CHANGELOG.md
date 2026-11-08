@@ -7,6 +7,8 @@
 - Removed the colon between names and values wherever they are logged
   - This is to better align with the way they are actually sent as OSC messages
 - Small change to log message when starting OSC server to make the message a little less confusing
+- Now OSC server default host is 0.0.0.0, so we receive messages on all available network hosts
+- Added project script to pyproject.toml so nymphes-osc can easily be run from the command line
 
 
 ## v1.0.1

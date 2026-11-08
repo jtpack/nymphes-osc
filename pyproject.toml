@@ -27,5 +27,8 @@ dependencies = [
 
 requires-python = ">=3.9"
 
+[project.scripts]
+nymphes-osc = "nymphes_osc.__main__:main"
+
 [project.urls]
 Homepage = "https://github.com/jtpack/nymphes-osc"

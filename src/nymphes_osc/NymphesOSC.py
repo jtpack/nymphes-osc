@@ -84,7 +84,7 @@ class NymphesOSC:
             self,
             nymphes_midi_channel=1,
             server_port=1237,
-            server_host=None,
+            server_host='0.0.0.0',
             client_port=None,
             client_host=None,
             use_mdns=False,
@@ -129,14 +129,6 @@ class NymphesOSC:
         # The hostname or IP that the OSC server is listening on for
         # incoming messages
         self.in_host = server_host
-
-        #
-        # If None was supplied for the host, then use the local
-        # IP address.
-        #
-
-        if self.in_host is None:
-            self.in_host = self._get_local_ip_address()
 
         #
         # mDNS Advertising
