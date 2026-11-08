@@ -1,3 +1,5 @@
+## v1.0.2
+
 - Message logging improved when a MIDI CC is received from Nymphes on an unexpected channel.
 - Fixed bug in NymphesOSC _get_local_ip_address which could cause a crash
 - Added utilities module to nymphes_osc
@@ -9,6 +11,7 @@
 - Small change to log message when starting OSC server to make the message a little less confusing
 - Now OSC server default host is 0.0.0.0, so we receive messages on all available network hosts
 - Added project script to pyproject.toml so nymphes-osc can easily be run from the command line
+- Fixed bugs where incorrect OSC messages were being sent on midi port detect and connect
 
 
 ## v1.0.1

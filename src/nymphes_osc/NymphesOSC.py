@@ -351,14 +351,14 @@ class NymphesOSC:
 
         # Send notifications for detected Nymphes MIDI input ports
         for port_name in self._nymphes_midi.detected_nymphes_midi_inputs:
-            msg = OscMessageBuilder(address='/detected_nymphes_midi_input')
+            msg = OscMessageBuilder(address='/nymphes_midi_input_detected')
             msg.add_arg(port_name)
             msg = msg.build()
             client.send(msg)
 
         # Send notifications for detected Nymphes MIDI output ports
         for port_name in self._nymphes_midi.detected_nymphes_midi_outputs:
-            msg = OscMessageBuilder(address='/detected_nymphes_midi_output')
+            msg = OscMessageBuilder(address='/nymphes_midi_output_detected')
             msg.add_arg(port_name)
             msg = msg.build()
             client.send(msg)
@@ -377,14 +377,14 @@ class NymphesOSC:
             
         # Send notifications for detected MIDI input ports
         for port_name in self._nymphes_midi.detected_midi_inputs:
-            msg = OscMessageBuilder(address='/detected_midi_input')
+            msg = OscMessageBuilder(address='/midi_input_detected')
             msg.add_arg(port_name)
             msg = msg.build()
             client.send(msg)
 
         # Send notifications for detected MIDI output ports
         for port_name in self._nymphes_midi.detected_midi_outputs:
-            msg = OscMessageBuilder(address='/detected_midi_output')
+            msg = OscMessageBuilder(address='/midi_output_detected')
             msg.add_arg(port_name)
             msg = msg.build()
             client.send(msg)
