@@ -12,6 +12,7 @@
 - Now OSC server default host is 0.0.0.0, so we receive messages on all available network hosts
 - Added project script to pyproject.toml so nymphes-osc can easily be run from the command line
 - Fixed bugs where incorrect OSC messages were being sent on midi port detect and connect
+- Now all Nymphes parameters received from OSC clients are echoed back out to all clients (including the original sender)
 
 
 ## v1.0.1
