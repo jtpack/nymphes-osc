@@ -6,6 +6,7 @@
 - Fixed bug where an attempt would be made to connect even if there were no detected Nymphes ports
 - Removed the colon between names and values wherever they are logged
   - This is to better align with the way they are actually sent as OSC messages
+- Small change to log message when starting OSC server to make the message a little less confusing
 
 
 ## v1.0.1

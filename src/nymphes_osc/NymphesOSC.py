@@ -466,7 +466,7 @@ class NymphesOSC:
         self._osc_server_thread.start()
 
         # Send status update and log it
-        status = f'Started OSC Server at {self.in_host}:{self.in_port}'
+        status = f'Listening for OSC messages on {self.in_host}:{self.in_port}'
         self._send_status_to_osc_clients(status)
         self.logger.info(status)
 
