@@ -84,7 +84,7 @@ class NymphesOSC:
             self,
             nymphes_midi_channel=1,
             server_port=1237,
-            server_host=None,
+            server_host='0.0.0.0',
             client_port=None,
             client_host=None,
             use_mdns=False,
@@ -129,14 +129,6 @@ class NymphesOSC:
         # The hostname or IP that the OSC server is listening on for
         # incoming messages
         self.in_host = server_host
-
-        #
-        # If None was supplied for the host, then use the local
-        # IP address.
-        #
-
-        if self.in_host is None:
-            self.in_host = self._get_local_ip_address()
 
         #
         # mDNS Advertising
@@ -359,14 +351,14 @@ class NymphesOSC:
 
         # Send notifications for detected Nymphes MIDI input ports
         for port_name in self._nymphes_midi.detected_nymphes_midi_inputs:
-            msg = OscMessageBuilder(address='/detected_nymphes_midi_input')
+            msg = OscMessageBuilder(address='/nymphes_midi_input_detected')
             msg.add_arg(port_name)
             msg = msg.build()
             client.send(msg)
 
         # Send notifications for detected Nymphes MIDI output ports
         for port_name in self._nymphes_midi.detected_nymphes_midi_outputs:
-            msg = OscMessageBuilder(address='/detected_nymphes_midi_output')
+            msg = OscMessageBuilder(address='/nymphes_midi_output_detected')
             msg.add_arg(port_name)
             msg = msg.build()
             client.send(msg)
@@ -385,14 +377,14 @@ class NymphesOSC:
             
         # Send notifications for detected MIDI input ports
         for port_name in self._nymphes_midi.detected_midi_inputs:
-            msg = OscMessageBuilder(address='/detected_midi_input')
+            msg = OscMessageBuilder(address='/midi_input_detected')
             msg.add_arg(port_name)
             msg = msg.build()
             client.send(msg)
 
         # Send notifications for detected MIDI output ports
         for port_name in self._nymphes_midi.detected_midi_outputs:
-            msg = OscMessageBuilder(address='/detected_midi_output')
+            msg = OscMessageBuilder(address='/midi_output_detected')
             msg.add_arg(port_name)
             msg = msg.build()
             client.send(msg)
@@ -466,7 +458,7 @@ class NymphesOSC:
         self._osc_server_thread.start()
 
         # Send status update and log it
-        status = f'Started OSC Server at {self.in_host}:{self.in_port}'
+        status = f'Listening for OSC messages on {self.in_host}:{self.in_port}'
         self._send_status_to_osc_clients(status)
         self.logger.info(status)
 

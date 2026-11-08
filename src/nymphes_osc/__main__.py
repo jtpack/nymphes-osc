@@ -23,6 +23,7 @@ def main():
     # IP will be detected and used
     parser.add_argument(
         '--server_host',
+        default='0.0.0.0',
         help='Optional. The hostname or IP address to use when listening for incoming OSC messages. If not supplied, then the local IP address is detected and used'
     )
 
