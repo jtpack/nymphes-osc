@@ -535,7 +535,8 @@ class NymphesOSC:
             msg.add_arg(arg)
         msg = msg.build()
 
-        for osc_client in self._osc_clients_dict.values():
+        osc_clients = self._osc_clients_dict.values()
+        for osc_client in osc_clients:
             osc_client.send(msg)
 
     #
@@ -1222,6 +1223,9 @@ class NymphesOSC:
                 try:
                     self._nymphes_midi.set_param(param_name, int_value=value)
 
+                    # Send the message to all OSC clients to keep them updated
+                    self._send_osc_to_all_clients(address, value)
+
                 except Exception as e:
                     # Send status update and log it
                     status = f'Failed to set parameter'
@@ -1231,6 +1235,9 @@ class NymphesOSC:
             elif isinstance(value, float):
                 try:
                     self._nymphes_midi.set_param(param_name, float_value=value)
+
+                    # Send the message to all OSC clients to keep them updated
+                    self._send_osc_to_all_clients(address, value)
 
                 except Exception as e:
                     # Send status update and log it
