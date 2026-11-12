@@ -16,6 +16,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 import os
 import platform
+import time
 
 
 #
@@ -150,6 +151,8 @@ class NymphesOSC:
         # key: A tuple: (str(hostname), int(port))
         # value: The osc client object the client
         self._osc_clients_dict = {}
+
+        self._last_heartbeat_time = None
 
         # Register for non-Control Parameter OSC messages
         #
@@ -293,9 +296,26 @@ class NymphesOSC:
     def update(self):
         """
         This method should be called regularly to enable MIDI message reception
-        and sending, as well as MIDI connection handling.
+        and sending, as well as MIDI connection handling and other timely
+        functions.
         """
+        #
+        # Update MIDI
+        #
+
         self._nymphes_midi.update()
+
+        #
+        # Heartbeat Message
+        #
+
+        if self._last_heartbeat_time is None:
+            self._last_heartbeat_time = time.monotonic()
+
+        current_time = time.monotonic()
+        if current_time - self._last_heartbeat_time >= 0.5:
+            self._last_heartbeat_time = current_time
+            self._send_heartbeat_to_osc_clients()
 
     def register_osc_client(self, host, port):
         """
@@ -538,6 +558,14 @@ class NymphesOSC:
         osc_clients = self._osc_clients_dict.values()
         for osc_client in osc_clients:
             osc_client.send(msg)
+
+    def _send_heartbeat_to_osc_clients(self):
+        """
+        Send the heartbeat message to all registered OSC clients.
+        This is called regularly by self.update()
+        :return:
+        """
+        self._send_osc_to_all_clients("/heartbeat")
 
     #
     # OSC Message Handling Methods

@@ -189,8 +189,6 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Type: Int
     - Description: Client port
 
-#### TODO: Get list of clients
-
 
 ## Preset Handling
 
@@ -1000,6 +998,10 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - 1
       - Type: Int
       - Description: Port of client 
+
+#### /heartbeat
+- Description: This message is sent to all registered clients at regular intervals so they know that the server is still online
+- Arguments: None
 
 ## Preset Events
 
