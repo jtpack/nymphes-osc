@@ -965,6 +965,109 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
       - 0: Off
       - 1: On
 
+## MIDI Messages Over OSC
+
+#### /midi/note_on
+- Description: A MIDI Note-On Message
+  - Arguments:
+    - 0
+      - Description: Note Number
+      - Type: Int
+      - Range: 0 to 127
+    - 1
+      - Description: Velocity
+      - Type: Int
+      - Range: 0 to 127
+    - 2
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
+#### /midi/note_off
+- Description: A MIDI Note-Off Message
+  - Arguments:
+    - 0
+      - Description: Note Number
+      - Type: Int
+      - Range: 0 to 127
+    - 1
+      - Description: Velocity
+      - Type: Int
+      - Range: 0 to 127
+    - 2
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
+#### /midi/cc
+- Description: A MIDI Control Change Message
+  - Arguments:
+    - 0
+      - Description: Controller Number
+      - Type: Int
+      - Range: 0 to 127
+    - 1
+      - Description: Value
+      - Type: Int
+      - Range: 0 to 127
+    - 2
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
+#### /midi/pitchbend
+- Description: A MIDI Pitch Bend Message
+  - Arguments:
+    - 0
+      - Description: Amount
+      - Type: Int
+      - Range: -8192 to 9191
+    - 1
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
+#### /midi/aftertouch
+- Description: A MIDI Aftertouch Message
+  - Arguments:
+    - 0
+      - Description: Amount
+      - Type: Int
+      - Range: 0 to 127
+    - 1
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
+#### /midi/poly_aftertouch
+- Description: A MIDI Poly Aftertough Message
+  - Arguments:
+    - 0
+      - Description: Note Number
+      - Type: Int
+      - Range: 0 to 127
+    - 1
+      - Description: Amount
+      - Type: Int
+      - Range: 0 to 127
+    - 2
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
+#### /midi/program_change
+- Description: A MIDI Program Change Message
+  - Arguments:
+    - 0
+      - Description: Program Number
+      - Type: Int
+      - Range: 0 to 127
+    - 1
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
+
 ## Other Settings and Controls
 
 #### /set_nymphes_midi_channel
