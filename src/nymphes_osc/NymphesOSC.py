@@ -557,7 +557,10 @@ class NymphesOSC:
 
         osc_clients = self._osc_clients_dict.values()
         for osc_client in osc_clients:
-            osc_client.send(msg)
+            try:
+                osc_client.send(msg)
+            except OSError:
+                logger.exception(f"Failed to send {address} {args} to OSC client at {osc_client}")
 
     def _send_heartbeat_to_osc_clients(self):
         """
