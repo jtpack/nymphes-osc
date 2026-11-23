@@ -1480,6 +1480,17 @@ class NymphesMIDI:
         # Send to connected MIDI Output ports
         self._send_to_all_connected_midi_output_ports(msg)
 
+    def on_midi_over_osc(self, msg):
+        """
+        Receive the supplied MIDI message and handle it in the same
+        way as messages received from connected MIDI input ports.
+        This is intended as a way for receive MIDI from OSC clients
+        over the network.
+        :param msg: A mido MIDI message
+        :return:
+        """
+        pass
+
     def _send_to_nymphes(self, msg):
         """
         Add a MIDI message to the Nymphes queue.

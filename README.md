@@ -151,7 +151,7 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 # Features
 
 
-# OSC Commands Reference
+# OSC Commands Received by nymphes-osc
 
 ## OSC Client Registration
 
@@ -966,6 +966,10 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
       - 1: On
 
 ## MIDI Messages Over OSC
+
+These let a connected OSC client send MIDI to Nymphes across the network rather than requiring a pair of actual MIDI interfaces.
+These OSC messages generate MIDI messages which are handled as if they came from a connected MIDI input port.
+The OSC messages themselves are not relayed to other connected OSC clients.
 
 #### /midi/note_on
 - Description: A MIDI Note-On Message
