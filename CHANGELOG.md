@@ -1,4 +1,5 @@
 - Added /heartbeat message, which is sent to all registered OSC clients every 0.5 seconds to let them know that the nymphes-osc server is still up
+- Improved logging of log levels (now shows string instead of number)
 
 
 ## v1.0.2

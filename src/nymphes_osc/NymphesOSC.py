@@ -90,11 +90,22 @@ class NymphesOSC:
             client_host=None,
             use_mdns=False,
             mdns_name=None,
-            osc_log_level=logging.DEBUG,
-            midi_log_level=logging.DEBUG,
+            osc_log_level=logging.INFO,
+            midi_log_level=logging.INFO,
             presets_directory_path=None,
             should_connect_first_detected_nymphes=True
     ):
+        def log_level_to_string(log_level):
+            if log_level == logging.DEBUG:
+                return "DEBUG"
+            elif log_level == logging.INFO:
+                return "INFO"
+            elif log_level == logging.WARNING:
+                return "WARNING"
+            elif log_level == logging.CRITICAL:
+                return "CRITICAL"
+            else:
+                return f"{log_level}"
 
         # Get logger
         self.logger = logging.getLogger('nymphes-osc.nymphes_osc')
@@ -107,8 +118,8 @@ class NymphesOSC:
         self.logger.info(f'client_host: {client_host}')
         self.logger.info(f'use_mdns: {use_mdns}')
         self.logger.info(f'mdns_name: {mdns_name}')
-        self.logger.info(f'nymphes_osc_log_level: {osc_log_level}')
-        self.logger.info(f'nymphes_midi_log_level: {midi_log_level}')
+        self.logger.info(f'nymphes_osc_log_level: {log_level_to_string(osc_log_level)}')
+        self.logger.info(f'nymphes_midi_log_level: {log_level_to_string(midi_log_level)}')
         self.logger.info(f'presets_directory_path: {presets_directory_path}')
 
         # Create NymphesMidi object
