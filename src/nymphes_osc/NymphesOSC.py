@@ -568,6 +568,7 @@ class NymphesOSC:
         This is called regularly by self.update()
         :return:
         """
+        logger.debug("Sending /heartbeat")
         self._send_osc_to_all_clients("/heartbeat")
 
     #
