@@ -24,7 +24,6 @@ import time
 #
 
 logger = logging.getLogger('nymphes-osc')
-logger.setLevel(logging.DEBUG)
 
 log_formatter = logging.Formatter(
     '%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
@@ -325,8 +324,9 @@ class NymphesOSC:
 
         current_time = time.monotonic()
         if current_time - self._last_heartbeat_time >= 0.5:
-            self._last_heartbeat_time = current_time
-            self._send_heartbeat_to_osc_clients()
+            if len(self._osc_clients_dict) > 0:
+                self._last_heartbeat_time = current_time
+                self._send_heartbeat_to_osc_clients()
 
     def register_osc_client(self, host, port):
         """
@@ -579,7 +579,7 @@ class NymphesOSC:
         This is called regularly by self.update()
         :return:
         """
-        logger.debug("Sending /heartbeat")
+        self.logger.debug("Sending /heartbeat")
         self._send_osc_to_all_clients("/heartbeat")
 
     #
