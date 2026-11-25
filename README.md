@@ -155,6 +155,12 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 
 ## OSC Client Registration
 
+Register as an OSC client to receive responses from the nymphes-osc server.
+The server will accept messages from sources that have not registered as a client, 
+but cannot reply to them as it doesn't know which port they are listening on.
+
+If a registered client becomes unreachable, it is automatically unregistered.
+
 #### /register_client
 - Description: Register an OSC client specifying the port. The sender's IP address will be detected and used as the client's IP address.
 - Arguments:
