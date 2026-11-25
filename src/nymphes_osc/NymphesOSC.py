@@ -121,6 +121,7 @@ class NymphesOSC:
         self.logger.info(f'nymphes_osc_log_level: {log_level_to_string(osc_log_level)}')
         self.logger.info(f'nymphes_midi_log_level: {log_level_to_string(midi_log_level)}')
         self.logger.info(f'presets_directory_path: {presets_directory_path}')
+        self.logger.info(f'should_connect_first_detected_nymphes: {should_connect_first_detected_nymphes}')
 
         # Create NymphesMidi object
         self._nymphes_midi = NymphesMIDI(
