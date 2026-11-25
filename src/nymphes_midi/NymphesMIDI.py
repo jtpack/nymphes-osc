@@ -30,7 +30,8 @@ class NymphesMIDI:
     ):
         # If this is True then connect to the first detected Nymphes, when it
         # is detected
-        self.waiting_to_connect_first_detected_nymphes = should_connect_first_detected_nymphes
+        self.should_connect_first_detected_nymphes = should_connect_first_detected_nymphes
+        self.waiting_to_connect_first_detected_nymphes = self.should_connect_first_detected_nymphes
 
         # Callback function for us to call with notifications.
         self._notification_callback_function = notification_callback_function
@@ -737,6 +738,9 @@ class NymphesMIDI:
         self.add_notification(
             MidiConnectionEvents.nymphes_disconnected.value
         )
+
+        if self.should_connect_first_detected_nymphes:
+            self.waiting_to_connect_first_detected_nymphes = True
 
     def connect_midi_input(self, port_name):
         """
@@ -2222,6 +2226,9 @@ class NymphesMIDI:
         self.add_notification(
             MidiConnectionEvents.nymphes_disconnected.value
         )
+
+        if self.should_connect_first_detected_nymphes:
+            self.waiting_to_connect_first_detected_nymphes = True
 
     def _on_nymphes_input_detected(self, port_name):
         # A Nymphes MIDI input port has been detected.
