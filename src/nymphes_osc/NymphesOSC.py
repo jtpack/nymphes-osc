@@ -302,6 +302,31 @@ class NymphesOSC:
             self._on_osc_message_midi_note_off,
             needs_reply_address=True
         )
+        self._dispatcher.map(
+            '/midi/cc',
+            self._on_osc_message_midi_cc,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/midi/pitchbend',
+            self._on_osc_message_midi_pitchbend,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/midi/aftertouch',
+            self._on_osc_message_midi_aftertouch,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/midi/poly_aftertouch',
+            self._on_osc_message_midi_poly_aftertouch,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/midi/program_change',
+            self._on_osc_message_midi_program_change,
+            needs_reply_address=True
+        )
         self._dispatcher.set_default_handler(
             self._on_other_osc_message,
             needs_reply_address=True
@@ -1294,6 +1319,158 @@ class NymphesOSC:
                     channel=int(args[2]) - 1,
                     note=int(args[0]),
                     velocity=int(args[1])
+                )
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to handle MIDI over OSC'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.exception(f'{status}')
+
+    def _on_osc_message_midi_cc(self, sender_ip, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI Control Change message.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure that arguments were supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            self.logger.debug(f'Received {address} {args} from {sender_ip[0]}')
+
+            self._nymphes_midi.on_midi_over_osc(
+                msg=mido.Message(
+                    'control_change',
+                    control=int(args[0]),
+                    value=int(args[1]),
+                    channel=int(args[2]) - 1
+                )
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to handle MIDI over OSC'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.exception(f'{status}')
+
+    def _on_osc_message_midi_pitchbend(self, sender_ip, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI Pitchbend message.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure that arguments were supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            self.logger.debug(f'Received {address} {args} from {sender_ip[0]}')
+
+            self._nymphes_midi.on_midi_over_osc(
+                msg=mido.Message(
+                    'pitchwheel',
+                    pitch=int(args[0]),
+                    channel=int(args[1]) - 1
+                )
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to handle MIDI over OSC'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.exception(f'{status}')
+
+    def _on_osc_message_midi_aftertouch(self, sender_ip, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI Aftertouch message.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure that arguments were supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            self.logger.debug(f'Received {address} {args} from {sender_ip[0]}')
+
+            self._nymphes_midi.on_midi_over_osc(
+                msg=mido.Message(
+                    'aftertouch',
+                    value=int(args[0]),
+                    channel=int(args[1]) - 1
+                )
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to handle MIDI over OSC'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.exception(f'{status}')
+
+    def _on_osc_message_midi_poly_aftertouch(self, sender_ip, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI Poly Aftertouch message.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure that arguments were supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            self.logger.debug(f'Received {address} {args} from {sender_ip[0]}')
+
+            self._nymphes_midi.on_midi_over_osc(
+                msg=mido.Message(
+                    'polytouch',
+                    note=int(args[0]),
+                    value=int(args[1]),
+                    channel=int(args[2]) - 1
+                )
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to handle MIDI over OSC'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.exception(f'{status}')
+
+    def _on_osc_message_midi_program_change(self, sender_ip, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI Program Change message.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure that arguments were supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            self.logger.debug(f'Received {address} {args} from {sender_ip[0]}')
+
+            self._nymphes_midi.on_midi_over_osc(
+                msg=mido.Message(
+                    'program_change',
+                    program=int(args[0]),
+                    channel=int(args[1]) - 1
                 )
             )
 

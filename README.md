@@ -973,8 +973,8 @@ If a registered client becomes unreachable, it is automatically unregistered.
 
 ## MIDI Messages Over OSC
 
-These let a connected OSC client send MIDI to Nymphes across the network rather than requiring a pair of actual MIDI interfaces.
-These OSC messages generate MIDI messages which are handled as if they came from a connected MIDI input port.
+These generate MIDI messages, allowing clients to send MIDI to Nymphes across the network rather than requiring
+a pair of actual MIDI interfaces. These MIDI messages are handled as if they came from a connected MIDI input port.
 The OSC messages themselves are not relayed to other connected OSC clients.
 
 #### /midi/note_on
