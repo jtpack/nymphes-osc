@@ -1489,7 +1489,10 @@ class NymphesMIDI:
         :param msg: A mido MIDI message
         :return:
         """
-        pass
+        self._on_message_from_midi_input_port(
+            msg=msg,
+            input_port_name="MIDI over OSC"
+        )
 
     def _send_to_nymphes(self, msg):
         """
@@ -1787,9 +1790,9 @@ class NymphesMIDI:
     def _on_message_from_midi_input_port(self, msg, input_port_name):
         """
         A MIDI message has been received from a connected
-        MIDI input port. Interpret it. If it affects the
-        current preset's values, then notify the software
-        client.
+        MIDI input port.
+        Interpret it. If it affects the current preset's values,
+        then notify the software client.
         We always send a copy of the message to Nymphes.
         :param msg: A mido MIDI Message object
         :param input_port_name: (str) The name of the mido MIDI Input
