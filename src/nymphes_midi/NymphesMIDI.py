@@ -2183,7 +2183,7 @@ class NymphesMIDI:
         # Get the raw program change value
         program_num = msg.program
 
-        self.logger.info(f'_parse_midi_program_change_message: {program_num}')
+        self.logger.debug(f'_parse_midi_program_change_message: {program_num}')
 
         # Determine the bank name (A to G)
         bank_num = int(program_num / 7)

@@ -1466,13 +1466,20 @@ class NymphesOSC:
         try:
             self.logger.debug(f'Received {address} {args} from {sender_ip[0]}')
 
-            self._nymphes_midi.on_midi_over_osc(
-                msg=mido.Message(
-                    'program_change',
-                    program=int(args[0]),
-                    channel=int(args[1]) - 1
+            program_number = int(args[0])
+            channel = int(args[1]) - 1
+
+            if 0 <= program_number <= 48:
+                self._nymphes_midi.on_midi_over_osc(
+                    msg=mido.Message(
+                        'program_change',
+                        program=program_number,
+                        channel=channel
+                    )
                 )
-            )
+                self.logger.info(f'Received MIDI Program Change via OSC: {program_number}')
+            else:
+                self.logger.info(f'Received invalid MIDI Program Change via OSC: {program_number}')
 
         except Exception as e:
             # Send status update and log it
