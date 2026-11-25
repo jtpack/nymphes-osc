@@ -373,11 +373,6 @@ class NymphesOSC:
             # We have already added this client.
             client = self._osc_clients_dict[(host, port)]
 
-            # Send status update and log it
-            status = f'OSC client already registered ({host}:{client._port})'
-            self._send_status_to_osc_clients(status)
-            self.logger.info(status)
-
         # Send osc notification to the client
         msg = OscMessageBuilder(address='/client_registered')
         msg.add_arg(host)
