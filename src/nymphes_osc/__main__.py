@@ -114,7 +114,8 @@ def main():
         mdns_name=args.mdns_name,
         osc_log_level=log_level_for_name(args.osc_log_level),
         midi_log_level=log_level_for_name(args.midi_log_level),
-        presets_directory_path=presets_directory_path
+        presets_directory_path=presets_directory_path,
+        should_connect_first_detected_nymphes=True
     )
 
     #
