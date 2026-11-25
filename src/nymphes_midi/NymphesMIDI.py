@@ -1480,6 +1480,20 @@ class NymphesMIDI:
         # Send to connected MIDI Output ports
         self._send_to_all_connected_midi_output_ports(msg)
 
+    def on_midi_over_osc(self, msg):
+        """
+        Receive the supplied MIDI message and handle it in the same
+        way as messages received from connected MIDI input ports.
+        This is intended as a way for receive MIDI from OSC clients
+        over the network.
+        :param msg: A mido MIDI message
+        :return:
+        """
+        self._on_message_from_midi_input_port(
+            msg=msg,
+            input_port_name="MIDI over OSC"
+        )
+
     def _send_to_nymphes(self, msg):
         """
         Add a MIDI message to the Nymphes queue.
@@ -1776,9 +1790,9 @@ class NymphesMIDI:
     def _on_message_from_midi_input_port(self, msg, input_port_name):
         """
         A MIDI message has been received from a connected
-        MIDI input port. Interpret it. If it affects the
-        current preset's values, then notify the software
-        client.
+        MIDI input port.
+        Interpret it. If it affects the current preset's values,
+        then notify the software client.
         We always send a copy of the message to Nymphes.
         :param msg: A mido MIDI Message object
         :param input_port_name: (str) The name of the mido MIDI Input

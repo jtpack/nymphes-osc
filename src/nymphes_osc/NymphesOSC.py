@@ -17,6 +17,7 @@ from pathlib import Path
 import os
 import platform
 import time
+import mido
 
 
 #
@@ -24,7 +25,6 @@ import time
 #
 
 logger = logging.getLogger('nymphes-osc')
-logger.setLevel(logging.DEBUG)
 
 log_formatter = logging.Formatter(
     '%(asctime)s.%(msecs)03d - %(name)s - %(levelname)s - %(message)s',
@@ -90,11 +90,22 @@ class NymphesOSC:
             client_host=None,
             use_mdns=False,
             mdns_name=None,
-            osc_log_level=logging.DEBUG,
-            midi_log_level=logging.DEBUG,
+            osc_log_level=logging.INFO,
+            midi_log_level=logging.INFO,
             presets_directory_path=None,
             should_connect_first_detected_nymphes=True
     ):
+        def log_level_to_string(log_level):
+            if log_level == logging.DEBUG:
+                return "DEBUG"
+            elif log_level == logging.INFO:
+                return "INFO"
+            elif log_level == logging.WARNING:
+                return "WARNING"
+            elif log_level == logging.CRITICAL:
+                return "CRITICAL"
+            else:
+                return f"{log_level}"
 
         # Get logger
         self.logger = logging.getLogger('nymphes-osc.nymphes_osc')
@@ -107,8 +118,8 @@ class NymphesOSC:
         self.logger.info(f'client_host: {client_host}')
         self.logger.info(f'use_mdns: {use_mdns}')
         self.logger.info(f'mdns_name: {mdns_name}')
-        self.logger.info(f'nymphes_osc_log_level: {osc_log_level}')
-        self.logger.info(f'nymphes_midi_log_level: {midi_log_level}')
+        self.logger.info(f'nymphes_osc_log_level: {log_level_to_string(osc_log_level)}')
+        self.logger.info(f'nymphes_midi_log_level: {log_level_to_string(midi_log_level)}')
         self.logger.info(f'presets_directory_path: {presets_directory_path}')
 
         # Create NymphesMidi object
@@ -281,6 +292,41 @@ class NymphesOSC:
             self._on_osc_message_sustain_pedal,
             needs_reply_address=True
         )
+        self._dispatcher.map(
+            '/midi/note_on',
+            self._on_osc_message_midi_note_on,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/midi/note_off',
+            self._on_osc_message_midi_note_off,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/midi/cc',
+            self._on_osc_message_midi_cc,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/midi/pitchbend',
+            self._on_osc_message_midi_pitchbend,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/midi/aftertouch',
+            self._on_osc_message_midi_aftertouch,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/midi/poly_aftertouch',
+            self._on_osc_message_midi_poly_aftertouch,
+            needs_reply_address=True
+        )
+        self._dispatcher.map(
+            '/midi/program_change',
+            self._on_osc_message_midi_program_change,
+            needs_reply_address=True
+        )
         self._dispatcher.set_default_handler(
             self._on_other_osc_message,
             needs_reply_address=True
@@ -314,8 +360,9 @@ class NymphesOSC:
 
         current_time = time.monotonic()
         if current_time - self._last_heartbeat_time >= 0.5:
-            self._last_heartbeat_time = current_time
-            self._send_heartbeat_to_osc_clients()
+            if len(self._osc_clients_dict) > 0:
+                self._last_heartbeat_time = current_time
+                self._send_heartbeat_to_osc_clients()
 
     def register_osc_client(self, host, port):
         """
@@ -350,11 +397,6 @@ class NymphesOSC:
         else:
             # We have already added this client.
             client = self._osc_clients_dict[(host, port)]
-
-            # Send status update and log it
-            status = f'OSC client already registered ({host}:{client._port})'
-            self._send_status_to_osc_clients(status)
-            self.logger.info(status)
 
         # Send osc notification to the client
         msg = OscMessageBuilder(address='/client_registered')
@@ -555,12 +597,15 @@ class NymphesOSC:
             msg.add_arg(arg)
         msg = msg.build()
 
-        osc_clients = self._osc_clients_dict.values()
-        for osc_client in osc_clients:
+        for osc_client_key in self._osc_clients_dict.keys():
+            osc_client = self._osc_clients_dict[osc_client_key]
             try:
                 osc_client.send(msg)
-            except OSError:
-                logger.exception(f"Failed to send {address} {args} to OSC client at {osc_client}")
+            except OSError as e:
+                logger.warning(f"Failed to send {address} {args} to OSC client at {osc_client_key}. Removing the client. ({e})")
+
+                # Remove the client
+                self.unregister_osc_client(ip_address_string=osc_client_key[0], port=osc_client_key[1])
 
     def _send_heartbeat_to_osc_clients(self):
         """
@@ -568,6 +613,7 @@ class NymphesOSC:
         This is called regularly by self.update()
         :return:
         """
+        self.logger.debug("Sending /heartbeat")
         self._send_osc_to_all_clients("/heartbeat")
 
     #
@@ -697,7 +743,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -729,7 +775,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -766,7 +812,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -800,7 +846,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -836,7 +882,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -864,7 +910,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -898,7 +944,7 @@ class NymphesOSC:
         :return:
         """
         try:
-            self.logger.info(f'Received {address} from client at {sender_ip[0]}')
+            self.logger.info(f'Received {address} from {sender_ip[0]}')
             self._nymphes_midi.load_init_file()
 
         except Exception as e:
@@ -915,7 +961,7 @@ class NymphesOSC:
         :param *args: The OSC message's arguments
         :return:
         """
-        self.logger.info(f'Received {address} from client at {sender_ip[0]}')
+        self.logger.info(f'Received {address} from {sender_ip[0]}')
 
         # Send the dump request
         self._nymphes_midi.request_preset_dump()
@@ -930,7 +976,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -957,7 +1003,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -1007,7 +1053,7 @@ class NymphesOSC:
         :return:
         """
         try:
-            self.logger.info(f'Received {address} from client at {sender_ip[0]}')
+            self.logger.info(f'Received {address} from {sender_ip[0]}')
 
             # Disconnect Nymphes ports
             self._nymphes_midi.disconnect_nymphes()
@@ -1028,7 +1074,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -1049,14 +1095,14 @@ class NymphesOSC:
         """
         Enable MIDI feedback suppression
         """
-        self.logger.info(f'Received {address} from client at {sender_ip[0]}')
+        self.logger.info(f'Received {address} from {sender_ip[0]}')
         self._nymphes_midi.enable_midi_feedback_suppression()
 
     def _on_osc_message_disable_midi_feedback_suppression(self, sender_ip, address, *args):
         """
         Disable MIDI feedback suppression
         """
-        self.logger.info(f'Received {address} from client at {sender_ip[0]}')
+        self.logger.info(f'Received {address} from {sender_ip[0]}')
         self._nymphes_midi.disable_midi_feedback_suppression()
 
     def _on_osc_message_connect_midi_output(self, sender_ip, address, *args):
@@ -1069,7 +1115,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -1096,7 +1142,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -1124,7 +1170,7 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
@@ -1151,13 +1197,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             value = args[0]
 
-            self.logger.info(f'Received {address} {value} from client at {sender_ip[0]}')
+            self.logger.info(f'Received {address} {value} from {sender_ip[0]}')
 
             self._nymphes_midi.set_mod_wheel(value)
 
@@ -1177,13 +1223,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             value = args[0]
 
-            self.logger.info(f'Received {address} {value} from client at {sender_ip[0]}')
+            self.logger.info(f'Received {address} {value} from {sender_ip[0]}')
 
             self._nymphes_midi.set_channel_aftertouch(value)
 
@@ -1204,13 +1250,13 @@ class NymphesOSC:
         """
         # Make sure an argument was supplied
         if len(args) == 0:
-            self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
             return
 
         try:
             value = args[0]
 
-            self.logger.info(f'Received {address} {value} from client at {sender_ip[0]}')
+            self.logger.info(f'Received {address} {value} from {sender_ip[0]}')
 
             self._nymphes_midi.set_sustain_pedal(value)
 
@@ -1219,6 +1265,220 @@ class NymphesOSC:
             status = f'Failed to set sustain_pedal'
             self._send_error_message_to_osc_clients(status, str(e))
             self.logger.warning(f'{status}: {e}')
+
+    def _on_osc_message_midi_note_on(self, sender_ip, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI Note-On message.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure that arguments were supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            self.logger.debug(f'Received {address} {args} from {sender_ip[0]}')
+
+            self._nymphes_midi.on_midi_over_osc(
+                msg=mido.Message(
+                    'note_on',
+                    channel=int(args[2]) - 1,
+                    note=int(args[0]),
+                    velocity=int(args[1])
+                )
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to handle MIDI over OSC'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.exception(f'{status}')
+            
+    def _on_osc_message_midi_note_off(self, sender_ip, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI Note-Off message.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure that arguments were supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            self.logger.debug(f'Received {address} {args} from {sender_ip[0]}')
+
+            self._nymphes_midi.on_midi_over_osc(
+                msg=mido.Message(
+                    'note_off',
+                    channel=int(args[2]) - 1,
+                    note=int(args[0]),
+                    velocity=int(args[1])
+                )
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to handle MIDI over OSC'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.exception(f'{status}')
+
+    def _on_osc_message_midi_cc(self, sender_ip, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI Control Change message.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure that arguments were supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            self.logger.debug(f'Received {address} {args} from {sender_ip[0]}')
+
+            self._nymphes_midi.on_midi_over_osc(
+                msg=mido.Message(
+                    'control_change',
+                    control=int(args[0]),
+                    value=int(args[1]),
+                    channel=int(args[2]) - 1
+                )
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to handle MIDI over OSC'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.exception(f'{status}')
+
+    def _on_osc_message_midi_pitchbend(self, sender_ip, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI Pitchbend message.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure that arguments were supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            self.logger.debug(f'Received {address} {args} from {sender_ip[0]}')
+
+            self._nymphes_midi.on_midi_over_osc(
+                msg=mido.Message(
+                    'pitchwheel',
+                    pitch=int(args[0]),
+                    channel=int(args[1]) - 1
+                )
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to handle MIDI over OSC'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.exception(f'{status}')
+
+    def _on_osc_message_midi_aftertouch(self, sender_ip, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI Aftertouch message.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure that arguments were supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            self.logger.debug(f'Received {address} {args} from {sender_ip[0]}')
+
+            self._nymphes_midi.on_midi_over_osc(
+                msg=mido.Message(
+                    'aftertouch',
+                    value=int(args[0]),
+                    channel=int(args[1]) - 1
+                )
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to handle MIDI over OSC'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.exception(f'{status}')
+
+    def _on_osc_message_midi_poly_aftertouch(self, sender_ip, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI Poly Aftertouch message.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure that arguments were supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            self.logger.debug(f'Received {address} {args} from {sender_ip[0]}')
+
+            self._nymphes_midi.on_midi_over_osc(
+                msg=mido.Message(
+                    'polytouch',
+                    note=int(args[0]),
+                    value=int(args[1]),
+                    channel=int(args[2]) - 1
+                )
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to handle MIDI over OSC'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.exception(f'{status}')
+
+    def _on_osc_message_midi_program_change(self, sender_ip, address, *args):
+        """
+        An OSC client has just sent a message to send a MIDI Program Change message.
+        :param sender_ip: This is the automatically-detected IP address of the sender
+        :param address: (str) The OSC address of the message
+        :param *args: The OSC message's arguments
+        :return:
+        """
+        # Make sure that arguments were supplied
+        if len(args) == 0:
+            self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
+            return
+
+        try:
+            self.logger.debug(f'Received {address} {args} from {sender_ip[0]}')
+
+            self._nymphes_midi.on_midi_over_osc(
+                msg=mido.Message(
+                    'program_change',
+                    program=int(args[0]),
+                    channel=int(args[1]) - 1
+                )
+            )
+
+        except Exception as e:
+            # Send status update and log it
+            status = f'Failed to handle MIDI over OSC'
+            self._send_error_message_to_osc_clients(status, str(e))
+            self.logger.exception(f'{status}')
 
     def _on_other_osc_message(self, sender_ip, address, *args):
         """
@@ -1242,13 +1502,13 @@ class NymphesOSC:
 
             # Make sure that an argument was supplied
             if len(args) == 0:
-                self.logger.warning(f'Received {address} from client at {sender_ip[0]} without any arguments')
+                self.logger.warning(f'Received {address} from {sender_ip[0]} without any arguments')
                 return
 
             # Get the value
             value = args[0]
 
-            self.logger.info(f'Received {address} {value} from client at {sender_ip[0]}')
+            self.logger.info(f'Received {address} {value} from {sender_ip[0]}')
 
             if isinstance(value, int):
                 try:
@@ -1287,7 +1547,7 @@ class NymphesOSC:
             # This is not a Nymphes parameter
             #
             # Send status update and log it
-            status = f'Unknown OSC message received from client at {sender_ip[0]}: {address}'
+            status = f'Unknown OSC message received from {sender_ip[0]}: {address}'
             self._send_status_to_osc_clients(status)
             self.logger.warning(status)
 

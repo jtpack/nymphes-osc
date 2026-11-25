@@ -151,9 +151,15 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
 # Features
 
 
-# OSC Commands Reference
+# OSC Commands Received by nymphes-osc
 
 ## OSC Client Registration
+
+Register as an OSC client to receive responses from the nymphes-osc server.
+The server will accept messages from sources that have not registered as a client, 
+but cannot reply to them as it doesn't know which port they are listening on.
+
+If a registered client becomes unreachable, it is automatically unregistered.
 
 #### /register_client
 - Description: Register an OSC client specifying the port. The sender's IP address will be detected and used as the client's IP address.
@@ -964,6 +970,113 @@ You can also use `nymphes-osc --help` to see a help message listing the argument
     - Values:
       - 0: Off
       - 1: On
+
+## MIDI Messages Over OSC
+
+These generate MIDI messages, allowing clients to send MIDI to Nymphes across the network rather than requiring
+a pair of actual MIDI interfaces. These MIDI messages are handled as if they came from a connected MIDI input port.
+The OSC messages themselves are not relayed to other connected OSC clients.
+
+#### /midi/note_on
+- Description: A MIDI Note-On Message
+  - Arguments:
+    - 0
+      - Description: Note Number
+      - Type: Int
+      - Range: 0 to 127
+    - 1
+      - Description: Velocity
+      - Type: Int
+      - Range: 0 to 127
+    - 2
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
+#### /midi/note_off
+- Description: A MIDI Note-Off Message
+  - Arguments:
+    - 0
+      - Description: Note Number
+      - Type: Int
+      - Range: 0 to 127
+    - 1
+      - Description: Velocity
+      - Type: Int
+      - Range: 0 to 127
+    - 2
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
+#### /midi/cc
+- Description: A MIDI Control Change Message
+  - Arguments:
+    - 0
+      - Description: Controller Number
+      - Type: Int
+      - Range: 0 to 127
+    - 1
+      - Description: Value
+      - Type: Int
+      - Range: 0 to 127
+    - 2
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
+#### /midi/pitchbend
+- Description: A MIDI Pitch Bend Message
+  - Arguments:
+    - 0
+      - Description: Amount
+      - Type: Int
+      - Range: -8192 to 9191
+    - 1
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
+#### /midi/aftertouch
+- Description: A MIDI Aftertouch Message
+  - Arguments:
+    - 0
+      - Description: Amount
+      - Type: Int
+      - Range: 0 to 127
+    - 1
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
+#### /midi/poly_aftertouch
+- Description: A MIDI Poly Aftertough Message
+  - Arguments:
+    - 0
+      - Description: Note Number
+      - Type: Int
+      - Range: 0 to 127
+    - 1
+      - Description: Amount
+      - Type: Int
+      - Range: 0 to 127
+    - 2
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
+#### /midi/program_change
+- Description: A MIDI Program Change Message
+  - Arguments:
+    - 0
+      - Description: Program Number
+      - Type: Int
+      - Range: 0 to 127
+    - 1
+      - Description: Channel
+      - Type: Int
+      - Range: 1 to 16
+
 
 ## Other Settings and Controls
 
